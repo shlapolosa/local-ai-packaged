@@ -68,7 +68,8 @@ Before you begin, make sure you have the following software installed:
 
 Clone the repository and navigate to the project directory:
 ```bash
-git clone -b stable https://github.com/coleam00/local-ai-packaged.git
+export GITHUB_PAT="my-git-hub-pat"
+git clone https://$GITHUB_PAT@github.com/shlapolosa/local-ai-packaged.git
 cd local-ai-packaged
 ```
 
