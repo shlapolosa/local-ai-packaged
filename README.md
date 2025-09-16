@@ -68,7 +68,7 @@ Before you begin, make sure you have the following software installed:
 
 Clone the repository and navigate to the project directory:
 ```bash
-export GITHUB_PAT="my-git-hub-pat"
+export GITHUB_PAT=""
 git clone https://$GITHUB_PAT@github.com/shlapolosa/local-ai-packaged.git
 cd local-ai-packaged
 ```
@@ -401,6 +401,119 @@ interact with the local filesystem.
 - [Read/Write Files from Disk](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.filesreadwrite/)
 - [Local File Trigger](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/)
 - [Execute Command](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.executecommand/)
+
+
+## Creating tunnel to vast.ai
+
+ ### 1. Install Cloudflare Tunnel
+
+```bash
+  curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+
+  dpkg -i cloudflared.deb
+  ```
+
+  ### 2. Authenticate with Cloudflare (then go to browser on your mac and in cloudlare approve auth)
+
+```bash
+  cloudflared tunnel login
+  ```
+
+   ### 3. Create the tunnel
+
+```bash
+
+  # List your tunnels to get the ID
+  cloudflared tunnel list
+
+  cloudflared tunnel cleanup local-ai-services
+
+  cloudflared tunnel delete local-ai-services
+
+  cloudflared tunnel create local-ai-services
+
+  ```
+
+   ### 4. Route DNS for all services
+```bash
+  cloudflared tunnel route dns --overwrite-dns local-ai-services openwebui.socrates-hlapolosa.org
+  cloudflared tunnel route dns --overwrite-dns local-ai-services n8n.socrates-hlapolosa.org
+  cloudflared tunnel route dns --overwrite-dns local-ai-services flowise.socrates-hlapolosa.org
+  cloudflared tunnel route dns --overwrite-dns local-ai-services supabase.socrates-hlapolosa.org
+  cloudflared tunnel route dns --overwrite-dns local-ai-services langfuse.socrates-hlapolosa.org
+  cloudflared tunnel route dns --overwrite-dns local-ai-services searxng.socrates-hlapolosa.org
+  cloudflared tunnel route dns --overwrite-dns local-ai-services neo4j.socrates-hlapolosa.org
+  cloudflared tunnel route dns --overwrite-dns local-ai-services ollama.socrates-hlapolosa.org
+```
+
+### 5. Create the config file
+
+```bash
+  # Get your tunnel ID (it will be shown when you create the tunnel, or find it with:)
+  export TUNNEL_ID=$(ls ~/.cloudflared/*.json | grep -v cert | sed 's/.*\///' | sed 's/.json//')
+  echo "Tunnel ID: $TUNNEL_ID"
+  ```
+
+
+```bash
+cat > /root/.cloudflared/config.yml << EOF
+  tunnel: $TUNNEL_ID
+  credentials-file: /home/nonroot/.cloudflared/$TUNNEL_ID.json
+
+  ingress:
+    - hostname: openwebui.socrates-hlapolosa.org
+      service: http://open-webui:8080
+    - hostname: n8n.socrates-hlapolosa.org
+      service: http://n8n:5678
+    - hostname: flowise.socrates-hlapolosa.org
+      service: http://flowise:3001
+    - hostname: supabase.socrates-hlapolosa.org
+      service: http://supabase-kong:8000
+    - hostname: langfuse.socrates-hlapolosa.org
+      service: http://localai-langfuse-web-1:3000
+    - hostname: searxng.socrates-hlapolosa.org
+      service: http://searxng:8080
+    - hostname: neo4j.socrates-hlapolosa.org
+      service: http://localai-neo4j-1:7474
+    - hostname: ollama.socrates-hlapolosa.org
+      service: http://ollama:11434
+    - service: http_status:404
+EOF
+  ```
+
+   ### 6. Fix permissions for Docker
+
+```bash
+  chown -R 65532:65532 /root/.cloudflared/
+  ```
+### 7. Run Cloudflare Tunnel as Docker container
+
+```bash
+  docker stop cloudflared 2>/dev/null
+  docker rm cloudflared 2>/dev/null
+  docker network create localai_default 2>/dev/null || true
+  docker run -d \
+    --name cloudflared \
+    --network localai_default \
+    --restart unless-stopped \
+    -v /root/.cloudflared:/home/nonroot/.cloudflared \
+    cloudflare/cloudflared:latest \
+    tunnel --config /home/nonroot/.cloudflared/config.yml --protocol http2 run
+```
+### 8. Check logs to verify it's working
+
+```bash
+  docker logs cloudflared --tail 20
+  ```
+
+### 9. Make it persistent (optional - as a system service)
+
+```bash
+  # If you want to run it as a system service instead of Docker:
+  cloudflared service install -- --protocol http2
+  systemctl start cloudflared
+  systemctl enable cloudflared
+```
 
 ## 📜 License
 
