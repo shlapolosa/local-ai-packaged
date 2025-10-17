@@ -18,7 +18,9 @@ import sys
 def run_command(cmd, cwd=None):
     """Run a shell command and print it."""
     print("Running:", " ".join(cmd))
+    # Executes shell command 'cmd' in directory 'cwd', raising CalledProcessError if command returns non-zero
     subprocess.run(cmd, cwd=cwd, check=True)
+```
 
 def clone_supabase_repo():
     """Clone the Supabase repository using sparse checkout if not already present."""
