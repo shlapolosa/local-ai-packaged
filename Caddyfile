@@ -3,15 +3,22 @@
     email {$LETSENCRYPT_EMAIL}
 }
 
+{
+  auto_https disable_redirects
+  local_certs
+}
+
 # N8N
 {$N8N_HOSTNAME} {
     # For domains, Caddy will automatically use Let's Encrypt
     # For localhost/port addresses, HTTPS won't be enabled
+    tls internal
     reverse_proxy n8n:5678
 }
 
 # Open WebUI
 {$WEBUI_HOSTNAME} {
+    tls internal
     reverse_proxy open-webui:8080
 }
 
@@ -27,6 +34,7 @@
 
 # Ollama API
 http://{$OLLAMA_HOSTNAME} {
+    tls internal
     reverse_proxy ollama:11434
 }
 
