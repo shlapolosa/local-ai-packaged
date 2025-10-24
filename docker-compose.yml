@@ -43,11 +43,11 @@ x-ollama: &service-ollama
     - OLLAMA_HOST=http://127.0.0.1:11434
     - HTTP_PROXY=http://proxy.internal.adhie.ae:8080
     - HTTPS_PROXY=http://proxy.internal.adhie.ae:8080
-    - NO_PROXY=localhost,127.0.0.1
+    - NO_PROXY=localhost,127.0.0.1,*.internal.adhie.ae
     - OLLAMA_DEBUG=VERBOSE
     - http_proxy=http://proxy.internal.adhie.ae:8080
     - https_proxy=http://proxy.internal.adhie.ae:8080
-    - no_proxy=localhost,127.0.0.1
+    - no_proxy=localhost,127.0.0.1,*.internal.adhie.ae
   volumes:
     - ollama_storage:/root/.ollama
 
@@ -63,12 +63,12 @@ x-init-ollama: &init-ollama
   environment:
     - HTTP_PROXY=http://proxy.internal.adhie.ae:8080
     - HTTPS_PROXY=http://proxy.internal.adhie.ae:8080
-    - NO_PROXY=localhost,127.0.0.1
+    - NO_PROXY=localhost,127.0.0.1,*.internal.adhie.ae
     - OLLAMA_DEBUG=VERBOSE
     - OLLAMA_HOST=http://127.0.0.1:11434
     - http_proxy=http://proxy.internal.adhie.ae:8080
     - https_proxy=http://proxy.internal.adhie.ae:8080
-    - no_proxy=localhost,127.0.0.1
+    - no_proxy=localhost,127.0.0.1,*.internal.adhie.ae
     
 services:
   flowise:
