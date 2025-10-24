@@ -1,11 +1,8 @@
 {
     # Global options - works for both environments
     email {$LETSENCRYPT_EMAIL}
-}
-
-{
-  auto_https disable_redirects
-  local_certs
+    auto_https disable_redirects
+    local_certs
 }
 
 # N8N
@@ -33,7 +30,7 @@
 }
 
 # Ollama API
-http://{$OLLAMA_HOSTNAME} {
+{$OLLAMA_HOSTNAME} {
     tls internal
     reverse_proxy ollama:11434
 }
