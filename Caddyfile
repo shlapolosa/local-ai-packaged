@@ -30,7 +30,8 @@
 }
 
 # Ollama API
-http://{$OLLAMA_HOSTNAME} {
+{$OLLAMA_HOSTNAME} {
+    tls internal
     reverse_proxy ollama:11434
 }
 
