@@ -5,18 +5,25 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "chat/assistant",
+        "authentication": "headerAuth",
         "responseMode": "responseNode",
         "options": {}
       },
       "id": "chat-webhook",
       "name": "Chat Interface",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
+      "typeVersion": 2,
       "position": [
         250,
         400
       ],
-      "webhookId": "chat-assistant"
+      "webhookId": "chat-assistant",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1",
+          "name": "Chat Bearer Token"
+        }
+      }
     },
     {
       "parameters": {
