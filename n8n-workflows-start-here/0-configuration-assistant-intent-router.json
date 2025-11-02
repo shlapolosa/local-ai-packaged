@@ -36,6 +36,59 @@
         "conditions": {
           "string": [
             {
+              "value1": "={{ $json.userMessage }}",
+              "operation": "startsWith",
+              "value2": "### Task"
+            }
+          ]
+        }
+      },
+      "id": "check-tag-request",
+      "name": "Is Tag Generation Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        650,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://ollama:11434/api/generate",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"model\": \"qwen2.5:1.5b\",\n  \"prompt\": $json.userMessage,\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": 0.3\n  }\n} }}",
+        "options": {}
+      },
+      "id": "tag-master",
+      "name": "Tag Master Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"response\": $json.response, \"sessionId\": $('Parse User Message').item.json.sessionId } }}"
+      },
+      "id": "respond-tags",
+      "name": "Respond with Tags",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
               "value1": "={{ $json.sessionState.intent }}",
               "operation": "isEmpty"
             }
@@ -47,47 +100,39 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        650,
-        400
+        850,
+        500
       ]
     },
     {
       "parameters": {
-        "url": "http://open-webui:8080/api/chat/completions",
+        "url": "http://ollama:11434/api/chat",
         "requestMethod": "POST",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classification assistant. Your job is to understand what the user wants to accomplish and classify their intent.\\n\\nAvailable intents:\\n\\n1. **whitelabel_migration** - User wants to migrate a React Native app to native platforms (iOS/Android/Web) using white-label approach. Keywords: migrate, migration, react native, native, iOS, Android, white-label, platform, mono-repo\\n\\n2. **prd_generation** - User wants to create a Product Requirements Document (PRD) or get architecture recommendations from requirements. Expert consultations include compliance, business architecture, UX, technology stack, application architecture, OAM definitions, and infrastructure review. Keywords: PRD, requirements, architecture, design, specification, documentation, project requirements, business requirements, technical requirements, OAM, infrastructure\\n\\n3. **e2e_solution** - User wants end-to-end solution development (NOT IMPLEMENTED YET). Keywords: build, create, develop, new app, solution, project, from scratch\\n\\n4. **help** - User wants general help or doesn't know what they need\\n\\n5. **unknown** - Intent unclear, need more information\\n\\nAnalyze the user's message and conversation history. Return JSON ONLY:\\n\\n{\\n  \\\"intent\\\": \\\"whitelabel_migration\\\" | \\\"prd_generation\\\" | \\\"e2e_solution\\\" | \\\"help\\\" | \\\"unknown\\\",\\n  \\\"confidence\\\": 0.0-1.0,\\n  \\\"reasoning\\\": \\\"brief explanation\\\",\\n  \\\"clarificationNeeded\\\": true/false,\\n  \\\"suggestedQuestion\\\": \\\"question to ask if clarification needed\\\"\\n}\\n\\nIf confidence < 0.7, set clarificationNeeded = true.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"User message: {{ $json.userMessage }}\\n\\nConversation history: {{ JSON.stringify($json.conversationHistory) }}\"\n    }\n  ],\n  \"temperature\": 0.2,\n  \"stream\": false\n}"
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classification assistant. Your job is to understand what the user wants to accomplish and classify their intent.\\n\\nAvailable intents:\\n\\n1. **whitelabel_migration** - User wants to migrate a React Native app to native platforms (iOS/Android/Web) using white-label approach. Keywords: migrate, migration, react native, native, iOS, Android, white-label, platform, mono-repo\\n\\n2. **prd_generation** - User wants to create a Product Requirements Document (PRD) or get architecture recommendations from requirements. Expert consultations include compliance, business architecture, UX, technology stack, application architecture, OAM definitions, and infrastructure review. Keywords: PRD, requirements, architecture, design, specification, documentation, project requirements, business requirements, technical requirements, OAM, infrastructure\\n\\n3. **e2e_solution** - User wants end-to-end solution development (NOT IMPLEMENTED YET). Keywords: build, create, develop, new app, solution, project, from scratch\\n\\n4. **help** - User wants general help or doesn't know what they need\\n\\n5. **unknown** - Intent unclear, need more information\\n\\nAnalyze the user's message and conversation history. Return JSON ONLY:\\n\\n{\\n  \\\"intent\\\": \\\"whitelabel_migration\\\" | \\\"prd_generation\\\" | \\\"e2e_solution\\\" | \\\"help\\\" | \\\"unknown\\\",\\n  \\\"confidence\\\": 0.0-1.0,\\n  \\\"reasoning\\\": \\\"brief explanation\\\",\\n  \\\"clarificationNeeded\\\": true/false,\\n  \\\"suggestedQuestion\\\": \\\"question to ask if clarification needed\\\"\\n}\\n\\nIf confidence < 0.7, set clarificationNeeded = true.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"User message: {{ $json.userMessage }}\\n\\nConversation history: {{ JSON.stringify($json.conversationHistory) }}\"\n    }\n  ],\n  \"temperature\": 0.2,\n  \"stream\": false\n}",
+        "options": {}
       },
       "id": "detect-intent",
       "name": "Detect Intent with LLM",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "position": [
-        850,
-        300
+        1050,
+        600
       ]
     },
     {
       "parameters": {
-        "functionCode": "const llmResponse = $json.choices[0].message.content;\n\n// Try to extract JSON from response\nlet intentData;\ntry {\n  const jsonMatch = llmResponse.match(/\\{[\\s\\S]*\\}/);\n  intentData = JSON.parse(jsonMatch[0]);\n} catch (e) {\n  // Fallback if parsing fails\n  intentData = {\n    intent: 'unknown',\n    confidence: 0.0,\n    reasoning: 'Failed to parse intent',\n    clarificationNeeded: true,\n    suggestedQuestion: 'I\\'m not sure what you\\'d like to do. Could you tell me more about what you\\'re trying to accomplish?'\n  };\n}\n\n// Update session state\nconst sessionState = $('Parse User Message').item.json.sessionState;\nsessionState.intent = intentData.intent;\nsessionState.intentConfidence = intentData.confidence;\nsessionState.step = 1;\n\nreturn {\n  json: {\n    intentData,\n    sessionState,\n    sessionId: $('Parse User Message').item.json.sessionId,\n    userMessage: $('Parse User Message').item.json.userMessage,\n    conversationHistory: $('Parse User Message').item.json.conversationHistory\n  }\n};"
+        "functionCode": "const llmResponse = $json.message.content;\n\n// Try to extract JSON from response\nlet intentData;\ntry {\n  const jsonMatch = llmResponse.match(/\\{[\\s\\S]*\\}/);\n  intentData = JSON.parse(jsonMatch[0]);\n} catch (e) {\n  // Fallback if parsing fails\n  intentData = {\n    intent: 'unknown',\n    confidence: 0.0,\n    reasoning: 'Failed to parse intent',\n    clarificationNeeded: true,\n    suggestedQuestion: 'I\\'m not sure what you\\'d like to do. Could you tell me more about what you\\'re trying to accomplish?'\n  };\n}\n\n// Update session state\nconst sessionState = $('Parse User Message').item.json.sessionState;\nsessionState.intent = intentData.intent;\nsessionState.intentConfidence = intentData.confidence;\nsessionState.step = 1;\n\nreturn {\n  json: {\n    intentData,\n    sessionState,\n    sessionId: $('Parse User Message').item.json.sessionId,\n    userMessage: $('Parse User Message').item.json.userMessage,\n    conversationHistory: $('Parse User Message').item.json.conversationHistory\n  }\n};"
       },
       "id": "parse-intent",
       "name": "Parse Intent Response",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [
-        1050,
-        300
+        1250,
+        600
       ]
     },
     {
@@ -106,8 +151,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        1250,
-        300
+        1450,
+        600
       ]
     },
     {
@@ -120,8 +165,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        1450,
-        200
+        1650,
+        500
       ]
     },
     {
@@ -140,8 +185,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
       "position": [
-        1450,
-        400
+        1650,
+        700
       ]
     },
     {
@@ -176,8 +221,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "position": [
-        1650,
-        300
+        1850,
+        600
       ]
     },
     {
@@ -432,7 +477,30 @@
       "main": [
         [
           {
+            "node": "Is Tag Generation Request?"
+          }
+        ]
+      ]
+    },
+    "Is Tag Generation Request?": {
+      "main": [
+        [
+          {
+            "node": "Tag Master Agent"
+          }
+        ],
+        [
+          {
             "node": "Intent Already Detected?"
+          }
+        ]
+      ]
+    },
+    "Tag Master Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond with Tags"
           }
         ]
       ]
