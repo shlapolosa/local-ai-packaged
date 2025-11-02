@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "functionCode": "// Extract user message and conversation history\nconst userMessage = $json.message || $json.userMessage || '';\nconst conversationHistory = $json.history || [];\nconst sessionId = $json.sessionId || require('crypto').randomUUID();\n\n// Get or initialize session state\nlet sessionState = $json.state || {\n  intent: null, // Detected intent: 'whitelabel_migration', 'e2e_solution', 'unknown'\n  intentConfidence: 0,\n  subWorkflow: null, // Which workflow is handling this\n  workflowState: {}, // State specific to the sub-workflow\n  step: 0,\n  complete: false\n};\n\nreturn {\n  json: {\n    userMessage,\n    conversationHistory,\n    sessionId,\n    sessionState\n  }\n};"
+        "functionCode": "// Extract user message and conversation history\nconst userMessage = $json.message || $json.userMessage || '';\nconst conversationHistory = $json.history || [];\n\n// Generate sessionId if not provided (simple UUID v4 alternative)\nconst sessionId = $json.sessionId || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n  const r = Math.random() * 16 | 0;\n  const v = c === 'x' ? r : (r & 0x3 | 0x8);\n  return v.toString(16);\n});\n\n// Get or initialize session state\nlet sessionState = $json.state || {\n  intent: null, // Detected intent: 'whitelabel_migration', 'e2e_solution', 'unknown'\n  intentConfidence: 0,\n  subWorkflow: null, // Which workflow is handling this\n  workflowState: {}, // State specific to the sub-workflow\n  step: 0,\n  complete: false\n};\n\nreturn {\n  json: {\n    userMessage,\n    conversationHistory,\n    sessionId,\n    sessionState\n  }\n};"
       },
       "id": "parse-message",
       "name": "Parse User Message",
