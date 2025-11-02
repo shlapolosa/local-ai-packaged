@@ -12,7 +12,10 @@
       "name": "Chat Interface",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [250, 400],
+      "position": [
+        250,
+        400
+      ],
       "webhookId": "chat-assistant"
     },
     {
@@ -23,7 +26,10 @@
       "name": "Parse User Message",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [450, 400]
+      "position": [
+        450,
+        400
+      ]
     },
     {
       "parameters": {
@@ -40,7 +46,10 @@
       "name": "Intent Already Detected?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [650, 400]
+      "position": [
+        650,
+        400
+      ]
     },
     {
       "parameters": {
@@ -48,17 +57,25 @@
         "requestMethod": "POST",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [{"name": "Content-Type", "value": "application/json"}]
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classification assistant. Your job is to understand what the user wants to accomplish and classify their intent.\\n\\nAvailable intents:\\n\\n1. **whitelabel_migration** - User wants to migrate a React Native app to native platforms (iOS/Android/Web) using white-label approach. Keywords: migrate, migration, react native, native, iOS, Android, white-label, platform, mono-repo\\n\\n2. **e2e_solution** - User wants end-to-end solution development (NOT IMPLEMENTED YET). Keywords: build, create, develop, new app, solution, project, from scratch\\n\\n3. **help** - User wants general help or doesn't know what they need\\n\\n4. **unknown** - Intent unclear, need more information\\n\\nAnalyze the user's message and conversation history. Return JSON ONLY:\\n\\n{\\n  \\\"intent\\\": \\\"whitelabel_migration\\\" | \\\"e2e_solution\\\" | \\\"help\\\" | \\\"unknown\\\",\\n  \\\"confidence\\\": 0.0-1.0,\\n  \\\"reasoning\\\": \\\"brief explanation\\\",\\n  \\\"clarificationNeeded\\\": true/false,\\n  \\\"suggestedQuestion\\\": \\\"question to ask if clarification needed\\\"\\n}\\n\\nIf confidence < 0.7, set clarificationNeeded = true.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"User message: {{ $json.userMessage }}\\n\\nConversation history: {{ JSON.stringify($json.conversationHistory) }}\"\n    }\n  ],\n  \"temperature\": 0.2,\n  \"stream\": false\n}"
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classification assistant. Your job is to understand what the user wants to accomplish and classify their intent.\\n\\nAvailable intents:\\n\\n1. **whitelabel_migration** - User wants to migrate a React Native app to native platforms (iOS/Android/Web) using white-label approach. Keywords: migrate, migration, react native, native, iOS, Android, white-label, platform, mono-repo\\n\\n2. **prd_generation** - User wants to create a Product Requirements Document (PRD) or get architecture recommendations from requirements. Expert consultations include compliance, business architecture, UX, technology stack, application architecture, OAM definitions, and infrastructure review. Keywords: PRD, requirements, architecture, design, specification, documentation, project requirements, business requirements, technical requirements, OAM, infrastructure\\n\\n3. **e2e_solution** - User wants end-to-end solution development (NOT IMPLEMENTED YET). Keywords: build, create, develop, new app, solution, project, from scratch\\n\\n4. **help** - User wants general help or doesn't know what they need\\n\\n5. **unknown** - Intent unclear, need more information\\n\\nAnalyze the user's message and conversation history. Return JSON ONLY:\\n\\n{\\n  \\\"intent\\\": \\\"whitelabel_migration\\\" | \\\"prd_generation\\\" | \\\"e2e_solution\\\" | \\\"help\\\" | \\\"unknown\\\",\\n  \\\"confidence\\\": 0.0-1.0,\\n  \\\"reasoning\\\": \\\"brief explanation\\\",\\n  \\\"clarificationNeeded\\\": true/false,\\n  \\\"suggestedQuestion\\\": \\\"question to ask if clarification needed\\\"\\n}\\n\\nIf confidence < 0.7, set clarificationNeeded = true.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"User message: {{ $json.userMessage }}\\n\\nConversation history: {{ JSON.stringify($json.conversationHistory) }}\"\n    }\n  ],\n  \"temperature\": 0.2,\n  \"stream\": false\n}"
       },
       "id": "detect-intent",
       "name": "Detect Intent with LLM",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [850, 300]
+      "position": [
+        850,
+        300
+      ]
     },
     {
       "parameters": {
@@ -68,7 +85,10 @@
       "name": "Parse Intent Response",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1050, 300]
+      "position": [
+        1050,
+        300
+      ]
     },
     {
       "parameters": {
@@ -85,18 +105,24 @@
       "name": "Need Clarification?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [1250, 300]
+      "position": [
+        1250,
+        300
+      ]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ {\n  \"message\": $json.intentData.suggestedQuestion + \"\\n\\nI can help you with:\\n\\n🔄 **White-Label Migration** - Migrate React Native app to native iOS/Android/Web\\n🏗️ **End-to-End Solution** - Build a new solution from scratch (coming soon)\\n❓ **Something else?** - Let me know what you need!\",\n  \"sessionId\": $json.sessionId,\n  \"sessionState\": $json.sessionState,\n  \"complete\": false,\n  \"intent\": null\n} }}"
+        "responseBody": "={{ {\n  \"message\": $json.intentData.suggestedQuestion + \"\\n\\nI can help you with:\\n\\n\ud83d\udccb **PRD Generation** - Create comprehensive PRD with expert architecture recommendations\\n\ud83d\udd04 **White-Label Migration** - Migrate React Native app to native iOS/Android/Web\\n\ud83c\udfd7\ufe0f **End-to-End Solution** - Build a new solution from scratch (coming soon)\\n\u2753 **Something else?** - Let me know what you need!\",\n  \"sessionId\": $json.sessionId,\n  \"sessionState\": $json.sessionState,\n  \"complete\": false,\n  \"intent\": null\n} }}"
       },
       "id": "respond-clarification",
       "name": "Respond Ask Clarification",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1450, 200]
+      "position": [
+        1450,
+        200
+      ]
     },
     {
       "parameters": {
@@ -113,7 +139,10 @@
       "name": "Route by Intent",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [1450, 400]
+      "position": [
+        1450,
+        400
+      ]
     },
     {
       "parameters": {
@@ -122,10 +151,22 @@
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
-            {"name": "message", "value": "={{ $json.userMessage }}"},
-            {"name": "history", "value": "={{ $json.conversationHistory }}"},
-            {"name": "sessionId", "value": "={{ $json.sessionId }}"},
-            {"name": "state", "value": "={{ $json.sessionState.workflowState }}"}
+            {
+              "name": "message",
+              "value": "={{ $json.userMessage }}"
+            },
+            {
+              "name": "history",
+              "value": "={{ $json.conversationHistory }}"
+            },
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            },
+            {
+              "name": "state",
+              "value": "={{ $json.sessionState.workflowState }}"
+            }
           ]
         },
         "options": {}
@@ -134,7 +175,10 @@
       "name": "Call White-Label Config Workflow",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [1650, 300]
+      "position": [
+        1650,
+        300
+      ]
     },
     {
       "parameters": {
@@ -144,7 +188,10 @@
       "name": "Merge White-Label Response",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1850, 300]
+      "position": [
+        1850,
+        300
+      ]
     },
     {
       "parameters": {
@@ -155,29 +202,38 @@
       "name": "Respond White-Label",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [2050, 300]
+      "position": [
+        2050,
+        300
+      ]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ {\n  \"message\": \"🏗️ **End-to-End Solution Development**\\n\\nThis feature is coming soon! We'll help you build complete solutions from scratch.\\n\\nFor now, I can help you with:\\n\\n🔄 **White-Label Migration** - Migrate your React Native app to native platforms\\n\\nWould you like to try that instead?\",\n  \"sessionId\": $json.sessionId,\n  \"sessionState\": $json.sessionState,\n  \"complete\": false,\n  \"intent\": \"e2e_solution\",\n  \"available\": false\n} }}"
+        "responseBody": "={{ {\n  \"message\": \"\ud83c\udfd7\ufe0f **End-to-End Solution Development**\\n\\nThis feature is coming soon! We'll help you build complete solutions from scratch.\\n\\nFor now, I can help you with:\\n\\n\ud83d\udd04 **White-Label Migration** - Migrate your React Native app to native platforms\\n\\nWould you like to try that instead?\",\n  \"sessionId\": $json.sessionId,\n  \"sessionState\": $json.sessionState,\n  \"complete\": false,\n  \"intent\": \"e2e_solution\",\n  \"available\": false\n} }}"
       },
       "id": "respond-e2e-coming-soon",
       "name": "Respond E2E Coming Soon",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1650, 500]
+      "position": [
+        1650,
+        500
+      ]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ {\n  \"message\": \"I'm not sure how to help with that yet. \\n\\nCurrently, I can assist with:\\n\\n🔄 **White-Label Migration** - Migrate React Native apps to native iOS/Android/Web\\n\\nWould you like help with that?\",\n  \"sessionId\": $json.sessionId,\n  \"sessionState\": $json.sessionState,\n  \"complete\": false,\n  \"intent\": \"unknown\"\n} }}"
+        "responseBody": "={{ {\n  \"message\": \"I'm not sure how to help with that yet. \\n\\nCurrently, I can assist with:\\n\\n\ud83d\udd04 **White-Label Migration** - Migrate React Native apps to native iOS/Android/Web\\n\\nWould you like help with that?\",\n  \"sessionId\": $json.sessionId,\n  \"sessionState\": $json.sessionState,\n  \"complete\": false,\n  \"intent\": \"unknown\"\n} }}"
       },
       "id": "respond-unknown",
       "name": "Respond Unknown Intent",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1650, 700]
+      "position": [
+        1650,
+        700
+      ]
     },
     {
       "parameters": {
@@ -186,10 +242,22 @@
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
-            {"name": "message", "value": "={{ $json.userMessage }}"},
-            {"name": "history", "value": "={{ $json.conversationHistory }}"},
-            {"name": "sessionId", "value": "={{ $json.sessionId }}"},
-            {"name": "state", "value": "={{ $json.sessionState.workflowState }}"}
+            {
+              "name": "message",
+              "value": "={{ $json.userMessage }}"
+            },
+            {
+              "name": "history",
+              "value": "={{ $json.conversationHistory }}"
+            },
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            },
+            {
+              "name": "state",
+              "value": "={{ $json.sessionState.workflowState }}"
+            }
           ]
         },
         "options": {}
@@ -198,7 +266,10 @@
       "name": "Continue White-Label Workflow",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [1050, 500]
+      "position": [
+        1050,
+        500
+      ]
     },
     {
       "parameters": {
@@ -208,7 +279,10 @@
       "name": "Merge Continue Response",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1250, 500]
+      "position": [
+        1250,
+        500
+      ]
     },
     {
       "parameters": {
@@ -219,53 +293,302 @@
       "name": "Respond Continue",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1450, 500]
+      "position": [
+        1450,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://n8n:5678/webhook/chat/business-analyst",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $json.userMessage }}"
+            },
+            {
+              "name": "history",
+              "value": "={{ $json.conversationHistory }}"
+            },
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            },
+            {
+              "name": "state",
+              "value": "={{ $json.sessionState.workflowState }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "call-business-analyst",
+      "name": "Call Business Analyst Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1650,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const workflowResponse = $json;\nconst sessionState = $('Parse Intent Response').item.json.sessionState;\n\nsessionState.workflowState = workflowResponse.sessionState || {};\nsessionState.subWorkflow = sessionState.intent; // prd_generation or e2e_solution\nsessionState.complete = workflowResponse.complete || false;\n\nreturn {\n  json: {\n    message: workflowResponse.assistantMessage || workflowResponse.message,\n    sessionId: workflowResponse.sessionId,\n    sessionState: sessionState,\n    complete: workflowResponse.complete,\n    intent: sessionState.intent,\n    projectId: workflowResponse.projectId,\n    projectName: workflowResponse.projectName\n  }\n};"
+      },
+      "id": "merge-analyst-response",
+      "name": "Merge Business Analyst Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1850,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "respond-analyst",
+      "name": "Respond Business Analyst",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2050,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://n8n:5678/webhook/chat/business-analyst",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $json.userMessage }}"
+            },
+            {
+              "name": "history",
+              "value": "={{ $json.conversationHistory }}"
+            },
+            {
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}"
+            },
+            {
+              "name": "state",
+              "value": "={{ $json.sessionState.workflowState }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "continue-analyst",
+      "name": "Continue Business Analyst",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        850,
+        650
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.sessionState.subWorkflow }}",
+              "value2": "whitelabel_migration"
+            }
+          ]
+        }
+      },
+      "id": "check-subworkflow",
+      "name": "Check Which Workflow",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        850,
+        550
+      ]
     }
   ],
   "connections": {
     "Chat Interface": {
-      "main": [[{"node": "Parse User Message"}]]
+      "main": [
+        [
+          {
+            "node": "Parse User Message"
+          }
+        ]
+      ]
     },
     "Parse User Message": {
-      "main": [[{"node": "Intent Already Detected?"}]]
+      "main": [
+        [
+          {
+            "node": "Intent Already Detected?"
+          }
+        ]
+      ]
     },
     "Intent Already Detected?": {
       "main": [
-        [{"node": "Detect Intent with LLM"}],
-        [{"node": "Continue White-Label Workflow"}]
+        [
+          {
+            "node": "Detect Intent with LLM"
+          }
+        ],
+        [
+          {
+            "node": "Check Which Workflow"
+          }
+        ]
       ]
     },
     "Detect Intent with LLM": {
-      "main": [[{"node": "Parse Intent Response"}]]
+      "main": [
+        [
+          {
+            "node": "Parse Intent Response"
+          }
+        ]
+      ]
     },
     "Parse Intent Response": {
-      "main": [[{"node": "Need Clarification?"}]]
+      "main": [
+        [
+          {
+            "node": "Need Clarification?"
+          }
+        ]
+      ]
     },
     "Need Clarification?": {
       "main": [
-        [{"node": "Respond Ask Clarification"}],
-        [{"node": "Route by Intent"}]
+        [
+          {
+            "node": "Respond Ask Clarification"
+          }
+        ],
+        [
+          {
+            "node": "Route by Intent"
+          }
+        ]
       ]
     },
     "Route by Intent": {
       "main": [
-        [{"node": "Call White-Label Config Workflow"}],
-        [{"node": "Respond E2E Coming Soon"}],
+        [
+          {
+            "node": "Call White-Label Config Workflow"
+          }
+        ],
+        [
+          {
+            "node": "Call Business Analyst Workflow"
+          }
+        ],
+        [
+          {
+            "node": "Call Business Analyst Workflow"
+          }
+        ],
         [],
-        [{"node": "Respond Unknown Intent"}]
+        [
+          {
+            "node": "Respond Unknown Intent"
+          }
+        ]
       ]
     },
     "Call White-Label Config Workflow": {
-      "main": [[{"node": "Merge White-Label Response"}]]
+      "main": [
+        [
+          {
+            "node": "Merge White-Label Response"
+          }
+        ]
+      ]
     },
     "Merge White-Label Response": {
-      "main": [[{"node": "Respond White-Label"}]]
+      "main": [
+        [
+          {
+            "node": "Respond White-Label"
+          }
+        ]
+      ]
     },
     "Continue White-Label Workflow": {
-      "main": [[{"node": "Merge Continue Response"}]]
+      "main": [
+        [
+          {
+            "node": "Merge Continue Response"
+          }
+        ]
+      ]
     },
     "Merge Continue Response": {
-      "main": [[{"node": "Respond Continue"}]]
+      "main": [
+        [
+          {
+            "node": "Respond Continue"
+          }
+        ]
+      ]
+    },
+    "Call Business Analyst Workflow": {
+      "main": [
+        [
+          {
+            "node": "Merge Business Analyst Response"
+          }
+        ]
+      ]
+    },
+    "Merge Business Analyst Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Business Analyst"
+          }
+        ]
+      ]
+    },
+    "Check Which Workflow": {
+      "main": [
+        [
+          {
+            "node": "Continue White-Label Workflow"
+          }
+        ],
+        [
+          {
+            "node": "Continue Business Analyst"
+          }
+        ],
+        [
+          {
+            "node": "Continue Business Analyst"
+          }
+        ]
+      ]
+    },
+    "Continue Business Analyst": {
+      "main": [
+        [
+          {
+            "node": "Merge Continue Response"
+          }
+        ]
+      ]
     }
   },
   "settings": {},

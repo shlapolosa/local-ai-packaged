@@ -1,0 +1,435 @@
+{
+  "name": "1b - DevOps Engineer (Infrastructure)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "devops-engineer",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook - Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "devops-engineer-trigger"
+    },
+    {
+      "parameters": {
+        "functionCode": "const projectId = $json.projectId;\nconst projectName = $json.projectName;\nconst sessionState = $json.sessionState;\nconst triggeredBy = $json.triggeredBy || 'business-analyst';\n\n// Generate app-container name (lowercase, no spaces)\nconst appContainerName = projectName.toLowerCase().replace(/\\s+/g, '-');\n\nreturn {\n  json: {\n    projectId,\n    projectName,\n    appContainerName,\n    githubRepo: sessionState.githubRepo,\n    targetBranch: sessionState.targetBranch || 'main',\n    projectType: sessionState.projectType,\n    platforms: sessionState.platforms || [],\n    triggeredBy,\n    startTime: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Extract Project Info",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO expert_consultations (project_id, expert_name, status, input_context, shared_context_version) VALUES ('{{ $json.projectId }}', 'devops-engineer', 'in_progress', '{{ JSON.stringify($json).replace(/'/g, \"''\") }}', 1) RETURNING id;",
+        "options": {}
+      },
+      "name": "Log DevOps Start",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [650, 400],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Get Istio ingress gateway URL\n// This would normally come from environment or config\nconst istioGateway = process.env.ISTIO_GATEWAY_URL || 'http://istio-ingressgateway.istio-system.svc.cluster.local';\nconst slackApiPath = '/slack/command';\n\n// Get data from Extract Project Info (PostgreSQL only returns insert ID)\nconst extractData = $('Extract Project Info').first().json;\nconst appContainerName = extractData.appContainerName;\nconst githubRepo = extractData.githubRepo;\nconst projectId = extractData.projectId;\n\n// Extract org and repo from GitHub URL\nconst repoMatch = githubRepo.match(/github\\.com[/:]([^/]+)\\/([^/.]+)/);\nconst githubOrg = repoMatch ? repoMatch[1] : 'shlapolosa';\nconst githubRepoName = repoMatch ? repoMatch[2] : appContainerName;\n\n// Format Slack command payload for app-container creation\nconst slackCommand = `/create-app app-container=${appContainerName} github-org=${githubOrg} github-repo=${githubRepoName}`;\n\nreturn {\n  json: {\n    slackApiUrl: `${istioGateway}${slackApiPath}`,\n    slackCommand,\n    appContainerName,\n    githubOrg,\n    githubRepoName,\n    projectId\n  }\n};"
+      },
+      "name": "Prepare Slack API Call",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.slackApiUrl }}",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "bodyContentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{ $json.slackCommand }}"
+            },
+            {
+              "name": "user_name",
+              "value": "n8n-devops"
+            },
+            {
+              "name": "channel_name",
+              "value": "automation"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxRetries": 3,
+            "waitBetweenRetries": 2000
+          },
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "name": "Call Slack API - Create App Container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 400],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse Slack API response\nconst response = $json;\nconst prepareData = $('Prepare Slack API Call').first().json;\nconst appContainerName = prepareData.appContainerName;\nconst projectId = prepareData.projectId;\n\n// Check if creation was successful\nlet creationSuccess = false;\nlet workflowName = null;\nlet message = '';\n\n// Handle error from HTTP request\nif ($json.error) {\n  message = $json.error;\n  creationSuccess = false;\n} else if (response && response.text) {\n  message = response.text;\n  // Look for workflow creation confirmation\n  if (message.includes('Workflow') || message.includes('created')) {\n    creationSuccess = true;\n    // Extract workflow name if present\n    const workflowMatch = message.match(/Workflow:\\s*([\\w-]+)/);\n    if (workflowMatch) {\n      workflowName = workflowMatch[1];\n    } else {\n      // Assume standard workflow name pattern\n      workflowName = `microservice-standard-contract-${appContainerName}`;\n    }\n  }\n}\n\nreturn {\n  json: {\n    projectId,\n    appContainerName,\n    creationSuccess,\n    workflowName,\n    message,\n    monitoringRequired: creationSuccess\n  }\n};"
+      },
+      "name": "Parse Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.creationSuccess }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Creation Successful?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1450, 400]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "name": "Wait 10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    },
+    {
+      "parameters": {
+        "command": "kubectl get workflow {{ $json.workflowName }} -n argo -o jsonpath='{.status.phase}'",
+        "options": {}
+      },
+      "name": "Check Workflow Status",
+      "type": "n8n-nodes-base.bash",
+      "typeVersion": 1,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const status = $json.stdout ? $json.stdout.trim() : '';\nconst parseData = $('Parse Response').first().json;\nconst workflowName = parseData.workflowName;\nconst projectId = parseData.projectId;\n\nconst isComplete = status === 'Succeeded';\nconst hasFailed = status === 'Failed' || status === 'Error';\n\nreturn {\n  json: {\n    projectId,\n    workflowName,\n    status,\n    isComplete,\n    hasFailed,\n    shouldRetry: !isComplete && !hasFailed\n  }\n};"
+      },
+      "name": "Check Status",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2050, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.isComplete }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Workflow Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.shouldRetry }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Should Retry?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2250, 500]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT github_repo_url FROM e2e_projects WHERE id = '{{ $json.projectId }}';",
+        "options": {}
+      },
+      "name": "Get GitHub Repo",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [2450, 200],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const githubRepoUrl = $json.github_repo_url;\nconst checkStatusData = $('Check Status').first().json;\nconst projectId = checkStatusData.projectId;\n\n// Extract org and repo from URL\nconst repoMatch = githubRepoUrl.match(/github\\.com[/:]([^/]+)\\/([^/.]+)/);\nconst githubOrg = repoMatch ? repoMatch[1] : 'shlapolosa';\nconst githubRepo = repoMatch ? repoMatch[2] : 'default-repo';\n\n// Get GitHub token from environment\nconst githubToken = process.env.GITHUB_TOKEN || '';\n\nreturn {\n  json: {\n    projectId,\n    githubOrg,\n    githubRepo,\n    githubToken,\n    githubRepoUrl,\n    docsPath: 'docs/analysis'\n  }\n};"
+      },
+      "name": "Prepare GitHub Setup",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2650, 200]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://api.github.com/repos/={{ $json.githubOrg }}/={{ $json.githubRepo }}/contents/docs/analysis/.gitkeep",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            },
+            {
+              "name": "Authorization",
+              "value": "token {{ $json.githubToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "chore: initialize docs/analysis folder for expert consultations"
+            },
+            {
+              "name": "content",
+              "value": "={{ Buffer.from('# Expert Analysis Documents\\n\\nThis folder contains analysis documents from expert consultations.\\n').toString('base64') }}"
+            },
+            {
+              "name": "branch",
+              "value": "main"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxRetries": 3,
+            "waitBetweenRetries": 2000
+          },
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "name": "Create docs/analysis Folder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2850, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "const githubSetupData = $('Prepare GitHub Setup').first().json;\nconst projectId = githubSetupData.projectId;\nconst githubOrg = githubSetupData.githubOrg;\nconst githubRepo = githubSetupData.githubRepo;\n\nconst parseData = $('Parse Response').first().json;\nconst workflowName = parseData.workflowName;\n\nconst docsUrl = `https://github.com/${githubOrg}/${githubRepo}/tree/main/docs/analysis`;\n\n// Create analysis report\nconst analysis = `# DevOps Infrastructure Setup\\n\\n` +\n  `**Date**: ${new Date().toISOString()}\\n` +\n  `**Engineer**: DevOps Automation\\n\\n` +\n  `## Infrastructure Created\\n\\n` +\n  `- **Application Container**: Created via Argo Workflows\\n` +\n  `- **Workflow**: ${workflowName}\\n` +\n  `- **Status**: Succeeded\\n` +\n  `- **GitHub Repository**: ${githubOrg}/${githubRepo}\\n` +\n  `- **Documentation Folder**: docs/analysis\\n\\n` +\n  `## Next Steps\\n\\n` +\n  `1. Expert consultations will write their analysis to this folder\\n` +\n  `2. PRD will be generated and saved here\\n` +\n  `3. OAM definitions will be committed to this repository\\n\\n` +\n  `All expert analysis documents will be available at: [${docsUrl}](${docsUrl})\\n`;\n\nreturn {\n  json: {\n    projectId,\n    analysis,\n    docsUrl,\n    githubOrg,\n    githubRepo,\n    infrastructureReady: true\n  }\n};"
+      },
+      "name": "Generate DevOps Report",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [3050, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE expert_consultations \\nSET status = 'completed', \\n    completed_at = NOW(),\\n    duration_seconds = EXTRACT(EPOCH FROM (NOW() - started_at)),\\n    output_analysis = '{{ $json.analysis }}',\\n    output_artifacts = '{\\\"docs_url\\\": \\\"{{ $json.docsUrl }}\\\", \\\"infrastructure_ready\\\": true}'\\nWHERE project_id = '{{ $json.projectId }}' \\n  AND expert_name = 'devops-engineer';",
+        "options": {}
+      },
+      "name": "Complete DevOps Consultation",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [3250, 200],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE e2e_projects SET updated_at = NOW() WHERE id = '{{ $json.projectId }}';",
+        "options": {}
+      },
+      "name": "Update Project",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [3450, 200],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  expertName: 'devops-engineer',\n  projectId: $json.projectId,\n  infrastructureReady: true,\n  docsUrl: $('Generate DevOps Report').first().json.docsUrl,\n  githubOrg: $('Generate DevOps Report').first().json.githubOrg,\n  githubRepo: $('Generate DevOps Report').first().json.githubRepo\n}) }}",
+        "options": {}
+      },
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [3650, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "const error = $json.message || 'App container creation failed';\nconst extractData = $('Extract Project Info').first().json;\nconst projectId = extractData.projectId;\n\nreturn {\n  json: {\n    success: false,\n    error,\n    projectId\n  }\n};"
+      },
+      "name": "Handle Failure",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1650, 500]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE expert_consultations \\nSET status = 'failed', \\n    completed_at = NOW()\\nWHERE project_id = '{{ $json.projectId }}' \\n  AND expert_name = 'devops-engineer';",
+        "options": {}
+      },
+      "name": "Mark Failed",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1850, 500],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "name": "Respond Failure",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2050, 500]
+    }
+  ],
+  "connections": {
+    "Webhook - Trigger": {
+      "main": [[{"node": "Extract Project Info", "type": "main", "index": 0}]]
+    },
+    "Extract Project Info": {
+      "main": [[{"node": "Log DevOps Start", "type": "main", "index": 0}]]
+    },
+    "Log DevOps Start": {
+      "main": [[{"node": "Prepare Slack API Call", "type": "main", "index": 0}]]
+    },
+    "Prepare Slack API Call": {
+      "main": [[{"node": "Call Slack API - Create App Container", "type": "main", "index": 0}]]
+    },
+    "Call Slack API - Create App Container": {
+      "main": [[{"node": "Parse Response", "type": "main", "index": 0}]]
+    },
+    "Parse Response": {
+      "main": [[{"node": "Creation Successful?", "type": "main", "index": 0}]]
+    },
+    "Creation Successful?": {
+      "main": [
+        [{"node": "Wait 10s", "type": "main", "index": 0}],
+        [{"node": "Handle Failure", "type": "main", "index": 0}]
+      ]
+    },
+    "Wait 10s": {
+      "main": [[{"node": "Check Workflow Status", "type": "main", "index": 0}]]
+    },
+    "Check Workflow Status": {
+      "main": [[{"node": "Check Status", "type": "main", "index": 0}]]
+    },
+    "Check Status": {
+      "main": [[{"node": "Workflow Complete?", "type": "main", "index": 0}]]
+    },
+    "Workflow Complete?": {
+      "main": [
+        [{"node": "Get GitHub Repo", "type": "main", "index": 0}],
+        [{"node": "Should Retry?", "type": "main", "index": 0}]
+      ]
+    },
+    "Should Retry?": {
+      "main": [
+        [{"node": "Wait 10s", "type": "main", "index": 0}],
+        [{"node": "Handle Failure", "type": "main", "index": 0}]
+      ]
+    },
+    "Get GitHub Repo": {
+      "main": [[{"node": "Prepare GitHub Setup", "type": "main", "index": 0}]]
+    },
+    "Prepare GitHub Setup": {
+      "main": [[{"node": "Create docs/analysis Folder", "type": "main", "index": 0}]]
+    },
+    "Create docs/analysis Folder": {
+      "main": [[{"node": "Generate DevOps Report", "type": "main", "index": 0}]]
+    },
+    "Generate DevOps Report": {
+      "main": [[{"node": "Complete DevOps Consultation", "type": "main", "index": 0}]]
+    },
+    "Complete DevOps Consultation": {
+      "main": [[{"node": "Update Project", "type": "main", "index": 0}]]
+    },
+    "Update Project": {
+      "main": [[{"node": "Respond Success", "type": "main", "index": 0}]]
+    },
+    "Handle Failure": {
+      "main": [[{"node": "Mark Failed", "type": "main", "index": 0}]]
+    },
+    "Mark Failed": {
+      "main": [[{"node": "Respond Failure", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-27T00:00:00.000Z",
+  "versionId": "1"
+}

@@ -1,0 +1,182 @@
+{
+  "name": "8 - Expert: Infrastructure Reviewer",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "expert/infrastructure-reviewer",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook - Expert Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "expert-infrastructure-reviewer"
+    },
+    {
+      "parameters": {
+        "functionCode": "const projectId = $json.projectId;\nconst sharedContext = typeof $json.sharedContext === 'string' \n  ? JSON.parse($json.sharedContext) \n  : $json.sharedContext;\nconst contextVersion = $json.contextVersion || 1;\nconst oamDefinitions = $json.oamDefinitions || sharedContext.oam_definitions || {};\n\nreturn {\n  json: {\n    projectId,\n    sharedContext,\n    contextVersion,\n    oamDefinitions,\n    expertName: 'infrastructure-reviewer',\n    startTime: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Extract Inputs",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO expert_consultations (project_id, expert_name, status, input_context, shared_context_version) VALUES ('{{ $json.projectId }}', 'infrastructure-reviewer', 'in_progress', '{{ JSON.stringify($json).replace(/'/g, \"''\") }}', {{ $json.contextVersion }}) RETURNING id;",
+        "options": {}
+      },
+      "name": "Log Consultation Start",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://open-webui:8080/api/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "qwen2.5:7b-instruct-q4_K_M"
+            },
+            {
+              "name": "messages",
+              "value": "={{ JSON.stringify([\n  {\n    role: 'system',\n    content: `You are an Infrastructure Reviewer specializing in cost optimization and operational excellence.\n\nYour expertise includes:\n- Cost Optimization (resource right-sizing, spot instances, auto-scaling)\n- Non-Functional Requirements Validation\n- Security Best Practices (network policies, RBAC, secrets)\n- Observability (monitoring, logging, tracing)\n- Disaster Recovery and Backup Strategies\n- GitOps Compatibility\n\nYour task:\n1. Review OAM definitions for cost optimization\n2. Validate non-functional requirements\n3. Check security configurations\n4. Ensure observability traits\n5. Provide iterative feedback for refinement\n6. Approve final OAM definitions\n\nOAM Definitions:\n${JSON.stringify($('Extract Inputs').first().json.oamDefinitions, null, 2)}\n\nNFRs from CTO:\n${JSON.stringify($('Extract Inputs').first().json.sharedContext.expert_recommendations.technology_cto, null, 2)}\n\nProject Context:\n${JSON.stringify($('Extract Inputs').first().json.sharedContext, null, 2)}\n\nResponse format:\n{\n  \\\"analysis\\\": {\n    \\\"executive_summary\\\": \\\"2-3 paragraph summary\\\",\n    \\\"cost_optimization\\\": {\n      \\\"findings\\\": [\n        {\n          \\\"component\\\": \\\"user-service\\\",\n          \\\"issue\\\": \\\"Over-provisioned CPU\\\",\n          \\\"current\\\": \\\"500m\\\",\n          \\\"recommended\\\": \\\"200m\\\",\n          \\\"savings\\\": \\\"$50/month\\\"\n        }\n      ],\n      \\\"total_estimated_cost\\\": \\\"$X/month\\\"\n    },\n    \\\"nfr_validation\\\": {\n      \\\"performance\\\": {\n        \\\"met\\\": true,\n        \\\"findings\\\": []\n      },\n      \\\"scalability\\\": {},\n      \\\"availability\\\": {},\n      \\\"security\\\": {}\n    },\n    \\\"security_review\\\": {\n      \\\"network_policies\\\": \\\"Missing egress rules\\\",\n      \\\"rbac\\\": \\\"Properly configured\\\",\n      \\\"secrets_management\\\": \\\"Using Kubernetes secrets\\\",\n      \\\"recommendations\\\": []\n    },\n    \\\"observability\\\": {\n      \\\"monitoring\\\": \\\"Needs Prometheus ServiceMonitor\\\",\n      \\\"logging\\\": \\\"Configured\\\",\n      \\\"tracing\\\": \\\"Missing Jaeger integration\\\"\n    },\n    \\\"operational_excellence\\\": {\n      \\\"deployment_strategy\\\": \\\"Blue-green recommended\\\",\n      \\\"backup_strategy\\\": \\\"Daily PostgreSQL backups\\\",\n      \\\"disaster_recovery\\\": \\\"Multi-AZ deployment\\\"\n    },\n    \\\"approval_status\\\": \\\"approved\\\",\n    \\\"required_changes\\\": []\n  },\n  \\\"context_updates\\\": {\n    \\\"infrastructure_constraints\\\": [],\n    \\\"identified_risks\\\": [],\n    \\\"decision_rationale\\\": {}\n  },\n  \\\"recommendations\\\": [],\n  \\\"markdown_report\\\": \\\"# Infrastructure Review Report\\\\\\\\n\\\\\\\\n...\\\"\\n}`\n  }\n]) }}"
+            },
+            {
+              "name": "temperature",
+              "value": "0.2"
+            },
+            {
+              "name": "max_tokens",
+              "value": "3500"
+            },
+            {
+              "name": "stream",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 3,
+            "waitBetweenRetries": 2000
+          },
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "name": "LLM - Infrastructure Review",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse LLM response\nconst llmResponse = JSON.parse($json.choices[0].message.content);\nconst extractData = $('Extract Inputs').first().json;\nconst currentContext = extractData.sharedContext;\nconst projectId = extractData.projectId;\n\n// Merge context updates with safe defaults\nconst updatedContext = {\n  ...currentContext,\n  infrastructure_constraints: [\n    ...(currentContext.infrastructure_constraints || []),\n    ...(llmResponse.context_updates.infrastructure_constraints || [])\n  ],\n  identified_risks: [\n    ...(currentContext.identified_risks || []),\n    ...(llmResponse.context_updates.identified_risks || [])\n  ],\n  decision_rationale: {\n    ...(currentContext.decision_rationale || {}),\n    ...(llmResponse.context_updates.decision_rationale || {})\n  },\n  expert_recommendations: {\n    ...(currentContext.expert_recommendations || {}),\n    infrastructure_reviewer: llmResponse.analysis.executive_summary\n  },\n  approval_status: llmResponse.analysis.approval_status || 'pending'\n};\n\nreturn {\n  json: {\n    projectId,\n    updatedContext,\n    contextVersion: extractData.contextVersion + 1,\n    analysis: llmResponse.analysis,\n    markdownReport: llmResponse.markdown_report,\n    recommendations: llmResponse.recommendations,\n    approvalStatus: llmResponse.analysis.approval_status,\n    requiredChanges: llmResponse.analysis.required_changes || []\n  }\n};"
+      },
+      "name": "Update Shared Context",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO shared_context (project_id, context_data, version, updated_by) VALUES ('{{ $json.projectId }}', '{{ JSON.stringify($json.updatedContext).replace(/'/g, \"''\") }}', {{ $json.contextVersion }}, 'infrastructure-reviewer') RETURNING id;",
+        "options": {}
+      },
+      "name": "Save Updated Context",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1250, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE expert_consultations \nSET status = 'completed', \n    completed_at = NOW(),\n    duration_seconds = EXTRACT(EPOCH FROM (NOW() - started_at)),\n    output_analysis = '{{ $('Update Shared Context').first().json.markdownReport }}',\n    output_artifacts = '{{ JSON.stringify($('Update Shared Context').first().json.analysis) }}'\nWHERE project_id = '{{ $json.projectId }}' \n  AND expert_name = 'infrastructure-reviewer'\n  AND iteration_number = 1;",
+        "options": {}
+      },
+      "name": "Complete Consultation",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1450, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  expertName: 'infrastructure-reviewer',\n  projectId: $json.projectId,\n  updatedContext: $('Update Shared Context').first().json.updatedContext,\n  contextVersion: $('Update Shared Context').first().json.contextVersion,\n  analysis: $('Update Shared Context').first().json.analysis,\n  recommendations: $('Update Shared Context').first().json.recommendations,\n  approvalStatus: $('Update Shared Context').first().json.approvalStatus,\n  requiredChanges: $('Update Shared Context').first().json.requiredChanges\n}) }}",
+        "options": {}
+      },
+      "name": "Respond to Orchestrator",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Expert Trigger": {
+      "main": [[{"node": "Extract Inputs", "type": "main", "index": 0}]]
+    },
+    "Extract Inputs": {
+      "main": [[{"node": "Log Consultation Start", "type": "main", "index": 0}]]
+    },
+    "Log Consultation Start": {
+      "main": [[{"node": "LLM - Infrastructure Review", "type": "main", "index": 0}]]
+    },
+    "LLM - Infrastructure Review": {
+      "main": [[{"node": "Update Shared Context", "type": "main", "index": 0}]]
+    },
+    "Update Shared Context": {
+      "main": [[{"node": "Save Updated Context", "type": "main", "index": 0}]]
+    },
+    "Save Updated Context": {
+      "main": [[{"node": "Complete Consultation", "type": "main", "index": 0}]]
+    },
+    "Complete Consultation": {
+      "main": [[{"node": "Respond to Orchestrator", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-27T00:00:00.000Z",
+  "versionId": "1"
+}

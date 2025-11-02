@@ -1,0 +1,372 @@
+{
+  "name": "0 - Business Analyst (E2E Entry Point)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat/business-analyst",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook - Chat Interface",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "business-analyst-chat"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract request data\nconst userMessage = $json.message || '';\nconst conversationHistory = $json.history || [];\nlet sessionId = $json.sessionId || null;\nlet sessionState = $json.state || null;\n\n// Generate session ID if new conversation\nif (!sessionId) {\n  sessionId = `ba-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;\n}\n\n// Initialize session state if new\nif (!sessionState) {\n  sessionState = {\n    step: 0,\n    systemBrief: null,\n    projectName: null,\n    projectType: null,\n    platforms: [],\n    githubRepo: null,\n    targetBranch: 'main',\n    coreFeatures: [],\n    constraints: [],\n    nfrs: [], // Non-functional requirements\n    requirementsComplete: false,\n    projectId: null\n  };\n}\n\n// Add user message to history\nconversationHistory.push({\n  role: 'user',\n  content: userMessage,\n  timestamp: new Date().toISOString()\n});\n\nreturn {\n  json: {\n    userMessage,\n    conversationHistory,\n    sessionId,\n    sessionState\n  }\n};"
+      },
+      "name": "Initialize Session",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO chat_sessions (session_id, conversation_history, session_state, updated_at) VALUES ('{{ $json.sessionId }}', '{{ JSON.stringify($json.conversationHistory).replace(/'/g, \"''\") }}', '{{ JSON.stringify($json.sessionState).replace(/'/g, \"''\") }}', NOW()) ON CONFLICT (session_id) DO UPDATE SET conversation_history = EXCLUDED.conversation_history, session_state = EXCLUDED.session_state, updated_at = NOW();",
+        "options": {}
+      },
+      "name": "Save to Database - Chat Session",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://open-webui:8080/api/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "qwen2.5:7b-instruct-q4_K_M"
+            },
+            {
+              "name": "messages",
+              "value": "={{ JSON.stringify([\n  {\n    role: 'system',\n    content: `You are a Business Analyst helping to gather comprehensive functional requirements for a software project.\n\nYour role:\n1. Understand the user's system brief (their high-level idea)\n2. Extract and clarify functional requirements\n3. Identify non-functional requirements (performance, security, scalability)\n4. Uncover constraints and assumptions\n5. Ask clarifying questions when needed\n6. Ensure requirements are specific, measurable, and testable\n\nCurrent session state:\n${JSON.stringify($json.sessionState, null, 2)}\n\nRequired information to collect:\n- System brief: High-level description of what they want to build\n- Project name: Clear, concise name\n- Project type: mobile, web, backend, fullstack, ml, iot\n- Platforms (if applicable): iOS, Android, Web\n- Core features: Main capabilities (at least 3-5)\n- Constraints: Technical, business, or regulatory constraints\n- Non-functional requirements: Performance, security, scalability, availability\n- GitHub repository: Where to deploy OAM definitions\n\nConversation guidelines:\n- Be conversational and friendly\n- Ask ONE question at a time\n- Extract information from natural language responses\n- Validate and confirm understanding\n- Probe for missing details\n- When all information is collected, summarize and confirm\n- Return structured JSON with extracted information\n\nResponse format:\nYou must respond with a JSON object:\n{\n  \"assistantMessage\": \"Your message to the user\",\n  \"extractedInfo\": {\n    \"systemBrief\": \"...\",\n    \"projectName\": \"...\",\n    \"projectType\": \"...\",\n    \"platforms\": [...],\n    \"coreFeatures\": [...],\n    \"constraints\": [...],\n    \"nfrs\": [...],\n    \"githubRepo\": \"...\"\n  },\n  \"requiresMoreInfo\": true/false,\n  \"readyToGenerate\": true/false\n}`\n  },\n  ...$json.conversationHistory\n]) }}"
+            },
+            {
+              "name": "temperature",
+              "value": "0.3"
+            },
+            {
+              "name": "max_tokens",
+              "value": "1000"
+            },
+            {
+              "name": "stream",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 3,
+            "waitBetweenRetries": 2000
+          },
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "name": "LLM - Extract Requirements",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse LLM response\nconst llmResponse = JSON.parse($json.choices[0].message.content);\nconst initData = $('Initialize Session').first().json;\nconst sessionState = initData.sessionState;\nconst sessionId = initData.sessionId;\nconst conversationHistory = initData.conversationHistory;\n\n// Update session state with extracted info\nconst extractedInfo = llmResponse.extractedInfo || {};\nconst updatedState = {\n  ...sessionState,\n  systemBrief: extractedInfo.systemBrief || sessionState.systemBrief,\n  projectName: extractedInfo.projectName || sessionState.projectName,\n  projectType: extractedInfo.projectType || sessionState.projectType,\n  platforms: extractedInfo.platforms || sessionState.platforms,\n  coreFeatures: extractedInfo.coreFeatures || sessionState.coreFeatures,\n  constraints: extractedInfo.constraints || sessionState.constraints,\n  nfrs: extractedInfo.nfrs || sessionState.nfrs,\n  githubRepo: extractedInfo.githubRepo || sessionState.githubRepo,\n  targetBranch: extractedInfo.targetBranch || sessionState.targetBranch,\n  requirementsComplete: llmResponse.readyToGenerate || false,\n  step: sessionState.step + 1\n};\n\n// Add assistant message to history\nconversationHistory.push({\n  role: 'assistant',\n  content: llmResponse.assistantMessage,\n  timestamp: new Date().toISOString()\n});\n\nreturn {\n  json: {\n    assistantMessage: llmResponse.assistantMessage,\n    sessionId: sessionId,\n    sessionState: updatedState,\n    conversationHistory: conversationHistory,\n    requirementsComplete: updatedState.requirementsComplete,\n    extractedInfo: extractedInfo\n  }\n};"
+      },
+      "name": "Parse LLM & Update State",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.requirementsComplete }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Requirements Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO e2e_projects (project_name, system_brief, status, project_type, platforms, github_repo_url, target_branch, current_stage)\nVALUES (\n  '{{ $json.sessionState.projectName.replace(/'/g, \"''\") }}',\n  '{{ $json.sessionState.systemBrief.replace(/'/g, \"''\") }}',\n  'requirements_gathering',\n  '{{ $json.sessionState.projectType }}',\n  ARRAY[{{ $json.sessionState.platforms.map(p => `'${p.replace(/'/g, \"''\")}'`).join(',') }}],\n  '{{ $json.sessionState.githubRepo.replace(/'/g, \"''\") }}',\n  '{{ $json.sessionState.targetBranch.replace(/'/g, \"''\") }}',\n  'business-analyst'\n)\nRETURNING id, project_name;",
+        "options": {}
+      },
+      "name": "Create Project",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1450, 200],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Create functional requirements records\nconst projectId = $json.id;\nconst parseData = $('Parse LLM & Update State').first().json;\nconst sessionState = parseData.sessionState;\nconst requirements = [];\n\n// Core features as functional requirements\nif (sessionState.coreFeatures && sessionState.coreFeatures.length > 0) {\n  sessionState.coreFeatures.forEach((feature, idx) => {\n    requirements.push({\n      project_id: projectId,\n      requirement_type: 'functional',\n      category: 'core_feature',\n      priority: idx < 3 ? 'critical' : 'high',\n      description: feature,\n      source: 'system_brief',\n      created_by: 'business-analyst'\n    });\n  });\n}\n\n// Constraints\nif (sessionState.constraints && sessionState.constraints.length > 0) {\n  sessionState.constraints.forEach(constraint => {\n    requirements.push({\n      project_id: projectId,\n      requirement_type: 'constraint',\n      category: 'business',\n      priority: 'high',\n      description: constraint,\n      source: 'system_brief',\n      created_by: 'business-analyst'\n    });\n  });\n}\n\n// Non-functional requirements\nif (sessionState.nfrs && sessionState.nfrs.length > 0) {\n  sessionState.nfrs.forEach(nfr => {\n    requirements.push({\n      project_id: projectId,\n      requirement_type: 'non_functional',\n      category: 'quality',\n      priority: 'medium',\n      description: nfr,\n      source: 'system_brief',\n      created_by: 'business-analyst'\n    });\n  });\n}\n\nreturn requirements.map(req => ({ json: req }));"
+      },
+      "name": "Prepare Requirements",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1650, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO functional_requirements (project_id, requirement_type, category, priority, description, source, created_by) VALUES ('{{ $json.project_id }}', '{{ $json.requirement_type }}', '{{ $json.category }}', '{{ $json.priority }}', '{{ $json.description.replace(/'/g, \"''\") }}', '{{ $json.source }}', '{{ $json.created_by }}');",
+        "options": {}
+      },
+      "name": "Insert Requirements",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1850, 200],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/prd-generator",
+        "authentication": "none",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "projectId",
+              "value": "={{ $('Create Project').first().json.id }}"
+            },
+            {
+              "name": "projectName",
+              "value": "={{ $('Create Project').first().json.project_name }}"
+            },
+            {
+              "name": "triggeredBy",
+              "value": "business-analyst"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Trigger PRD Generator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2050, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "const projectData = $('Create Project').first().json;\nconst projectId = projectData.id;\nconst projectName = projectData.project_name;\nconst parseData = $('Parse LLM & Update State').first().json;\nconst sessionId = parseData.sessionId;\n\nreturn {\n  json: {\n    assistantMessage: `✅ Requirements gathering complete!\\n\\n**Project Created**: ${projectName}\\n**Project ID**: ${projectId}\\n\\nI've captured all your requirements and triggered the PRD Generator workflow.\\n\\nThe following expert consultations will now take place:\\n1. Compliance & Risk Assessor\\n2. Business Architect\\n3. Experience Design Optimizer\\n4. Technology CTO\\n5. Application Architect\\n6. Solution Architect (PRD-to-OAM)\\n7. Infrastructure Reviewer\\n\\nYou can monitor progress in the database or n8n execution logs.\\n\\nWould you like to:\\n- Start another project\\n- View project status\\n- Exit`,\n    sessionId,\n    sessionState: parseData.sessionState,\n    conversationHistory: parseData.conversationHistory,\n    complete: true,\n    projectId,\n    projectName\n  }\n};"
+      },
+      "name": "Complete Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2250, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "const sessionId = $json.sessionId;\nconst assistantMessage = $json.assistantMessage;\nconst sessionState = $json.sessionState;\nconst conversationHistory = $json.conversationHistory;\n\nreturn {\n  json: {\n    assistantMessage,\n    sessionId,\n    sessionState,\n    conversationHistory,\n    complete: false\n  }\n};"
+      },
+      "name": "Continue Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1450, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2450, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Chat Interface": {
+      "main": [
+        [
+          {
+            "node": "Initialize Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Session": {
+      "main": [
+        [
+          {
+            "node": "Save to Database - Chat Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Database - Chat Session": {
+      "main": [
+        [
+          {
+            "node": "LLM - Extract Requirements",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM - Extract Requirements": {
+      "main": [
+        [
+          {
+            "node": "Parse LLM & Update State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse LLM & Update State": {
+      "main": [
+        [
+          {
+            "node": "Requirements Complete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Requirements Complete?": {
+      "main": [
+        [
+          {
+            "node": "Create Project",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Continue Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Project": {
+      "main": [
+        [
+          {
+            "node": "Prepare Requirements",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Requirements": {
+      "main": [
+        [
+          {
+            "node": "Insert Requirements",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Requirements": {
+      "main": [
+        [
+          {
+            "node": "Trigger PRD Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger PRD Generator": {
+      "main": [
+        [
+          {
+            "node": "Complete Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Continue Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-27T00:00:00.000Z",
+  "versionId": "1"
+}

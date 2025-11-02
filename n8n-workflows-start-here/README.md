@@ -1,374 +1,391 @@
-# Migration Platform - n8n Workflows
+# n8n Workflow Automation Platform
 
-Complete n8n workflow automation for white-label migration from React Native to native platforms (iOS, Android, Web).
+**Complete n8n workflow automation for:**
+- 📋 **PRD Generation** - Expert-driven requirements & architecture
+- 🏗️ **End-to-End Solution Development** - Full-stack project generation
+- 🔄 **White-Label Migration** - React Native to native platforms
+
+---
+
+## 📚 Documentation Index
+
+### Getting Started
+- **[Quick Start](docs/QUICK-START.md)** - 5-minute setup guide
+- **[Configuration](docs/CONFIGURATION.md)** - Environment setup & credentials
+- **[Architecture Overview](docs/ARCHITECTURE.md)** - System architecture & design
+
+### Core Features
+- **[Intent Routing](docs/INTENT-ROUTING.md)** - LLM-powered workflow routing
+- **[PRD Generation](docs/PRD-GENERATION.md)** - Expert consultation pipeline
+- **[White-Label Migration](docs/WHITE-LABEL-MIGRATION.md)** - React Native migration
+
+### Technical Reference
+- **[Database Schema](docs/DATABASE-SCHEMA.md)** - Tables, views, and queries
+- **[Testing & Validation](docs/TESTING.md)** - Test suite and quality assurance
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues & solutions
+- **[API Reference](docs/API-REFERENCE.md)** - Webhook endpoints & models
+
+---
 
 ## Overview
 
-This platform uses:
+This platform provides a comprehensive n8n-based workflow automation system that intelligently routes user intents to specialized workflows:
+
+### Technology Stack
 - **n8n** - Workflow orchestration
-- **Ollama + OpenWebUI** - Local LLM for code generation
-- **PostgreSQL** - State management
-- **GitHub** - PR-based approval gates
-- **Git** - Version control and governance
+- **Ollama + OpenWebUI** - Local LLM (Qwen 2.5 models)
+- **PostgreSQL** - State management and audit trail
+- **GitHub** - Version control and PR-based approvals
+- **Git** - Repository management
+
+### Key Features
+
+#### 📋 PRD Generation & E2E Solutions
+- Interactive requirements gathering via Business Analyst chat
+- Automated expert consultations (7 specialized agents)
+- Shared context management across experts
+- Audit trail generation for compliance
+- PRD and OAM generation for GitOps deployment
+- **Expert Pipeline:** Compliance → Business → UX → CTO → App → Solution → Infrastructure
+
+#### 🔄 White-Label Migration
+- Migrate React Native apps to native platforms
+- Mono-repo structure with platform-specific code
+- Stage-based workflow with PR approvals
+- Code generation for iOS (SwiftUI), Android (Jetpack Compose), Web (React)
+- **Stages:** Scaffold → Analysis → Contracts → Code Generation
+
+#### 🎯 Intent-Aware Routing
+- LLM-powered intent classification
+- Automatic workflow selection
+- Confidence-based clarification
+- Session state management
+
+---
+
+## Quick Start
+
+### Prerequisites
+- n8n running: `http://localhost:8001`
+- PostgreSQL: Docker container `db`
+- Ollama + OpenWebUI running
+- Model: `qwen2.5:7b-instruct-q4_K_M`
+
+### 5-Minute Setup
+
+#### 1. Database Setup
+```bash
+# Import E2E schema
+docker exec -i db psql -U postgres -d postgres < database/e2e-schema.sql
+
+# Import migration schema (if using white-label)
+docker exec -i db psql -U postgres -d postgres < database-schema.sql
+
+# Verify tables
+docker exec -it db psql -U postgres -d postgres -c "\dt"
+```
+
+#### 2. Import Workflows to n8n
+
+**Open n8n**: http://localhost:8001
+
+**Import in order:**
+
+**Core Intent Router:**
+1. `0-configuration-assistant-intent-router.json` ⭐ Main entry point
+
+**PRD Generation (11 workflows):**
+2. `workflows/0-business-analyst-e2e.json`
+3. `workflows/1-prd-generator-orchestrator.json`
+4. `workflows/2-expert-compliance-risk.json`
+5. `workflows/3-expert-business-architect.json`
+6. `workflows/4-expert-experience-designer.json`
+7. `workflows/5-expert-technology-cto.json`
+8. `workflows/6-expert-application-architect.json`
+9. `workflows/7-expert-solution-architect.json`
+10. `workflows/8-expert-infrastructure-reviewer.json`
+11. `workflows/1b-devops-engineer.json`
+12. `workflows/9-github-docs-writer.json`
+
+**White-Label Migration (11 workflows):**
+13. `0-configuration-assistant.json`
+14. `1-github-webhook-handler.json`
+15. `2-master-orchestrator.json`
+16-24. Additional agent workflows (see [White-Label Migration](docs/WHITE-LABEL-MIGRATION.md))
+
+#### 3. Configure PostgreSQL Credentials
+
+1. n8n → Credentials → Add Credential
+2. Search "PostgreSQL"
+3. Configure:
+   - **Name:** `PostgreSQL Main` (exact match)
+   - **Host:** `db`
+   - **Database:** `postgres`
+   - **User:** `postgres`
+   - **Password:** `password`
+   - **Port:** `5432`
+4. Save
+
+#### 4. Open Chat Interface
+
+```bash
+# Serve chat interface
+cd /Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here
+python3 -m http.server 8080
+```
+
+Then open: http://localhost:8080/chat-interface.html
+
+---
+
+## Workflow Counts
+
+**Total Workflows:** 24
+
+**By Category:**
+- Intent Router: 1
+- PRD Generation: 11
+- White-Label Migration: 11
+- GitHub Integration: 1
+
+**Entry Points:**
+- Main: `0-configuration-assistant-intent-router.json`
+- Business Analyst: `workflows/0-business-analyst-e2e.json`
+- Migration Config: `0-configuration-assistant.json`
+
+---
+
+## Supported Intents
+
+### 1. 📋 PRD Generation (`prd_generation`)
+**Keywords:** PRD, requirements, architecture, design, specification, documentation, OAM, infrastructure
+
+**Routes to:** Business Analyst → PRD Generator → 7 Experts → DevOps
+
+**Example triggers:**
+```
+"I need a PRD for my mobile app"
+"Help me create architecture documentation"
+"Generate requirements for a new project"
+```
+
+### 2. 🏗️ End-to-End Solution (`e2e_solution`)
+**Keywords:** build, create, develop, new app, solution, project, from scratch
+
+**Routes to:** Business Analyst → PRD Generator → 7 Experts → DevOps
+
+**Example triggers:**
+```
+"Build a new mobile app"
+"Create a complete solution from scratch"
+"Develop a healthcare platform"
+```
+
+### 3. 🔄 White-Label Migration (`whitelabel_migration`)
+**Keywords:** migrate, migration, react native, iOS, Android, white-label, platform, mono-repo
+
+**Routes to:** Migration Config → Master Orchestrator → 6 Agents
+
+**Example triggers:**
+```
+"Migrate my React Native app"
+"Convert my RN app to iOS and Android"
+"White-label migration for my mobile app"
+```
+
+### 4. ❓ Help/Unknown
+**Routes to:** Clarification response with available services
+
+---
 
 ## Architecture
 
 ```
-User → Configuration Assistant (chat) → Master Orchestrator
-                                             ↓
-                                        Agent Workflows
-                                             ↓
-                                        Git/GitHub (PRs)
-                                             ↓
-                                        GitHub Webhooks → n8n
+┌──────────────────────────────────────────────────────────────┐
+│                    User Message                               │
+│                       ↓                                       │
+│           Intent Router (LLM Classification)                  │
+│                       ↓                                       │
+│   ┌──────────────────┴────────────────┬──────────────────┐  │
+│   ▼                  ▼                 ▼                   │  │
+│ PRD/E2E         White-Label       Unknown/Help             │  │
+│ Generation       Migration        Clarification            │  │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-## 🆕 Quick Start with Chat Interface
-
-**NEW!** Don't know the API format? Use the interactive Configuration Assistant:
-
-```bash
-# 1. Import the Configuration Assistant workflow
-# 2. Open the chat interface
-open n8n-workflows/chat-interface.html
-
-# 3. Chat with the assistant - it will guide you step by step!
-# 4. Migration starts automatically when you're ready
-```
-
-**See full guide:** [CONFIGURATION-ASSISTANT-GUIDE.md](CONFIGURATION-ASSISTANT-GUIDE.md)
+For detailed architecture diagrams, see **[Architecture Overview](docs/ARCHITECTURE.md)**.
 
 ---
 
-## Setup Instructions
+## Project Structure
 
-### 1. Database Setup
-
-Run the database schema:
-
-```bash
-# Connect to your PostgreSQL
-docker exec -i db psql -U postgres -d postgres < database-schema.sql
 ```
-
-### 2. Import n8n Workflows
-
-Import all workflows into n8n (order matters):
-
-**Interactive Setup (Recommended):**
-0. **0-configuration-assistant.json** ⭐ - Interactive chat to configure migration
-
-**Core Workflows:**
-1. **1-github-webhook-handler.json** - Handles GitHub webhook events
-2. **2-master-orchestrator.json** - Main workflow coordinating all stages
-
-**Agent Workflows:**
-3. **3-repo-analyzer-agent.json** - Analyzes React Native codebase
-4. **4-contract-generator-agent.json** - Generates TypeScript contracts
-5. **5-code-transformer-ios.json** - Generates SwiftUI code
-6. **6-code-transformer-android.json** - Generates Jetpack Compose code
-7. **7-code-transformer-web.json** - Generates React web code
-8. **8-validator-agent.json** - Validates generated code
-9. **9-visual-diff-agent.json** - Compares RN vs native screenshots
-10. **10-test-generator-agent.json** - Generates unit tests
-11. **11-documentation-generator-agent.json** - Generates component docs
-
-**Import via n8n UI:**
-- Go to n8n (http://localhost:8001)
-- Click "Workflows" → "Import from File"
-- Select each JSON file and import
-
-### 3. Configure PostgreSQL Credentials in n8n
-
-1. Go to n8n → Credentials
-2. Add new "PostgreSQL" credential:
-   - **Name:** `PostgreSQL Main` (must match exactly)
-   - **Host:** `db`
-   - **Database:** `postgres`
-   - **User:** `postgres`
-   - **Password:** `password` (from your .env)
-   - **Port:** `5432`
-
-### 4. Verify GitHub Webhook
-
-Your GitHub webhook should already be configured:
-- **URL:** `https://0dbf302010aa.ngrok-free.app/webhook/github/events`
-- **Secret:** `f5ef9c2a7a657ca80a5ea26175038564adce5fd95b2dad0e04683126a058da15`
-- **Events:** Pull requests, Pull request reviews, Check runs
-
-### 5. Environment Variables
-
-Verify these are in your `.env`:
-
-```bash
-GITHUB_TOKEN=${PERSONAL_ACCESS_TOKEN}
-GITHUB_OWNER=shlapolosa
-GITHUB_REPO=coding-assistant
-GITHUB_WEBHOOK_SECRET=f5ef9c2a7a657ca80a5ea26175038564adce5fd95b2dad0e04683126a058da15
-GIT_USER_EMAIL=socrates.hlapolosa@gmail.com
-GIT_USER_NAME="Migration Bot"
-```
-
-## Usage
-
-### Option 1: Interactive Chat (Recommended for First Time)
-
-**Use the Configuration Assistant:**
-
-```bash
-# Open the chat interface
-open n8n-workflows/chat-interface.html
-
-# Or serve it with:
-cd n8n-workflows
-python3 -m http.server 8080
-# Then open: http://localhost:8080/chat-interface.html
-```
-
-**The assistant will guide you through:**
-1. React Native repository URL
-2. Monorepo URL for migration
-3. Target platforms (iOS, Android, Web)
-4. Migration stages to complete
-5. GitHub reviewers
-6. Final confirmation
-
-**Then it automatically starts the migration!**
-
-See full guide: [CONFIGURATION-ASSISTANT-GUIDE.md](CONFIGURATION-ASSISTANT-GUIDE.md)
-
----
-
-### Option 2: Direct API Call (For Automation/Scripts)
-
-Send POST request to Master Orchestrator:
-
-```bash
-curl -X POST http://localhost:8001/webhook/start-migration \
-  -H "Content-Type: application/json" \
-  -d '{
-    "repoRN": "https://github.com/yourorg/rn-app",
-    "repoNative": null,
-    "monorepoUrl": "https://github.com/shlapolosa/coding-assistant",
-    "strategy": {
-      "startStage": 1,
-      "endStage": 3
-    },
-    "platforms": ["ios", "android", "web"],
-    "reviewers": ["shlapolosa"],
-    "targetBranch": "main"
-  }'
+/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/
+│
+├── README.md                                    # This file
+├── docs/                                        # Documentation
+│   ├── QUICK-START.md                          # 5-minute setup
+│   ├── ARCHITECTURE.md                         # System architecture
+│   ├── INTENT-ROUTING.md                       # Intent detection
+│   ├── PRD-GENERATION.md                       # PRD workflow details
+│   ├── WHITE-LABEL-MIGRATION.md                # Migration details
+│   ├── DATABASE-SCHEMA.md                      # Database reference
+│   ├── CONFIGURATION.md                        # Setup guide
+│   ├── TESTING.md                              # Test suite
+│   ├── TROUBLESHOOTING.md                      # Common issues
+│   └── API-REFERENCE.md                        # Webhook endpoints
+│
+├── workflows/                                   # PRD Generation workflows
+│   ├── 0-business-analyst-e2e.json
+│   ├── 1-prd-generator-orchestrator.json
+│   ├── 1b-devops-engineer.json
+│   ├── 2-expert-compliance-risk.json
+│   ├── 3-expert-business-architect.json
+│   ├── 4-expert-experience-designer.json
+│   ├── 5-expert-technology-cto.json
+│   ├── 6-expert-application-architect.json
+│   ├── 7-expert-solution-architect.json
+│   ├── 8-expert-infrastructure-reviewer.json
+│   └── 9-github-docs-writer.json
+│
+├── database/                                    # Database schemas
+│   ├── e2e-schema.sql                          # PRD generation schema
+│   └── database-schema.sql                     # Migration schema
+│
+├── tests/                                       # Test suite
+│   ├── test_workflow_validation.py             # Structure tests
+│   └── pytest.ini                              # Test configuration
+│
+├── chat-interface.html                          # Web chat UI
+│
+└── [White-Label Migration Workflows]           # Root-level workflows
+    ├── 0-configuration-assistant.json
+    ├── 0-configuration-assistant-intent-router.json
+    ├── 1-github-webhook-handler.json
+    ├── 2-master-orchestrator.json
+    └── [Additional agent workflows...]
 ```
 
 ---
 
-### Migration Flow
+## Development Workflow
 
-1. **Master Orchestrator** receives request
-2. Clones monorepo, scaffolds structure
-3. Calls **Repo Analyzer Agent** → analyzes RN codebase
-4. Creates branch `migration/stage-1-analysis`
-5. Commits analysis files
-6. **Creates PR #1** on GitHub
-7. **Workflow PAUSES** waiting for PR merge
-8. You review PR on GitHub, approve & merge
-9. GitHub webhook → **Workflow RESUMES**
-10. Calls **Contract Generator Agent**
-11. Creates branch `migration/stage-2-contracts`
-12. **Creates PR #2**
-13. **Workflow PAUSES** again
-14. ... and so on for each stage
+1. **User sends message** → Chat interface or webhook
+2. **Intent Router analyzes** → LLM classifies intent
+3. **Route to workflow:**
+   - PRD/E2E → Business Analyst
+   - White-Label → Migration Config
+   - Unknown → Clarification
+4. **Workflow executes** → Agents process request
+5. **Results delivered** → PRD, OAM, or migrated code
 
-### Monitoring
+---
 
-**Check migration status:**
+## Monitoring & Observability
 
-```sql
-SELECT
-  m.id,
-  m.status,
-  m.current_stage,
-  m.created_at,
-  COUNT(ag.id) as total_prs,
-  COUNT(CASE WHEN ag.status = 'merged' THEN 1 END) as merged_prs
-FROM migrations m
-LEFT JOIN approval_gates ag ON m.id = ag.migration_id
-GROUP BY m.id
-ORDER BY m.created_at DESC;
+### n8n Execution Logs
+View real-time execution in n8n UI:
+- http://localhost:8001/workflows
+- Click "Executions" tab
+- Filter by workflow name
+
+### Database Queries
+Monitor projects and progress:
+```bash
+# View active projects
+docker exec -it db psql -U postgres -d postgres -c \
+  "SELECT * FROM v_project_dashboard ORDER BY created_at DESC;"
+
+# Check expert consultations
+docker exec -it db psql -U postgres -d postgres -c \
+  "SELECT expert_name, status, duration_seconds
+   FROM expert_consultations
+   WHERE project_id = 'YOUR_PROJECT_ID';"
 ```
 
-**View pending PRs:**
+For complete monitoring queries, see **[Database Schema](docs/DATABASE-SCHEMA.md)**.
 
-```sql
-SELECT
-  ag.gate_name,
-  ag.pr_number,
-  ag.pr_url,
-  ag.status,
-  ag.created_at
-FROM approval_gates ag
-WHERE ag.status = 'pending'
-ORDER BY ag.created_at DESC;
+---
+
+## Testing
+
+### Run Test Suite
+```bash
+cd tests
+pytest test_workflow_validation.py -v
 ```
 
-## Workflow Details
+**Test Coverage:**
+- Structural validation (8 tests)
+- Data flow validation (2 tests)
+- Security validation (2 tests)
 
-### 0. Configuration Assistant (NEW!)
-- **Interactive chat interface** for user-friendly setup
-- Asks questions one at a time
-- Validates responses (URL format, valid stages, etc.)
-- Extracts information from natural language
-- Shows progress visually
-- Confirms configuration before starting
-- **Automatically triggers Master Orchestrator** when ready
-- Can be used via: Web chat, OpenWebUI function, or API
+**All 12 tests passing ✅**
 
-### 1. GitHub Webhook Handler
-- Receives all GitHub events
-- Verifies HMAC signature
-- Routes PR merge events to Master Orchestrator
-- Updates approval_gates table
+For detailed testing documentation, see **[Testing & Validation](docs/TESTING.md)**.
 
-### 2. Master Orchestrator
-- Main state machine
-- Coordinates all stages
-- Creates PRs, waits for approvals
-- Calls specialized agents
-- Handles Stage 0 (scaffold) → Stage 1 (analysis) → Stage 2 (contracts) → Stage 3 (code gen)
-
-### 3. Repo Analyzer Agent
-- Clones React Native repo
-- Finds all components (*.tsx, *.ts, *.jsx, *.js)
-- Analyzes each component with Ollama
-- Extracts: complexity, risk, dependencies, native modules
-- Generates component inventory, risk matrix, dependency graph
-- Returns structured JSON
-
-### 4. Contract Generator Agent
-- Gets component inventory from DB
-- For each component:
-  - Calls Ollama to generate TypeScript interface
-  - Validates syntax
-  - Writes to `packages/shared-components/contracts/`
-- Extracts design tokens
-- Returns contracts + tokens
-
-### 5. Code Transformer Agents (iOS/Android/Web)
-- Gets contracts from DB
-- For each contract:
-  - Calls Ollama with platform-specific prompt
-  - Generates SwiftUI / Jetpack Compose / React code
-  - Writes to `packages/native-components/{platform}/`
-- Returns generated code
-
-### 6. Validator Agent
-- Finds generated code files
-- Runs platform-specific validators:
-  - Swift: `swiftc -typecheck`
-  - Kotlin: `kotlinc -no-stdlib`
-  - TypeScript: `tsc --noEmit`
-- Returns validation results
-
-### 7. Visual Diff Agent
-- (Placeholder - requires Playwright setup)
-- Takes screenshots of RN components
-- Takes screenshots of native components
-- Compares with pixelmatch
-- Returns similarity scores
-
-### 8. Test Generator Agent
-- Finds generated components
-- Calls Ollama to generate unit tests
-- Returns test code
-
-### 9. Documentation Generator Agent
-- Gets components from DB
-- Calls Ollama to generate markdown docs
-- Writes to `docs/components/`
-- Returns documentation
+---
 
 ## Troubleshooting
 
-### 502 Errors on GitHub Webhook
-- Normal if workflows not imported yet
-- Import workflows, activate them in n8n
-- Test by merging a dummy PR
+### Common Issues
 
-### Workflow Not Resuming After PR Merge
-- Check GitHub webhook is configured correctly
-- Verify webhook secret matches
-- Check n8n execution logs
-- Ensure approval_gates table has correct pr_number
+**Chat Interface Not Connecting:**
+```bash
+# Check n8n is running
+docker ps | grep n8n
 
-### LLM Errors (OpenWebUI)
-- Verify Ollama is running: `curl http://ollama:11434/api/tags`
-- Verify OpenWebUI: `curl http://open-webui:8080/api/health`
-- Check model is pulled: `docker exec ollama ollama list`
-- If missing: `docker exec ollama ollama pull qwen2.5:7b-instruct-q4_K_M`
+# Verify workflow is active
+# Visit: http://localhost:8001/workflows
+```
 
-### PostgreSQL Connection Errors
-- Verify credentials in n8n match .env
-- Test connection: `docker exec -it db psql -U postgres -d postgres -c "SELECT 1"`
-- Check tables exist: `docker exec -it db psql -U postgres -d postgres -c "\dt"`
+**Database Connection Failed:**
+```bash
+# Test PostgreSQL connection
+docker exec -it db psql -U postgres -d postgres -c "SELECT 1"
 
-### Git Operations Failing
-- Ensure git is available in n8n container
-- Check /tmp/migrations directory exists
-- Verify GitHub token has repo permissions
+# Verify credentials in n8n match exactly
+```
 
-## Extending
+**LLM Errors:**
+```bash
+# Check Ollama is running
+curl http://ollama:11434/api/tags
 
-### Adding New Agent
-1. Create new workflow JSON
-2. Add webhook trigger: `/webhook/agent-your-agent`
-3. Implement agent logic
-4. Call from Master Orchestrator at appropriate stage
+# Pull model if missing
+docker exec ollama ollama pull qwen2.5:7b-instruct-q4_K_M
+```
 
-### Adding New Stage
-1. Edit Master Orchestrator
-2. Add new stage after existing stage
-3. Call appropriate agents
-4. Create PR for approval
-5. Add webhook wait node
-
-### Customizing Prompts
-- Edit the `jsonBody` in HTTP Request nodes
-- Modify system/user prompts
-- Adjust temperature for more/less creative output
-
-## Configuration Reference
-
-### Models Used
-- **Repo Analyzer:** `qwen2.5:7b-instruct-q4_K_M` (fast, lightweight)
-- **Contract Generator:** `qwen2.5:7b-instruct-q4_K_M`
-- **Code Transformers:** `qwen2.5:7b-instruct-q4_K_M`
-- **Test Generator:** `qwen2.5:7b-instruct-q4_K_M`
-- **Docs Generator:** `qwen2.5:7b-instruct-q4_K_M`
-
-### Upgrade to Larger Models
-For better quality, use `qwen2.5-coder:32b`:
-
-1. Pull model: `docker exec ollama ollama pull qwen2.5-coder:32b`
-2. Edit workflows, replace model name in HTTP Request nodes
-3. Save and reactivate workflows
-
-## Next Steps
-
-1. Import all workflows ✓
-2. Configure PostgreSQL credentials ✓
-3. Run database schema ✓
-4. Test with sample migration
-5. Review first PR on GitHub
-6. Merge and watch workflow resume
-7. Iterate and refine prompts
-
-## Support
-
-- **n8n Docs:** https://docs.n8n.io/
-- **Ollama Docs:** https://ollama.ai/
-- **OpenWebUI Docs:** https://docs.openwebui.com/
-- **GitHub Webhook Docs:** https://docs.github.com/webhooks
+For complete troubleshooting guide, see **[Troubleshooting](docs/TROUBLESHOOTING.md)**.
 
 ---
 
-🤖 Generated by Migration Platform
+## Contributing
+
+Contributions welcome! Please:
+1. Follow existing workflow patterns
+2. Add tests for new workflows
+3. Update documentation
+4. Test end-to-end before submitting PR
+
+---
+
+## Support & Resources
+
+### n8n Resources
+- n8n Docs: https://docs.n8n.io/
+- n8n Community: https://community.n8n.io/
+
+### LLM Resources
+- Ollama Docs: https://ollama.ai/
+- OpenWebUI Docs: https://docs.openwebui.com/
+- Qwen Models: https://github.com/QwenLM/Qwen
+
+### Database
+- PostgreSQL Docs: https://www.postgresql.org/docs/
+
+---
+
+**Platform Version:** n8n Workflow Automation v1.0
+**OAM Specification:** core.oam.dev/v1beta1
+**Last Updated:** 2025-01-27

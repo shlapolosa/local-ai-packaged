@@ -1,0 +1,192 @@
+{
+  "name": "9 - GitHub Docs Writer (Helper)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "github/write-docs",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook - Write to Docs",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "github-docs-writer"
+    },
+    {
+      "parameters": {
+        "functionCode": "const projectId = $json.projectId;\nconst expertName = $json.expertName;\nconst markdownContent = $json.markdownContent;\nconst fileName = $json.fileName || `${expertName}-analysis-${Date.now()}.md`;\n\nreturn {\n  json: {\n    projectId,\n    expertName,\n    markdownContent,\n    fileName\n  }\n};"
+      },
+      "name": "Extract Inputs",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT github_repo_url FROM e2e_projects WHERE id = '{{ $json.projectId }}';",
+        "options": {}
+      },
+      "name": "Get GitHub Repo",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const githubRepoUrl = $json.github_repo_url;\nconst extractData = $('Extract Inputs').first().json;\nconst fileName = extractData.fileName;\nconst markdownContent = extractData.markdownContent;\n\n// Extract org and repo from URL\nconst repoMatch = githubRepoUrl.match(/github\\.com[/:]([^/]+)\\/([^/.]+)/);\nconst githubOrg = repoMatch ? repoMatch[1] : 'shlapolosa';\nconst githubRepo = repoMatch ? repoMatch[2] : 'default-repo';\n\n// Get GitHub token from environment\nconst githubToken = process.env.GITHUB_TOKEN || '';\n\n// Base64 encode content\nconst contentBase64 = Buffer.from(markdownContent).toString('base64');\n\nconst filePath = `docs/analysis/${fileName}`;\n\nreturn {\n  json: {\n    githubOrg,\n    githubRepo,\n    githubToken,\n    filePath,\n    contentBase64,\n    fileName\n  }\n};"
+      },
+      "name": "Prepare GitHub API",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.github.com/repos/={{ $json.githubOrg }}/={{ $json.githubRepo }}/contents/={{ $json.filePath }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            },
+            {
+              "name": "Authorization",
+              "value": "token {{ $json.githubToken }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxRetries": 3,
+            "waitBetweenRetries": 2000
+          },
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "name": "Check File Exists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "const response = $json;\nconst prepareData = $('Prepare GitHub API').first().json;\nconst filePath = prepareData.filePath;\nconst contentBase64 = prepareData.contentBase64;\nconst githubOrg = prepareData.githubOrg;\nconst githubRepo = prepareData.githubRepo;\nconst githubToken = prepareData.githubToken;\nconst fileName = prepareData.fileName;\n\nlet sha = null;\nif (response && response.sha) {\n  sha = response.sha; // File exists, get its SHA for update\n}\n\nreturn {\n  json: {\n    githubOrg,\n    githubRepo,\n    githubToken,\n    filePath,\n    contentBase64,\n    fileName,\n    sha,\n    isUpdate: sha !== null\n  }\n};"
+      },
+      "name": "Get SHA if Exists",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://api.github.com/repos/={{ $json.githubOrg }}/={{ $json.githubRepo }}/contents/={{ $json.filePath }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            },
+            {
+              "name": "Authorization",
+              "value": "token {{ $json.githubToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  message: `docs: add ${$json.fileName}`,\n  content: $json.contentBase64,\n  sha: $json.sha || undefined,\n  branch: 'main'\n}) }}",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxRetries": 3,
+            "waitBetweenRetries": 2000
+          },
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "name": "Write to GitHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1450, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "const response = $json;\nconst shaData = $('Get SHA if Exists').first().json;\nconst fileName = shaData.fileName;\nconst githubOrg = shaData.githubOrg;\nconst githubRepo = shaData.githubRepo;\nconst filePath = shaData.filePath;\n\nconst fileUrl = `https://github.com/${githubOrg}/${githubRepo}/blob/main/${filePath}`;\n\nreturn {\n  json: {\n    success: true,\n    fileName,\n    fileUrl,\n    htmlUrl: response.content ? response.content.html_url : fileUrl\n  }\n};"
+      },
+      "name": "Build Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Write to Docs": {
+      "main": [[{"node": "Extract Inputs", "type": "main", "index": 0}]]
+    },
+    "Extract Inputs": {
+      "main": [[{"node": "Get GitHub Repo", "type": "main", "index": 0}]]
+    },
+    "Get GitHub Repo": {
+      "main": [[{"node": "Prepare GitHub API", "type": "main", "index": 0}]]
+    },
+    "Prepare GitHub API": {
+      "main": [[{"node": "Check File Exists", "type": "main", "index": 0}]]
+    },
+    "Check File Exists": {
+      "main": [[{"node": "Get SHA if Exists", "type": "main", "index": 0}]]
+    },
+    "Get SHA if Exists": {
+      "main": [[{"node": "Write to GitHub", "type": "main", "index": 0}]]
+    },
+    "Write to GitHub": {
+      "main": [[{"node": "Build Response", "type": "main", "index": 0}]]
+    },
+    "Build Response": {
+      "main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-27T00:00:00.000Z",
+  "versionId": "1"
+}

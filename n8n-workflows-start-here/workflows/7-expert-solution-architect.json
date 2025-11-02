@@ -1,0 +1,182 @@
+{
+  "name": "7 - Expert: Solution Architect",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "expert/solution-architect",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook - Expert Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "expert-solution-architect"
+    },
+    {
+      "parameters": {
+        "functionCode": "const projectId = $json.projectId;\nconst sharedContext = typeof $json.sharedContext === 'string' \n  ? JSON.parse($json.sharedContext) \n  : $json.sharedContext;\nconst contextVersion = $json.contextVersion || 1;\n\nreturn {\n  json: {\n    projectId,\n    sharedContext,\n    contextVersion,\n    expertName: 'solution-architect',\n    startTime: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Extract Inputs",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO expert_consultations (project_id, expert_name, status, input_context, shared_context_version) VALUES ('{{ $json.projectId }}', 'solution-architect', 'in_progress', '{{ JSON.stringify($json).replace(/'/g, \"''\") }}', {{ $json.contextVersion }}) RETURNING id;",
+        "options": {}
+      },
+      "name": "Log Consultation Start",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://open-webui:8080/api/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "qwen2.5:7b-instruct-q4_K_M"
+            },
+            {
+              "name": "messages",
+              "value": "={{ JSON.stringify([\n  {\n    role: 'system',\n    content: `You are a Solution Architect specializing in OAM (Open Application Model) definitions.\n\nYour expertise includes:\n- OAM v1beta1 Specification\n- ComponentDefinition creation\n- Application composition\n- Trait application (autoscaler, ingress, kafka)\n- Workload types (webservice, webservice-k8s)\n- Dependency management\n- Unified repository pattern\n\nCRITICAL REQUIREMENTS:\n1. Generate TWO separate OAM definitions:\n   a. Standard OAM (portable, pure OAM spec)\n   b. Platform-specific OAM (uses all available components)\n\n2. Component Processing Order:\n   - Infrastructure (postgresql, redis, kafka) FIRST\n   - Compositional (rasa-chatbot, identity-service) SECOND\n   - Foundational (webservice, webservice-k8s) LAST\n\n3. Platform Constraints:\n   - Only 11 ComponentDefinitions available\n   - Only 4 TraitDefinitions: autoscaler, ingress, kafka-consumer, kafka-producer\n   - No circuit-breaker, monitoring, security traits yet\n   - Webservice components need language & framework for source generation\n   - MUST include app-container label for Argo Events\n\nAvailable Components:\n${JSON.stringify($('Extract Inputs').first().json.sharedContext.platform_capabilities, null, 2)}\n\nApplication Architecture:\n${JSON.stringify($('Extract Inputs').first().json.sharedContext.expert_recommendations.application_architect, null, 2)}\n\nProject Context:\n${JSON.stringify($('Extract Inputs').first().json.sharedContext, null, 2)}\n\nResponse format:\n{\n  \\\"analysis\\\": {\n    \\\"executive_summary\\\": \\\"2-3 paragraph summary\\\",\n    \\\"component_mapping\\\": [\n      {\n        \\\"microservice\\\": \\\"user-service\\\",\n        \\\"oam_component\\\": \\\"webservice\\\",\n        \\\"rationale\\\": \\\"Stateless HTTP service, auto-scaling needed\\\"\n      }\n    ],\n    \\\"dependency_chain\\\": [\n      \\\"postgresql → identity-service → user-service → api-gateway\\\"\n    ]\n  },\n  \\\"oam_definitions\\\": {\n    \\\"standard\\\": \\\"# Standard OAM v1beta1\\\\napiVersion: core.oam.dev/v1beta1\\\\n...\\\",\n    \\\"platform_specific\\\": \\\"# Platform-Specific OAM\\\\napiVersion: core.oam.dev/v1beta1\\\\n...\\\"\n  },\n  \\\"context_updates\\\": {\n    \\\"decision_rationale\\\": {\n      \\\"logical_dependency_chain\\\": \\\"...\\\"\n    }\n  },\n  \\\"recommendations\\\": [\n    \\\"Add circuit-breaker trait when available\\\",\n    \\\"Consider GraphQL gateway for API aggregation\\\"\n  ],\n  \\\"markdown_report\\\": \\\"# Solution Architecture (OAM) Report\\\\\\\\n\\\\\\\\n...\\\"\\n}`\n  }\n]) }}"
+            },
+            {
+              "name": "temperature",
+              "value": "0.2"
+            },
+            {
+              "name": "max_tokens",
+              "value": "4000"
+            },
+            {
+              "name": "stream",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 3,
+            "waitBetweenRetries": 2000
+          },
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "name": "LLM - OAM Generation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse LLM response\nconst llmResponse = JSON.parse($json.choices[0].message.content);\nconst extractData = $('Extract Inputs').first().json;\nconst currentContext = extractData.sharedContext;\nconst projectId = extractData.projectId;\n\n// Merge context updates with safe defaults\nconst updatedContext = {\n  ...currentContext,\n  decision_rationale: {\n    ...(currentContext.decision_rationale || {}),\n    ...(llmResponse.context_updates.decision_rationale || {})\n  },\n  expert_recommendations: {\n    ...(currentContext.expert_recommendations || {}),\n    solution_architect: llmResponse.analysis.executive_summary\n  },\n  oam_definitions: llmResponse.oam_definitions || {}\n};\n\nreturn {\n  json: {\n    projectId,\n    updatedContext,\n    contextVersion: extractData.contextVersion + 1,\n    analysis: llmResponse.analysis,\n    markdownReport: llmResponse.markdown_report,\n    recommendations: llmResponse.recommendations,\n    oamDefinitions: llmResponse.oam_definitions\n  }\n};"
+      },
+      "name": "Update Shared Context",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO shared_context (project_id, context_data, version, updated_by) VALUES ('{{ $json.projectId }}', '{{ JSON.stringify($json.updatedContext).replace(/'/g, \"''\") }}', {{ $json.contextVersion }}, 'solution-architect') RETURNING id;",
+        "options": {}
+      },
+      "name": "Save Updated Context",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1250, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE expert_consultations \nSET status = 'completed', \n    completed_at = NOW(),\n    duration_seconds = EXTRACT(EPOCH FROM (NOW() - started_at)),\n    output_analysis = '{{ $('Update Shared Context').first().json.markdownReport }}',\n    output_artifacts = '{{ JSON.stringify($('Update Shared Context').first().json.analysis) }}'\nWHERE project_id = '{{ $json.projectId }}' \n  AND expert_name = 'solution-architect'\n  AND iteration_number = 1;",
+        "options": {}
+      },
+      "name": "Complete Consultation",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1450, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  expertName: 'solution-architect',\n  projectId: $json.projectId,\n  updatedContext: $('Update Shared Context').first().json.updatedContext,\n  contextVersion: $('Update Shared Context').first().json.contextVersion,\n  analysis: $('Update Shared Context').first().json.analysis,\n  recommendations: $('Update Shared Context').first().json.recommendations,\n  oamDefinitions: $('Update Shared Context').first().json.oamDefinitions\n}) }}",
+        "options": {}
+      },
+      "name": "Respond to Orchestrator",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Expert Trigger": {
+      "main": [[{"node": "Extract Inputs", "type": "main", "index": 0}]]
+    },
+    "Extract Inputs": {
+      "main": [[{"node": "Log Consultation Start", "type": "main", "index": 0}]]
+    },
+    "Log Consultation Start": {
+      "main": [[{"node": "LLM - OAM Generation", "type": "main", "index": 0}]]
+    },
+    "LLM - OAM Generation": {
+      "main": [[{"node": "Update Shared Context", "type": "main", "index": 0}]]
+    },
+    "Update Shared Context": {
+      "main": [[{"node": "Save Updated Context", "type": "main", "index": 0}]]
+    },
+    "Save Updated Context": {
+      "main": [[{"node": "Complete Consultation", "type": "main", "index": 0}]]
+    },
+    "Complete Consultation": {
+      "main": [[{"node": "Respond to Orchestrator", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-27T00:00:00.000Z",
+  "versionId": "1"
+}

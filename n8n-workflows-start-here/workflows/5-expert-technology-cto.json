@@ -1,0 +1,182 @@
+{
+  "name": "5 - Expert: Technology CTO",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "expert/technology-cto",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook - Expert Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "expert-technology-cto"
+    },
+    {
+      "parameters": {
+        "functionCode": "const projectId = $json.projectId;\nconst sharedContext = typeof $json.sharedContext === 'string' \n  ? JSON.parse($json.sharedContext) \n  : $json.sharedContext;\nconst contextVersion = $json.contextVersion || 1;\n\nreturn {\n  json: {\n    projectId,\n    sharedContext,\n    contextVersion,\n    expertName: 'technology-cto',\n    startTime: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Extract Inputs",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO expert_consultations (project_id, expert_name, status, input_context, shared_context_version) VALUES ('{{ $json.projectId }}', 'technology-cto', 'in_progress', '{{ JSON.stringify($json).replace(/'/g, \"''\") }}', {{ $json.contextVersion }}) RETURNING id;",
+        "options": {}
+      },
+      "name": "Log Consultation Start",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://open-webui:8080/api/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "qwen2.5:7b-instruct-q4_K_M"
+            },
+            {
+              "name": "messages",
+              "value": "={{ JSON.stringify([\n  {\n    role: 'system',\n    content: `You are a Technology CTO providing strategic technology leadership.\n\nYour expertise includes:\n- Technology Stack Selection\n- Platform Evaluations (PaaS, IaaS, SaaS)\n- Build vs Buy Decisions\n- Vendor Lock-in Assessment\n- Total Cost of Ownership (TCO)\n- Technical Debt Management\n- Non-functional Requirements (NFRs)\n- OAM Component Validation\n\nCRITICAL: You MUST validate all recommendations against available OAM components.\n\nAvailable OAM Components:\n${JSON.stringify($('Extract Inputs').first().json.sharedContext.platform_capabilities, null, 2)}\n\nYour task:\n1. Evaluate technology options for each requirement\n2. Validate against available OAM components\n3. Make strategic decisions (customer impact, automation, cost, alignment, risk)\n4. Assess vendor lock-in and exit strategies\n5. Define NFRs (performance, scalability, availability)\n6. Challenge other architects' proposals\n7. Flag platform capability gaps\n8. Update shared context with technology decisions\n\nDecision Framework (prioritized):\n1. Customer Experience Impact\n2. Automation Potential\n3. Cost Optimization\n4. Strategic Alignment\n5. Risk Assessment\n\nProject Context:\n${JSON.stringify($('Extract Inputs').first().json.sharedContext, null, 2)}\n\nResponse format:\n{\n  \"analysis\": {\n    \"executive_summary\": \"2-3 paragraph summary\",\n    \"technology_stack\": {\n      \"frontend\": {\"choice\": \"React\", \"rationale\": \"...\"},\n      \"backend\": {\"choice\": \"FastAPI\", \"rationale\": \"...\"},\n      \"database\": {\"choice\": \"PostgreSQL\", \"rationale\": \"...\"},\n      \"cache\": {\"choice\": \"Redis\", \"rationale\": \"...\"},\n      \"messaging\": {\"choice\": \"Kafka\", \"rationale\": \"...\"}\n    },\n    \"oam_validation\": {\n      \"supported_by_platform\": true/false,\n      \"available_components\": [],\n      \"missing_components\": [],\n      \"workarounds\": []\n    },\n    \"nfr_definitions\": {\n      \"performance\": {\"response_time\": \"< 200ms\", \"throughput\": \"1000 rps\"},\n      \"scalability\": {\"horizontal\": true, \"max_pods\": 50},\n      \"availability\": {\"uptime\": \"99.9%\", \"rto\": \"< 15min\", \"rpo\": \"< 5min\"},\n      \"security\": {\"encryption\": \"TLS 1.3\", \"authentication\": \"OAuth2\"}\n    },\n    \"build_vs_buy\": [\n      {\n        \"capability\": \"Authentication\",\n        \"decision\": \"buy\",\n        \"option\": \"identity-service component\",\n        \"rationale\": \"...\"\n      }\n    ],\n    \"vendor_assessment\": [],\n    \"tco_analysis\": {\n      \"development_cost\": \"$X\",\n      \"operational_cost\": \"$Y/month\",\n      \"licensing_cost\": \"$Z/year\"\n    },\n    \"platform_gaps\": [\n      {\n        \"gap\": \"No circuit breaker trait\",\n        \"impact\": \"medium\",\n        \"workaround\": \"Implement at application level\"\n      }\n    ]\n  },\n  \"context_updates\": {\n    \"technology_decisions\": [],\n    \"infrastructure_constraints\": [],\n    \"decision_rationale\": {}\n  },\n  \"recommendations\": [],\n  \"markdown_report\": \"# Technology Strategy Report\\\\n\\\\n...\"\n}`\n  }\n]) }}"
+            },
+            {
+              "name": "temperature",
+              "value": "0.2"
+            },
+            {
+              "name": "max_tokens",
+              "value": "4000"
+            },
+            {
+              "name": "stream",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 3,
+            "waitBetweenRetries": 2000
+          },
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "name": "LLM - Technology Strategy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse LLM response\nconst llmResponse = JSON.parse($json.choices[0].message.content);\nconst extractData = $('Extract Inputs').first().json;\nconst currentContext = extractData.sharedContext;\nconst projectId = extractData.projectId;\n\n// Merge context updates with safe defaults\nconst updatedContext = {\n  ...currentContext,\n  technology_decisions: [\n    ...(currentContext.technology_decisions || []),\n    ...(llmResponse.context_updates.technology_decisions || [])\n  ],\n  infrastructure_constraints: [\n    ...(currentContext.infrastructure_constraints || []),\n    ...(llmResponse.context_updates.infrastructure_constraints || [])\n  ],\n  decision_rationale: {\n    ...(currentContext.decision_rationale || {}),\n    ...(llmResponse.context_updates.decision_rationale || {})\n  },\n  expert_recommendations: {\n    ...(currentContext.expert_recommendations || {}),\n    technology_cto: llmResponse.analysis.executive_summary\n  }\n};\n\nreturn {\n  json: {\n    projectId,\n    updatedContext,\n    contextVersion: extractData.contextVersion + 1,\n    analysis: llmResponse.analysis,\n    markdownReport: llmResponse.markdown_report,\n    recommendations: llmResponse.recommendations\n  }\n};"
+      },
+      "name": "Update Shared Context",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO shared_context (project_id, context_data, version, updated_by) VALUES ('{{ $json.projectId }}', '{{ JSON.stringify($json.updatedContext).replace(/'/g, \"''\") }}', {{ $json.contextVersion }}, 'technology-cto') RETURNING id;",
+        "options": {}
+      },
+      "name": "Save Updated Context",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1250, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE expert_consultations \nSET status = 'completed', \n    completed_at = NOW(),\n    duration_seconds = EXTRACT(EPOCH FROM (NOW() - started_at)),\n    output_analysis = '{{ $('Update Shared Context').first().json.markdownReport }}',\n    output_artifacts = '{{ JSON.stringify($('Update Shared Context').first().json.analysis) }}'\nWHERE project_id = '{{ $json.projectId }}' \n  AND expert_name = 'technology-cto'\n  AND iteration_number = 1;",
+        "options": {}
+      },
+      "name": "Complete Consultation",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1450, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  expertName: 'technology-cto',\n  projectId: $json.projectId,\n  updatedContext: $('Update Shared Context').first().json.updatedContext,\n  contextVersion: $('Update Shared Context').first().json.contextVersion,\n  analysis: $('Update Shared Context').first().json.analysis,\n  recommendations: $('Update Shared Context').first().json.recommendations\n}) }}",
+        "options": {}
+      },
+      "name": "Respond to Orchestrator",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Expert Trigger": {
+      "main": [[{"node": "Extract Inputs", "type": "main", "index": 0}]]
+    },
+    "Extract Inputs": {
+      "main": [[{"node": "Log Consultation Start", "type": "main", "index": 0}]]
+    },
+    "Log Consultation Start": {
+      "main": [[{"node": "LLM - Technology Strategy", "type": "main", "index": 0}]]
+    },
+    "LLM - Technology Strategy": {
+      "main": [[{"node": "Update Shared Context", "type": "main", "index": 0}]]
+    },
+    "Update Shared Context": {
+      "main": [[{"node": "Save Updated Context", "type": "main", "index": 0}]]
+    },
+    "Save Updated Context": {
+      "main": [[{"node": "Complete Consultation", "type": "main", "index": 0}]]
+    },
+    "Complete Consultation": {
+      "main": [[{"node": "Respond to Orchestrator", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-27T00:00:00.000Z",
+  "versionId": "1"
+}

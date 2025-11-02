@@ -1,0 +1,766 @@
+{
+  "name": "1 - PRD Generator Orchestrator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "prd-generator",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook - Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        400
+      ],
+      "webhookId": "prd-generator-trigger"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract project info\nconst projectId = $json.projectId;\nconst projectName = $json.projectName;\nconst triggeredBy = $json.triggeredBy || 'manual';\n\nreturn {\n  json: {\n    projectId,\n    projectName,\n    triggeredBy,\n    startTime: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Extract Project Info",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        450,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, project_name, system_brief, project_type, platforms, github_repo_url, target_branch\nFROM e2e_projects\nWHERE id = '{{ $json.projectId }}';",
+        "options": {}
+      },
+      "name": "Load Project",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        650,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, requirement_type, category, priority, description, acceptance_criteria, source\nFROM functional_requirements\nWHERE project_id = '{{ $json.id }}'\nORDER BY priority DESC, created_at ASC;",
+        "options": {}
+      },
+      "name": "Load Requirements",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        850,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Initialize shared context\nconst project = $('Load Project').first().json;\nconst requirements = $items().map(item => item.json);\n\nconst sharedContext = {\n  project_overview: {\n    name: project.project_name,\n    brief: project.system_brief,\n    type: project.project_type,\n    platforms: project.platforms\n  },\n  functional_requirements: requirements.filter(r => r.requirement_type === 'functional'),\n  non_functional_requirements: requirements.filter(r => r.requirement_type === 'non_functional'),\n  constraints: requirements.filter(r => r.requirement_type === 'constraint'),\n  compliance_requirements: [],\n  business_constraints: [],\n  ux_requirements: [],\n  technology_decisions: [],\n  architectural_patterns: [],\n  infrastructure_constraints: [],\n  identified_risks: [],\n  key_assumptions: [],\n  expert_recommendations: {},\n  decision_rationale: {}\n};\n\nreturn {\n  json: {\n    projectId: project.id,\n    projectName: project.project_name,\n    githubRepo: project.github_repo_url,\n    targetBranch: project.target_branch,\n    sharedContext,\n    contextVersion: 1\n  }\n};"
+      },
+      "name": "Initialize Shared Context",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO shared_context (project_id, context_data, version, updated_by) VALUES ('{{ $json.projectId }}', '{{ JSON.stringify($json.sharedContext).replace(/'/g, \"''\") }}', {{ $json.contextVersion }}, 'prd-generator') RETURNING id;",
+        "options": {}
+      },
+      "name": "Save Initial Context",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE e2e_projects SET status = 'prd_generation', current_stage = 'component-catalog-discovery', updated_at = NOW() WHERE id = '{{ $('Initialize Shared Context').first().json.projectId }}';",
+        "options": {}
+      },
+      "name": "Update Project Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT component_name, component_type, description, capabilities, constraints, example_usage\nFROM oam_component_catalog\nORDER BY component_type, component_name;",
+        "options": {}
+      },
+      "name": "Component Catalog Discovery",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1650,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const context = $('Initialize Shared Context').first().json.sharedContext;\nconst components = $items().map(item => item.json);\n\n// Categorize components in single pass\nconst categorized = components.reduce((acc, c) => {\n  acc[c.component_type] = acc[c.component_type] || [];\n  acc[c.component_type].push(c);\n  return acc;\n}, {});\n\ncontext.platform_capabilities = {\n  available_components: components,\n  foundational: categorized.foundational || [],\n  compositional: categorized.compositional || [],\n  infrastructural: categorized.infrastructural || []\n};\n\nreturn {\n  json: {\n    projectId: $('Initialize Shared Context').first().json.projectId,\n    sharedContext: context,\n    contextVersion: 2\n  }\n};"
+      },
+      "name": "Update Context - Components",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1850,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/expert/compliance-risk",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "projectId",
+              "value": "={{ $json.projectId }}"
+            },
+            {
+              "name": "sharedContext",
+              "value": "={{ JSON.stringify($json.sharedContext) }}"
+            },
+            {
+              "name": "contextVersion",
+              "value": "={{ $json.contextVersion }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000,
+          "retry": {
+            "maxRetries": 2,
+            "waitBetweenRetries": 3000
+          }
+        }
+      },
+      "name": "Call Compliance & Risk Assessor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        2050,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/expert/business-architect",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "projectId",
+              "value": "={{ $json.projectId }}"
+            },
+            {
+              "name": "sharedContext",
+              "value": "={{ JSON.stringify($json.updatedContext) }}"
+            },
+            {
+              "name": "contextVersion",
+              "value": "={{ $json.contextVersion }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000,
+          "retry": {
+            "maxRetries": 2,
+            "waitBetweenRetries": 3000
+          }
+        }
+      },
+      "name": "Call Business Architect",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        2250,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/expert/experience-designer",
+        "authentication": "none",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "projectId",
+              "value": "={{ $json.projectId }}"
+            },
+            {
+              "name": "sharedContext",
+              "value": "={{ JSON.stringify($json.updatedContext) }}"
+            },
+            {
+              "name": "contextVersion",
+              "value": "={{ $json.contextVersion }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000,
+          "retry": {
+            "maxRetries": 2,
+            "waitBetweenRetries": 3000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "name": "Call Experience Designer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        2450,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/expert/technology-cto",
+        "authentication": "none",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "projectId",
+              "value": "={{ $json.projectId }}"
+            },
+            {
+              "name": "sharedContext",
+              "value": "={{ JSON.stringify($json.updatedContext) }}"
+            },
+            {
+              "name": "contextVersion",
+              "value": "={{ $json.contextVersion }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000,
+          "retry": {
+            "maxRetries": 2,
+            "waitBetweenRetries": 3000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "name": "Call Technology CTO",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        2650,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/expert/application-architect",
+        "authentication": "none",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "projectId",
+              "value": "={{ $json.projectId }}"
+            },
+            {
+              "name": "sharedContext",
+              "value": "={{ JSON.stringify($json.updatedContext) }}"
+            },
+            {
+              "name": "contextVersion",
+              "value": "={{ $json.contextVersion }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000,
+          "retry": {
+            "maxRetries": 2,
+            "waitBetweenRetries": 3000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "name": "Call Application Architect",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        2850,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/expert/solution-architect",
+        "authentication": "none",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "projectId",
+              "value": "={{ $json.projectId }}"
+            },
+            {
+              "name": "sharedContext",
+              "value": "={{ JSON.stringify($json.updatedContext) }}"
+            },
+            {
+              "name": "contextVersion",
+              "value": "={{ $json.contextVersion }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000,
+          "retry": {
+            "maxRetries": 2,
+            "waitBetweenRetries": 3000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "name": "Call Solution Architect",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        3050,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/expert/infrastructure-reviewer",
+        "authentication": "none",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "projectId",
+              "value": "={{ $json.projectId }}"
+            },
+            {
+              "name": "sharedContext",
+              "value": "={{ JSON.stringify($json.updatedContext) }}"
+            },
+            {
+              "name": "contextVersion",
+              "value": "={{ $json.contextVersion }}"
+            },
+            {
+              "name": "oamDefinitions",
+              "value": "={{ JSON.stringify($json.oamDefinitions) }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000,
+          "retry": {
+            "maxRetries": 2,
+            "waitBetweenRetries": 3000
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "name": "Call Infrastructure Reviewer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        3250,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate final PRD from all expert inputs\nconst projectName = $('Initialize Shared Context').first().json.projectName;\nconst finalContext = $json.updatedContext;\nconst timestamp = new Date().toISOString().split('T')[0];\n\n// Helper function for bullet lists\nconst toBulletList = (arr) => (arr || []).map(item => `- ${typeof item === 'string' ? item : item.description || JSON.stringify(item)}`).join('\\n') || '- None specified';\n\n// Helper for risk formatting\nconst formatRisk = (risk, idx) => `### Risk ${idx + 1}: ${risk.description}\\n**Severity**: ${risk.severity}\\n**Mitigation**: ${risk.mitigation}`;\n\n// PRD Template\nconst prd = `# Product Requirements Document: ${projectName}\n\n**Generated**: ${new Date().toISOString()}\n**Version**: 1.0\n\n---\n\n## 1. Project Overview\n\n${finalContext.project_overview.brief}\n\n**Project Type**: ${finalContext.project_overview.type}\n**Target Platforms**: ${finalContext.project_overview.platforms.join(', ')}\n\n---\n\n## 2. Core Features\n\n${finalContext.functional_requirements.map((req, idx) => `### ${idx + 1}. ${req.description}\\n${req.acceptance_criteria ? `**Acceptance Criteria**:\\n${req.acceptance_criteria.map(ac => `- ${ac}`).join('\\n')}` : ''}`).join('\\n\\n')}\n\n---\n\n## 3. Business Architecture\n\n${finalContext.expert_recommendations.business_architect || 'Pending business architecture analysis.'}\n\n**Business Constraints**:\n${toBulletList(finalContext.business_constraints)}\n\n---\n\n## 4. User Experience Requirements\n\n${finalContext.expert_recommendations.experience_designer || 'Pending UX analysis.'}\n\n**UX Requirements**:\n${toBulletList(finalContext.ux_requirements)}\n\n---\n\n## 5. Technical Architecture\n\n### 5.1 Strategic Technology Decisions\n\n${finalContext.expert_recommendations.technology_cto || 'Pending CTO review.'}\n\n**Technology Stack**:\n${toBulletList(finalContext.technology_decisions)}\n\n### 5.2 Application Architecture\n\n${finalContext.expert_recommendations.application_architect || 'Pending application architecture design.'}\n\n**Architectural Patterns**:\n${toBulletList(finalContext.architectural_patterns)}\n\n---\n\n## 6. Compliance & Security\n\n${finalContext.expert_recommendations.compliance_risk_assessor || 'Pending compliance review.'}\n\n**Compliance Requirements**:\n${toBulletList(finalContext.compliance_requirements)}\n\n---\n\n## 7. Infrastructure & Operations\n\n${finalContext.expert_recommendations.infrastructure_reviewer || 'Pending infrastructure review.'}\n\n**Infrastructure Constraints**:\n${toBulletList(finalContext.infrastructure_constraints)}\n\n---\n\n## 8. Risks and Mitigations\n\n${(finalContext.identified_risks || []).map(formatRisk).join('\\n\\n') || '- No critical risks identified'}\n\n---\n\n## 9. Logical Dependency Chain (OAM)\n\n${finalContext.expert_recommendations.solution_architect || 'OAM definitions generated separately.'}\n\n---\n\n## 10. Development Roadmap\n\n### Phase 1: Foundation (Weeks 1-4)\n- Infrastructure setup\n- Core services implementation\n- Authentication & authorization\n\n### Phase 2: Core Features (Weeks 5-8)\n${finalContext.functional_requirements.slice(0, 3).map(r => `- ${r.description}`).join('\\n')}\n\n### Phase 3: Enhancement (Weeks 9-12)\n${finalContext.functional_requirements.slice(3).map(r => `- ${r.description}`).join('\\n')}\n\n### Phase 4: Production Readiness (Weeks 13-16)\n- Performance optimization\n- Security hardening\n- Documentation\n- Deployment automation\n\n---\n\n## Appendices\n\n### A. Source Requirements\n- System Brief (Business Analyst)\n- Functional Requirements (${finalContext.functional_requirements.length} requirements)\n- Non-Functional Requirements (${finalContext.non_functional_requirements.length} requirements)\n\n### B. Expert Consultations\n- Compliance & Risk Assessor\n- Business Architect\n- Experience Designer\n- Technology CTO\n- Application Architect\n- Solution Architect\n- Infrastructure Reviewer\n\n### C. Decision Rationale\n${Object.entries(finalContext.decision_rationale).map(([key, value]) => `**${key}**: ${value}`).join('\\n')}\n\n---\n\n*Generated by PRD Generator Orchestrator*\n*Project ID: ${$('Initialize Shared Context').first().json.projectId}*\n`;\n\nreturn {\n  json: {\n    projectId: $('Initialize Shared Context').first().json.projectId,\n    projectName,\n    prdContent: prd,\n    finalContext\n  }\n};"
+      },
+      "name": "Generate Final PRD",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        3450,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO prd_documents (project_id, markdown_content, version, created_at) VALUES ('{{ $json.projectId }}', '{{ $json.prdContent.replace(/'/g, \"''\") }}', 1, NOW()) RETURNING id;",
+        "options": {}
+      },
+      "name": "Save PRD",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        3650,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE e2e_projects SET status = 'completed', completed_at = NOW() WHERE id = '{{ $('Generate Final PRD').first().json.projectId }}';",
+        "options": {}
+      },
+      "name": "Complete Project",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        3850,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  projectId: $('Generate Final PRD').first().json.projectId,\n  projectName: $('Generate Final PRD').first().json.projectName,\n  prdGenerated: true,\n  oamGenerated: true,\n  status: 'completed'\n}) }}",
+        "options": {}
+      },
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        4050,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Project Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Project Info": {
+      "main": [
+        [
+          {
+            "node": "Load Project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Project": {
+      "main": [
+        [
+          {
+            "node": "Load Requirements",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Requirements": {
+      "main": [
+        [
+          {
+            "node": "Initialize Shared Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Shared Context": {
+      "main": [
+        [
+          {
+            "node": "Save Initial Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Initial Context": {
+      "main": [
+        [
+          {
+            "node": "Update Project Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Project Status": {
+      "main": [
+        [
+          {
+            "node": "Component Catalog Discovery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Component Catalog Discovery": {
+      "main": [
+        [
+          {
+            "node": "Update Context - Components",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Context - Components": {
+      "main": [
+        [
+          {
+            "node": "Call Compliance & Risk Assessor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Compliance & Risk Assessor": {
+      "main": [
+        [
+          {
+            "node": "Call Business Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Business Architect": {
+      "main": [
+        [
+          {
+            "node": "Call Experience Designer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Experience Designer": {
+      "main": [
+        [
+          {
+            "node": "Call Technology CTO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Technology CTO": {
+      "main": [
+        [
+          {
+            "node": "Call Application Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Application Architect": {
+      "main": [
+        [
+          {
+            "node": "Call Solution Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Solution Architect": {
+      "main": [
+        [
+          {
+            "node": "Call Infrastructure Reviewer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Infrastructure Reviewer": {
+      "main": [
+        [
+          {
+            "node": "Generate Final PRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Final PRD": {
+      "main": [
+        [
+          {
+            "node": "Save PRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save PRD": {
+      "main": [
+        [
+          {
+            "node": "Complete Project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Project": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-27T00:00:00.000Z",
+  "versionId": "1"
+}

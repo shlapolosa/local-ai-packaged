@@ -1,0 +1,182 @@
+{
+  "name": "2 - Expert: Compliance & Risk Assessor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "expert/compliance-risk",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook - Expert Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "expert-compliance-risk"
+    },
+    {
+      "parameters": {
+        "functionCode": "const projectId = $json.projectId;\nconst sharedContext = typeof $json.sharedContext === 'string' \n  ? JSON.parse($json.sharedContext) \n  : $json.sharedContext;\nconst contextVersion = $json.contextVersion || 1;\n\nreturn {\n  json: {\n    projectId,\n    sharedContext,\n    contextVersion,\n    expertName: 'compliance-risk-assessor',\n    startTime: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Extract Inputs",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO expert_consultations (project_id, expert_name, status, input_context, shared_context_version) VALUES ('{{ $json.projectId }}', 'compliance-risk-assessor', 'in_progress', '{{ JSON.stringify($json).replace(/'/g, \"''\") }}', {{ $json.contextVersion }}) RETURNING id;",
+        "options": {}
+      },
+      "name": "Log Consultation Start",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://open-webui:8080/api/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "qwen2.5:7b-instruct-q4_K_M"
+            },
+            {
+              "name": "messages",
+              "value": "={{ JSON.stringify([\n  {\n    role: 'system',\n    content: `You are a Compliance & Risk Assessor expert specializing in security, regulatory frameworks, and risk management.\n\nYour expertise includes:\n- Regulatory Frameworks: PCI-DSS, GDPR, HIPAA, SOX, Basel III, FedRAMP, CCPA\n- Risk Assessment: NIST RMF, ISO 31000, FAIR, OCTAVE\n- Security Standards: OWASP Top 10, CIS Controls, Zero Trust Architecture\n- Threat Modeling: STRIDE, PASTA, VAST\n- Data Protection: Encryption standards, data classification, retention policies\n\nYour task:\n1. Analyze the project requirements and identify compliance obligations\n2. Perform risk assessment based on the project type and data handling\n3. Define security controls (authentication, authorization, encryption)\n4. Establish data classification and retention requirements\n5. Identify privacy requirements (consent, data subject rights)\n6. Create risk register with severity and mitigation strategies\n7. Update shared context with compliance requirements and risks\n\nProject Context:\n${JSON.stringify($('Extract Inputs').first().json.sharedContext, null, 2)}\n\nProvide comprehensive analysis in the following JSON format:\n{\n  \"analysis\": {\n    \"executive_summary\": \"2-3 paragraph summary\",\n    \"applicable_regulations\": [\n      {\"name\": \"GDPR\", \"applicability\": \"high/medium/low\", \"reason\": \"...\"}\n    ],\n    \"data_classification\": [\n      {\"type\": \"PII\", \"sensitivity\": \"high\", \"retention_period\": \"7 years\", \"encryption\": \"AES-256\"}\n    ],\n    \"security_controls\": {\n      \"authentication\": [\"OAuth2\", \"MFA\"],\n      \"authorization\": [\"RBAC\", \"ABAC\"],\n      \"encryption\": [\"TLS 1.3\", \"at-rest AES-256\"],\n      \"logging\": [\"audit trails\", \"SIEM integration\"]\n    },\n    \"privacy_requirements\": [\n      \"consent management\",\n      \"right to erasure\",\n      \"data portability\"\n    ],\n    \"risk_register\": [\n      {\n        \"id\": \"R001\",\n        \"description\": \"...\",\n        \"category\": \"security/compliance/operational\",\n        \"severity\": \"critical/high/medium/low\",\n        \"likelihood\": \"high/medium/low\",\n        \"impact\": \"...\",\n        \"mitigation\": \"...\",\n        \"owner\": \"...\"\n      }\n    ],\n    \"validation_checklist\": [\n      \"Encryption at rest implemented\",\n      \"Access controls defined\",\n      \"Audit logging enabled\"\n    ]\n  },\n  \"context_updates\": {\n    \"compliance_requirements\": [],\n    \"business_constraints\": [],\n    \"identified_risks\": [],\n    \"decision_rationale\": {}\n  },\n  \"recommendations\": [\n    \"Implement ...\",\n    \"Consider ...\"\n  ],\n  \"markdown_report\": \"# Compliance & Risk Assessment Report\\\\n\\\\n...\"\n}`\n  }\n]) }}"
+            },
+            {
+              "name": "temperature",
+              "value": "0.2"
+            },
+            {
+              "name": "max_tokens",
+              "value": "3000"
+            },
+            {
+              "name": "stream",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000,
+          "retry": {
+            "maxRetries": 3,
+            "waitBetweenRetries": 2000
+          },
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "name": "LLM - Compliance Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse LLM response\nconst llmResponse = JSON.parse($json.choices[0].message.content);\nconst extractData = $('Extract Inputs').first().json;\nconst currentContext = extractData.sharedContext;\nconst projectId = extractData.projectId;\n\n// Merge context updates with safe defaults\nconst updatedContext = {\n  ...currentContext,\n  compliance_requirements: [\n    ...(currentContext.compliance_requirements || []),\n    ...(llmResponse.context_updates.compliance_requirements || [])\n  ],\n  business_constraints: [\n    ...(currentContext.business_constraints || []),\n    ...(llmResponse.context_updates.business_constraints || [])\n  ],\n  identified_risks: [\n    ...(currentContext.identified_risks || []),\n    ...(llmResponse.context_updates.identified_risks || [])\n  ],\n  decision_rationale: {\n    ...(currentContext.decision_rationale || {}),\n    ...(llmResponse.context_updates.decision_rationale || {})\n  },\n  expert_recommendations: {\n    ...(currentContext.expert_recommendations || {}),\n    compliance_risk_assessor: llmResponse.analysis.executive_summary\n  }\n};\n\nreturn {\n  json: {\n    projectId,\n    updatedContext,\n    contextVersion: extractData.contextVersion + 1,\n    analysis: llmResponse.analysis,\n    markdownReport: llmResponse.markdown_report,\n    recommendations: llmResponse.recommendations\n  }\n};"
+      },
+      "name": "Update Shared Context",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO shared_context (project_id, context_data, version, updated_by) VALUES ('{{ $json.projectId }}', '{{ JSON.stringify($json.updatedContext).replace(/'/g, \"''\") }}', {{ $json.contextVersion }}, 'compliance-risk-assessor') RETURNING id;",
+        "options": {}
+      },
+      "name": "Save Updated Context",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1250, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE expert_consultations \nSET status = 'completed', \n    completed_at = NOW(),\n    duration_seconds = EXTRACT(EPOCH FROM (NOW() - started_at)),\n    output_analysis = '{{ $('Update Shared Context').first().json.markdownReport }}',\n    output_artifacts = '{{ JSON.stringify($('Update Shared Context').first().json.analysis) }}'\nWHERE project_id = '{{ $json.projectId }}' \n  AND expert_name = 'compliance-risk-assessor'\n  AND iteration_number = 1;",
+        "options": {}
+      },
+      "name": "Complete Consultation",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1450, 300],
+      "credentials": {
+        "postgres": {
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  expertName: 'compliance-risk-assessor',\n  projectId: $json.projectId,\n  updatedContext: $('Update Shared Context').first().json.updatedContext,\n  contextVersion: $('Update Shared Context').first().json.contextVersion,\n  analysis: $('Update Shared Context').first().json.analysis,\n  recommendations: $('Update Shared Context').first().json.recommendations\n}) }}",
+        "options": {}
+      },
+      "name": "Respond to Orchestrator",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Expert Trigger": {
+      "main": [[{"node": "Extract Inputs", "type": "main", "index": 0}]]
+    },
+    "Extract Inputs": {
+      "main": [[{"node": "Log Consultation Start", "type": "main", "index": 0}]]
+    },
+    "Log Consultation Start": {
+      "main": [[{"node": "LLM - Compliance Analysis", "type": "main", "index": 0}]]
+    },
+    "LLM - Compliance Analysis": {
+      "main": [[{"node": "Update Shared Context", "type": "main", "index": 0}]]
+    },
+    "Update Shared Context": {
+      "main": [[{"node": "Save Updated Context", "type": "main", "index": 0}]]
+    },
+    "Save Updated Context": {
+      "main": [[{"node": "Complete Consultation", "type": "main", "index": 0}]]
+    },
+    "Complete Consultation": {
+      "main": [[{"node": "Respond to Orchestrator", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-27T00:00:00.000Z",
+  "versionId": "1"
+}
