@@ -1,0 +1,92 @@
+{
+  "name": "Agent - Code Transformer Web",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "agent-transform-web", "responseMode": "responseNode"},
+      "id": "web-trigger",
+      "name": "Web Transformer Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT artifact_data FROM artifacts WHERE migration_id = '{{ $json.migrationId }}' AND artifact_type = 'component_analysis' LIMIT 5"
+      },
+      "id": "get-contracts-web",
+      "name": "Get Contracts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-main"}}
+    },
+    {
+      "parameters": {"fieldName": "artifact_data"},
+      "id": "split-contracts-web",
+      "name": "Split Contracts",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://open-webui:8080/api/chat/completions",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\"role\": \"system\", \"content\": \"You are a React TypeScript expert. Generate React component with WCAG AA accessibility. Use CSS modules. Return ONLY TypeScript/React code.\"},\n    {\"role\": \"user\", \"content\": \"Component: {{ $json.artifact_data.name }}\\n\\nGenerate React TypeScript implementation.\"}\n  ],\n  \"temperature\": 0.2\n}"
+      },
+      "id": "generate-react",
+      "name": "Generate React Code",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const code = $json.choices[0].message.content.match(/```typescript\\n([\\s\\S]*?)\\n```/)?.[1] || $json.choices[0].message.content;\nconst name = $('Split Contracts').item.json.artifact_data.name;\nreturn {json: {componentName: name, code, filePath: `packages/web-components/${name}.tsx`}};"
+      },
+      "id": "parse-react",
+      "name": "Parse React",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "command": "mkdir -p /tmp/migrations/{{ $('Web Transformer Trigger').item.json.migrationId }}/packages/web-components && echo '{{ $json.code }}' > /tmp/migrations/{{ $('Web Transformer Trigger').item.json.migrationId }}/{{ $json.filePath }}"
+      },
+      "id": "write-react",
+      "name": "Write React File",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {"mode": "combine"},
+      "id": "aggregate-web",
+      "name": "Aggregate Web Components",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {"respondWith": "json", "responseBody": "={{ {components: $input.all().map(i => i.json)} }}"},
+      "id": "return-web",
+      "name": "Return Web Components",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    }
+  ],
+  "connections": {
+    "Web Transformer Trigger": {"main": [[{"node": "Get Contracts"}]]},
+    "Get Contracts": {"main": [[{"node": "Split Contracts"}]]},
+    "Split Contracts": {"main": [[{"node": "Generate React Code"}]]},
+    "Generate React Code": {"main": [[{"node": "Parse React"}]]},
+    "Parse React": {"main": [[{"node": "Write React File"}]]},
+    "Write React File": {"main": [[{"node": "Aggregate Web Components"}]]},
+    "Aggregate Web Components": {"main": [[{"node": "Return Web Components"}]]}
+  }
+}

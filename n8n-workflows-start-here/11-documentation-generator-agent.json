@@ -1,0 +1,92 @@
+{
+  "name": "Agent - Documentation Generator",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "agent-generate-docs", "responseMode": "responseNode"},
+      "id": "docs-trigger",
+      "name": "Documentation Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT artifact_data FROM artifacts WHERE migration_id = '{{ $json.migrationId }}' AND artifact_type = 'component_analysis' LIMIT 5"
+      },
+      "id": "get-components-docs",
+      "name": "Get Components",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-main"}}
+    },
+    {
+      "parameters": {"fieldName": "artifact_data"},
+      "id": "split-components-docs",
+      "name": "Split Components",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://open-webui:8080/api/chat/completions",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\"role\": \"system\", \"content\": \"Generate component documentation in Markdown. Include: Overview, Props API table, Usage examples for iOS/Android/Web, Accessibility notes, Migration notes. Return ONLY markdown.\"},\n    {\"role\": \"user\", \"content\": \"Component: {{ $json.artifact_data.name }}\\nComplexity: {{ $json.artifact_data.complexity }}\\n\\nGenerate documentation.\"}\n  ],\n  \"temperature\": 0.2\n}"
+      },
+      "id": "generate-docs",
+      "name": "Generate Docs with LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const markdown = $json.choices[0].message.content.match(/```markdown\\n([\\s\\S]*?)\\n```/)?.[1] || $json.choices[0].message.content;\nconst name = $('Split Components').item.json.artifact_data.name;\nreturn {json: {componentName: name, markdown, filePath: `docs/components/${name}.md`}};"
+      },
+      "id": "parse-docs",
+      "name": "Parse Documentation",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "command": "mkdir -p /tmp/migrations/{{ $('Documentation Trigger').item.json.migrationId }}/docs/components && echo '{{ $json.markdown }}' > /tmp/migrations/{{ $('Documentation Trigger').item.json.migrationId }}/{{ $json.filePath }}"
+      },
+      "id": "write-docs",
+      "name": "Write Documentation Files",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {"mode": "combine"},
+      "id": "aggregate-docs",
+      "name": "Aggregate Docs",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {"respondWith": "json", "responseBody": "={{ {documentation: $input.all().map(i => i.json)} }}"},
+      "id": "return-docs",
+      "name": "Return Documentation",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    }
+  ],
+  "connections": {
+    "Documentation Trigger": {"main": [[{"node": "Get Components"}]]},
+    "Get Components": {"main": [[{"node": "Split Components"}]]},
+    "Split Components": {"main": [[{"node": "Generate Docs with LLM"}]]},
+    "Generate Docs with LLM": {"main": [[{"node": "Parse Documentation"}]]},
+    "Parse Documentation": {"main": [[{"node": "Write Documentation Files"}]]},
+    "Write Documentation Files": {"main": [[{"node": "Aggregate Docs"}]]},
+    "Aggregate Docs": {"main": [[{"node": "Return Documentation"}]]}
+  }
+}

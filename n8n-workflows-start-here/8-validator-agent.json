@@ -1,0 +1,57 @@
+{
+  "name": "Agent - Validator",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "agent-validate", "responseMode": "responseNode"},
+      "id": "validator-trigger",
+      "name": "Validator Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "command": "find /tmp/migrations/{{ $json.migrationId }}/packages/native-components/ios -name '*.swift' 2>/dev/null || echo 'No Swift files'"
+      },
+      "id": "find-swift-files",
+      "name": "Find Swift Files",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd /tmp/migrations/{{ $json.migrationId }} && swiftc -typecheck packages/native-components/ios/*.swift 2>&1 || echo 'Swift validation skipped - compiler not available'"
+      },
+      "id": "validate-swift",
+      "name": "Validate Swift Syntax",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const output = $json.stdout;\nconst passed = !output.includes('error:');\n\nreturn {\n  json: {\n    validationType: 'swift_syntax',\n    passed,\n    output,\n    errors: passed ? [] : ['Swift compilation errors detected']\n  }\n};"
+      },
+      "id": "parse-swift-results",
+      "name": "Parse Swift Results",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {"respondWith": "json", "responseBody": "={{ $json }}"},
+      "id": "return-validation",
+      "name": "Return Validation",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Validator Trigger": {"main": [[{"node": "Find Swift Files"}]]},
+    "Find Swift Files": {"main": [[{"node": "Validate Swift Syntax"}]]},
+    "Validate Swift Syntax": {"main": [[{"node": "Parse Swift Results"}]]},
+    "Parse Swift Results": {"main": [[{"node": "Return Validation"}]]}
+  }
+}

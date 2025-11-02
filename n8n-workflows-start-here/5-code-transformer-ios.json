@@ -1,0 +1,92 @@
+{
+  "name": "Agent - Code Transformer iOS",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "agent-transform-ios", "responseMode": "responseNode"},
+      "id": "ios-trigger",
+      "name": "iOS Transformer Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT artifact_data FROM artifacts WHERE migration_id = '{{ $json.migrationId }}' AND artifact_type = 'component_analysis' LIMIT 5"
+      },
+      "id": "get-contracts",
+      "name": "Get Contracts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {"postgres": {"id": "postgres-main"}}
+    },
+    {
+      "parameters": {"fieldName": "artifact_data"},
+      "id": "split-contracts",
+      "name": "Split Contracts",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://open-webui:8080/api/chat/completions",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\"role\": \"system\", \"content\": \"You are a SwiftUI expert. Generate SwiftUI component. Include accessibility, VoiceOver support. Return ONLY Swift code.\"},\n    {\"role\": \"user\", \"content\": \"Component: {{ $json.artifact_data.name }}\\n\\nGenerate SwiftUI implementation.\"}\n  ],\n  \"temperature\": 0.2\n}"
+      },
+      "id": "generate-swift",
+      "name": "Generate SwiftUI Code",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const code = $json.choices[0].message.content.match(/```swift\\n([\\s\\S]*?)\\n```/)?.[1] || $json.choices[0].message.content;\nconst name = $('Split Contracts').item.json.artifact_data.name;\nreturn {json: {componentName: name, code, filePath: `packages/native-components/ios/${name}.swift`}};"
+      },
+      "id": "parse-swift",
+      "name": "Parse Swift",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "command": "mkdir -p /tmp/migrations/{{ $('iOS Transformer Trigger').item.json.migrationId }}/packages/native-components/ios && echo '{{ $json.code }}' > /tmp/migrations/{{ $('iOS Transformer Trigger').item.json.migrationId }}/{{ $json.filePath }}"
+      },
+      "id": "write-swift",
+      "name": "Write Swift File",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {"mode": "combine"},
+      "id": "aggregate-ios",
+      "name": "Aggregate iOS Components",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {"respondWith": "json", "responseBody": "={{ {components: $input.all().map(i => i.json)} }}"},
+      "id": "return-ios",
+      "name": "Return iOS Components",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    }
+  ],
+  "connections": {
+    "iOS Transformer Trigger": {"main": [[{"node": "Get Contracts"}]]},
+    "Get Contracts": {"main": [[{"node": "Split Contracts"}]]},
+    "Split Contracts": {"main": [[{"node": "Generate SwiftUI Code"}]]},
+    "Generate SwiftUI Code": {"main": [[{"node": "Parse Swift"}]]},
+    "Parse Swift": {"main": [[{"node": "Write Swift File"}]]},
+    "Write Swift File": {"main": [[{"node": "Aggregate iOS Components"}]]},
+    "Aggregate iOS Components": {"main": [[{"node": "Return iOS Components"}]]}
+  }
+}

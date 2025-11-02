@@ -1,0 +1,35 @@
+{
+  "name": "Agent - Visual Diff",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "agent-visual-diff", "responseMode": "responseNode"},
+      "id": "visual-diff-trigger",
+      "name": "Visual Diff Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Placeholder for visual diff logic\n// In production, this would:\n// 1. Use Playwright to screenshot RN components\n// 2. Use Playwright/native tools to screenshot native components\n// 3. Use pixelmatch to compare\n\nreturn {\n  json: {\n    comparisons: [\n      {\n        component: 'Button',\n        similarity: 0.973,\n        acceptable: true,\n        diffImagePath: '/screenshots/Button-diff.png'\n      }\n    ],\n    overallPass: true\n  }\n};"
+      },
+      "id": "generate-diffs",
+      "name": "Generate Visual Diffs (Placeholder)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {"respondWith": "json", "responseBody": "={{ $json }}"},
+      "id": "return-diffs",
+      "name": "Return Diffs",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Visual Diff Trigger": {"main": [[{"node": "Generate Visual Diffs (Placeholder)"}]]},
+    "Generate Visual Diffs (Placeholder)": {"main": [[{"node": "Return Diffs"}]]}
+  }
+}

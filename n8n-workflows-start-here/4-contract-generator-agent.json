@@ -1,0 +1,142 @@
+{
+  "name": "Agent - Contract Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-generate-contracts",
+        "responseMode": "responseNode"
+      },
+      "id": "contract-trigger",
+      "name": "Contract Generator Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT artifact_data FROM artifacts WHERE migration_id = '{{ $json.migrationId }}' AND artifact_type = 'component_analysis'",
+        "options": {}
+      },
+      "id": "get-components",
+      "name": "Get Component Inventory",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldName": "artifact_data"
+      },
+      "id": "split-components",
+      "name": "Split Components",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://open-webui:8080/api/chat/completions",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a TypeScript expert. Generate a component contract interface. Include JSDoc comments, props with types, variants. Return ONLY valid TypeScript code, no markdown.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Component: {{ $json.artifact_data.name }}\\nDependencies: {{ JSON.stringify($json.artifact_data.dependencies) }}\\n\\nGenerate TypeScript interface for this component.\"\n    }\n  ],\n  \"temperature\": 0.2\n}"
+      },
+      "id": "generate-contract",
+      "name": "Generate Contract with LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const response = $json.choices[0].message.content;\nconst componentName = $('Split Components').item.json.artifact_data.name;\n\n// Extract TypeScript code\nlet code = response.match(/```typescript\\n([\\s\\S]*?)\\n```/)?.[1] || \n           response.match(/```\\n([\\s\\S]*?)\\n```/)?.[1] ||\n           response;\n\nreturn {\n  json: {\n    componentName,\n    contractCode: code.trim(),\n    filePath: `packages/shared-components/contracts/${componentName}.ts`\n  }\n};"
+      },
+      "id": "parse-contract",
+      "name": "Parse Contract",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "command": "mkdir -p /tmp/migrations/{{ $('Contract Generator Trigger').item.json.migrationId }}/packages/shared-components/contracts && echo '{{ $json.contractCode }}' > /tmp/migrations/{{ $('Contract Generator Trigger').item.json.migrationId }}/{{ $json.filePath }}"
+      },
+      "id": "write-contract-file",
+      "name": "Write Contract File",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "mode": "combine"
+      },
+      "id": "aggregate-contracts",
+      "name": "Aggregate Contracts",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const contracts = $input.all().map(item => item.json);\n\nreturn {\n  json: {\n    contracts,\n    contractCount: contracts.length,\n    tokens: {\n      colors: {\n        primary: '#007AFF',\n        secondary: '#5856D6',\n        success: '#34C759',\n        error: '#FF3B30'\n      },\n      spacing: { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 },\n      typography: {\n        h1: { fontSize: 32, fontWeight: '700' },\n        h2: { fontSize: 24, fontWeight: '600' },\n        body: { fontSize: 16, fontWeight: '400' }\n      }\n    }\n  }\n};"
+      },
+      "id": "build-response",
+      "name": "Build Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "return-contracts",
+      "name": "Return Contracts",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1850, 300]
+    }
+  ],
+  "connections": {
+    "Contract Generator Trigger": {
+      "main": [[{"node": "Get Component Inventory", "type": "main", "index": 0}]]
+    },
+    "Get Component Inventory": {
+      "main": [[{"node": "Split Components", "type": "main", "index": 0}]]
+    },
+    "Split Components": {
+      "main": [[{"node": "Generate Contract with LLM", "type": "main", "index": 0}]]
+    },
+    "Generate Contract with LLM": {
+      "main": [[{"node": "Parse Contract", "type": "main", "index": 0}]]
+    },
+    "Parse Contract": {
+      "main": [[{"node": "Write Contract File", "type": "main", "index": 0}]]
+    },
+    "Write Contract File": {
+      "main": [[{"node": "Aggregate Contracts", "type": "main", "index": 0}]]
+    },
+    "Aggregate Contracts": {
+      "main": [[{"node": "Build Response", "type": "main", "index": 0}]]
+    },
+    "Build Response": {
+      "main": [[{"node": "Return Contracts", "type": "main", "index": 0}]]
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "name": "Agent - Test Generator",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "agent-generate-tests", "responseMode": "responseNode"},
+      "id": "test-trigger",
+      "name": "Test Generator Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "command": "find /tmp/migrations/{{ $json.migrationId }}/packages/native-components/ios -name '*.swift' | head -5"
+      },
+      "id": "find-components",
+      "name": "Find Components",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {"fieldName": "stdout"},
+      "id": "split-files-test",
+      "name": "Split Files",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://open-webui:8080/api/chat/completions",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\"role\": \"system\", \"content\": \"Generate unit tests for this component. Include tests for rendering, interactions, states, accessibility. Return ONLY test code.\"},\n    {\"role\": \"user\", \"content\": \"Generate XCTest unit tests for: {{ $json.stdout }}\"}\n  ],\n  \"temperature\": 0.2\n}"
+      },
+      "id": "generate-tests",
+      "name": "Generate Tests with LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const testCode = $json.choices[0].message.content.match(/```swift\\n([\\s\\S]*?)\\n```/)?.[1] || $json.choices[0].message.content;\nconst fileName = $('Split Files').item.json.stdout.split('/').pop().replace('.swift', 'Tests.swift');\nreturn {json: {fileName, testCode}};"
+      },
+      "id": "parse-tests",
+      "name": "Parse Tests",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {"mode": "combine"},
+      "id": "aggregate-tests",
+      "name": "Aggregate Tests",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {"respondWith": "json", "responseBody": "={{ {tests: $input.all().map(i => i.json)} }}"},
+      "id": "return-tests",
+      "name": "Return Tests",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 300]
+    }
+  ],
+  "connections": {
+    "Test Generator Trigger": {"main": [[{"node": "Find Components"}]]},
+    "Find Components": {"main": [[{"node": "Split Files"}]]},
+    "Split Files": {"main": [[{"node": "Generate Tests with LLM"}]]},
+    "Generate Tests with LLM": {"main": [[{"node": "Parse Tests"}]]},
+    "Parse Tests": {"main": [[{"node": "Aggregate Tests"}]]},
+    "Aggregate Tests": {"main": [[{"node": "Return Tests"}]]}
+  }
+}

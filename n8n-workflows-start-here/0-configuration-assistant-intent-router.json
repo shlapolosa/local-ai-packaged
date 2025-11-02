@@ -1,0 +1,277 @@
+{
+  "name": "Configuration Assistant - Intent Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat/assistant",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "chat-webhook",
+      "name": "Chat Interface",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "chat-assistant"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract user message and conversation history\nconst userMessage = $json.message || $json.userMessage || '';\nconst conversationHistory = $json.history || [];\nconst sessionId = $json.sessionId || require('crypto').randomUUID();\n\n// Get or initialize session state\nlet sessionState = $json.state || {\n  intent: null, // Detected intent: 'whitelabel_migration', 'e2e_solution', 'unknown'\n  intentConfidence: 0,\n  subWorkflow: null, // Which workflow is handling this\n  workflowState: {}, // State specific to the sub-workflow\n  step: 0,\n  complete: false\n};\n\nreturn {\n  json: {\n    userMessage,\n    conversationHistory,\n    sessionId,\n    sessionState\n  }\n};"
+      },
+      "id": "parse-message",
+      "name": "Parse User Message",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.sessionState.intent }}",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "id": "check-intent-detected",
+      "name": "Intent Already Detected?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "url": "http://open-webui:8080/api/chat/completions",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{"name": "Content-Type", "value": "application/json"}]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classification assistant. Your job is to understand what the user wants to accomplish and classify their intent.\\n\\nAvailable intents:\\n\\n1. **whitelabel_migration** - User wants to migrate a React Native app to native platforms (iOS/Android/Web) using white-label approach. Keywords: migrate, migration, react native, native, iOS, Android, white-label, platform, mono-repo\\n\\n2. **e2e_solution** - User wants end-to-end solution development (NOT IMPLEMENTED YET). Keywords: build, create, develop, new app, solution, project, from scratch\\n\\n3. **help** - User wants general help or doesn't know what they need\\n\\n4. **unknown** - Intent unclear, need more information\\n\\nAnalyze the user's message and conversation history. Return JSON ONLY:\\n\\n{\\n  \\\"intent\\\": \\\"whitelabel_migration\\\" | \\\"e2e_solution\\\" | \\\"help\\\" | \\\"unknown\\\",\\n  \\\"confidence\\\": 0.0-1.0,\\n  \\\"reasoning\\\": \\\"brief explanation\\\",\\n  \\\"clarificationNeeded\\\": true/false,\\n  \\\"suggestedQuestion\\\": \\\"question to ask if clarification needed\\\"\\n}\\n\\nIf confidence < 0.7, set clarificationNeeded = true.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"User message: {{ $json.userMessage }}\\n\\nConversation history: {{ JSON.stringify($json.conversationHistory) }}\"\n    }\n  ],\n  \"temperature\": 0.2,\n  \"stream\": false\n}"
+      },
+      "id": "detect-intent",
+      "name": "Detect Intent with LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const llmResponse = $json.choices[0].message.content;\n\n// Try to extract JSON from response\nlet intentData;\ntry {\n  const jsonMatch = llmResponse.match(/\\{[\\s\\S]*\\}/);\n  intentData = JSON.parse(jsonMatch[0]);\n} catch (e) {\n  // Fallback if parsing fails\n  intentData = {\n    intent: 'unknown',\n    confidence: 0.0,\n    reasoning: 'Failed to parse intent',\n    clarificationNeeded: true,\n    suggestedQuestion: 'I\\'m not sure what you\\'d like to do. Could you tell me more about what you\\'re trying to accomplish?'\n  };\n}\n\n// Update session state\nconst sessionState = $('Parse User Message').item.json.sessionState;\nsessionState.intent = intentData.intent;\nsessionState.intentConfidence = intentData.confidence;\nsessionState.step = 1;\n\nreturn {\n  json: {\n    intentData,\n    sessionState,\n    sessionId: $('Parse User Message').item.json.sessionId,\n    userMessage: $('Parse User Message').item.json.userMessage,\n    conversationHistory: $('Parse User Message').item.json.conversationHistory\n  }\n};"
+      },
+      "id": "parse-intent",
+      "name": "Parse Intent Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.intentData.clarificationNeeded }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "need-clarification",
+      "name": "Need Clarification?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"message\": $json.intentData.suggestedQuestion + \"\\n\\nI can help you with:\\n\\n🔄 **White-Label Migration** - Migrate React Native app to native iOS/Android/Web\\n🏗️ **End-to-End Solution** - Build a new solution from scratch (coming soon)\\n❓ **Something else?** - Let me know what you need!\",\n  \"sessionId\": $json.sessionId,\n  \"sessionState\": $json.sessionState,\n  \"complete\": false,\n  \"intent\": null\n} }}"
+      },
+      "id": "respond-clarification",
+      "name": "Respond Ask Clarification",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.intentData.intent }}",
+              "value2": "whitelabel_migration"
+            }
+          ]
+        }
+      },
+      "id": "route-intent",
+      "name": "Route by Intent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [1450, 400]
+    },
+    {
+      "parameters": {
+        "url": "http://n8n:5678/webhook/chat/migration-config",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "message", "value": "={{ $json.userMessage }}"},
+            {"name": "history", "value": "={{ $json.conversationHistory }}"},
+            {"name": "sessionId", "value": "={{ $json.sessionId }}"},
+            {"name": "state", "value": "={{ $json.sessionState.workflowState }}"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "call-whitelabel-workflow",
+      "name": "Call White-Label Config Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1650, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Update session state with workflow response\nconst workflowResponse = $json;\nconst sessionState = $('Parse Intent Response').item.json.sessionState;\n\n// Update workflow-specific state\nsessionState.workflowState = workflowResponse.sessionState || {};\nsessionState.subWorkflow = 'whitelabel_migration';\nsessionState.complete = workflowResponse.complete || false;\n\nreturn {\n  json: {\n    message: workflowResponse.message,\n    sessionId: workflowResponse.sessionId,\n    sessionState: sessionState,\n    complete: workflowResponse.complete,\n    intent: 'whitelabel_migration',\n    progress: workflowResponse.progress,\n    migrationId: workflowResponse.migrationId\n  }\n};"
+      },
+      "id": "merge-whitelabel-response",
+      "name": "Merge White-Label Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "respond-whitelabel",
+      "name": "Respond White-Label",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2050, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"message\": \"🏗️ **End-to-End Solution Development**\\n\\nThis feature is coming soon! We'll help you build complete solutions from scratch.\\n\\nFor now, I can help you with:\\n\\n🔄 **White-Label Migration** - Migrate your React Native app to native platforms\\n\\nWould you like to try that instead?\",\n  \"sessionId\": $json.sessionId,\n  \"sessionState\": $json.sessionState,\n  \"complete\": false,\n  \"intent\": \"e2e_solution\",\n  \"available\": false\n} }}"
+      },
+      "id": "respond-e2e-coming-soon",
+      "name": "Respond E2E Coming Soon",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"message\": \"I'm not sure how to help with that yet. \\n\\nCurrently, I can assist with:\\n\\n🔄 **White-Label Migration** - Migrate React Native apps to native iOS/Android/Web\\n\\nWould you like help with that?\",\n  \"sessionId\": $json.sessionId,\n  \"sessionState\": $json.sessionState,\n  \"complete\": false,\n  \"intent\": \"unknown\"\n} }}"
+      },
+      "id": "respond-unknown",
+      "name": "Respond Unknown Intent",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 700]
+    },
+    {
+      "parameters": {
+        "url": "http://n8n:5678/webhook/chat/migration-config",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "message", "value": "={{ $json.userMessage }}"},
+            {"name": "history", "value": "={{ $json.conversationHistory }}"},
+            {"name": "sessionId", "value": "={{ $json.sessionId }}"},
+            {"name": "state", "value": "={{ $json.sessionState.workflowState }}"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "continue-whitelabel",
+      "name": "Continue White-Label Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1050, 500]
+    },
+    {
+      "parameters": {
+        "functionCode": "const workflowResponse = $json;\nconst sessionState = $('Parse User Message').item.json.sessionState;\n\nsessionState.workflowState = workflowResponse.sessionState || {};\nsessionState.complete = workflowResponse.complete || false;\n\nreturn {\n  json: {\n    message: workflowResponse.message,\n    sessionId: workflowResponse.sessionId,\n    sessionState: sessionState,\n    complete: workflowResponse.complete,\n    intent: sessionState.intent,\n    progress: workflowResponse.progress,\n    migrationId: workflowResponse.migrationId\n  }\n};"
+      },
+      "id": "merge-continue-response",
+      "name": "Merge Continue Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1250, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "respond-continue",
+      "name": "Respond Continue",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 500]
+    }
+  ],
+  "connections": {
+    "Chat Interface": {
+      "main": [[{"node": "Parse User Message"}]]
+    },
+    "Parse User Message": {
+      "main": [[{"node": "Intent Already Detected?"}]]
+    },
+    "Intent Already Detected?": {
+      "main": [
+        [{"node": "Detect Intent with LLM"}],
+        [{"node": "Continue White-Label Workflow"}]
+      ]
+    },
+    "Detect Intent with LLM": {
+      "main": [[{"node": "Parse Intent Response"}]]
+    },
+    "Parse Intent Response": {
+      "main": [[{"node": "Need Clarification?"}]]
+    },
+    "Need Clarification?": {
+      "main": [
+        [{"node": "Respond Ask Clarification"}],
+        [{"node": "Route by Intent"}]
+      ]
+    },
+    "Route by Intent": {
+      "main": [
+        [{"node": "Call White-Label Config Workflow"}],
+        [{"node": "Respond E2E Coming Soon"}],
+        [],
+        [{"node": "Respond Unknown Intent"}]
+      ]
+    },
+    "Call White-Label Config Workflow": {
+      "main": [[{"node": "Merge White-Label Response"}]]
+    },
+    "Merge White-Label Response": {
+      "main": [[{"node": "Respond White-Label"}]]
+    },
+    "Continue White-Label Workflow": {
+      "main": [[{"node": "Merge Continue Response"}]]
+    },
+    "Merge Continue Response": {
+      "main": [[{"node": "Respond Continue"}]]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-15T00:00:00.000Z",
+  "versionId": "2"
+}

@@ -1,0 +1,266 @@
+{
+  "name": "Agent - Repo Analyzer",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-analyze-repos",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "analyzer-webhook",
+      "name": "Analyzer Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "agent-analyze-repos"
+    },
+    {
+      "parameters": {
+        "command": "cd /tmp/migrations/{{ $json.migrationId }} && git clone {{ $json.repoRN }} rn-source"
+      },
+      "id": "clone-rn-repo",
+      "name": "Clone RN Repo",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "command": "find /tmp/migrations/{{ $json.migrationId }}/rn-source -type f \\( -name '*.tsx' -o -name '*.ts' -o -name '*.jsx' -o -name '*.js' \\) | grep -E '(components|screens)' | head -50"
+      },
+      "id": "find-component-files",
+      "name": "Find Component Files",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "fieldName": "stdout",
+        "include": "selectedOtherFields"
+      },
+      "id": "split-files",
+      "name": "Split Into Files",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "command": "cat {{ $json.stdout }}"
+      },
+      "id": "read-file",
+      "name": "Read File Content",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://open-webui:8080/api/chat/completions",
+        "authentication": "none",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an expert React Native analyst. Analyze this component and return JSON with: name, complexity (low/medium/high), risk (low/medium/high), dependencies (array), hasStateManagement (bool), hasNativeModules (bool), thirdPartyIntegrations (array), migrationNotes (string). Return ONLY valid JSON, no markdown.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"File: {{ $json.stdout }}\\n\\nCode:\\n{{ $('Read File Content').item.json.stdout }}\"\n    }\n  ],\n  \"temperature\": 0.2,\n  \"stream\": false\n}",
+        "options": {}
+      },
+      "id": "analyze-component",
+      "name": "Analyze Component with LLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const response = $json.choices[0].message.content;\n\n// Try to extract JSON from markdown code blocks or plain text\nlet jsonMatch = response.match(/```json\\n([\\s\\S]*?)\\n```/) || \n                response.match(/```\\n([\\s\\S]*?)\\n```/) ||\n                [null, response];\n\nlet analysis;\ntry {\n  analysis = JSON.parse(jsonMatch[1].trim());\n} catch (e) {\n  // Fallback if parsing fails\n  analysis = {\n    name: 'Unknown',\n    complexity: 'medium',\n    risk: 'medium',\n    dependencies: [],\n    hasStateManagement: false,\n    hasNativeModules: false,\n    thirdPartyIntegrations: [],\n    migrationNotes: 'Failed to parse analysis'\n  };\n}\n\n// Add file path\nanalysis.path = $('Split Into Files').item.json.stdout;\n\nreturn { json: analysis };"
+      },
+      "id": "parse-analysis",
+      "name": "Parse LLM Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO artifacts (migration_id, artifact_type, artifact_data, created_at) VALUES ('{{ $('Analyzer Trigger').item.json.migrationId }}', 'component_analysis', '{{ JSON.stringify($json) }}'::jsonb, NOW())",
+        "options": {}
+      },
+      "id": "save-component-analysis",
+      "name": "Save Component Analysis",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1650, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "options": {}
+      },
+      "id": "aggregate-results",
+      "name": "Aggregate All Components",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const components = $input.all().map(item => item.json);\n\nconst highRiskComponents = components.filter(c => c.risk === 'high');\nconst foundationComponents = components\n  .filter(c => c.complexity === 'low' && c.risk === 'low')\n  .slice(0, 5);\n\nconst riskMatrix = components.map(c => ({\n  component: c.name,\n  risk: c.risk,\n  complexity: c.complexity,\n  priority: (c.risk === 'low' && c.complexity === 'low') ? 'high' : 'medium',\n  usageCount: 0 // Will be calculated separately if needed\n}));\n\nreturn {\n  json: {\n    inventory: {\n      components,\n      totalComponents: components.length,\n      highRiskCount: highRiskComponents.length\n    },\n    riskMatrix,\n    componentCount: components.length,\n    highRiskCount: highRiskComponents.length,\n    highRiskComponents: highRiskComponents.map(c => c.name).join(', '),\n    foundationComponents: foundationComponents.map(c => c.name).join(', '),\n    estimatedWeeks: Math.ceil(components.length / 6) // ~6 components per week estimate\n  }\n};"
+      },
+      "id": "build-inventory",
+      "name": "Build Component Inventory",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2050, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "return-results",
+      "name": "Return Results",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2250, 300]
+    }
+  ],
+  "connections": {
+    "Analyzer Trigger": {
+      "main": [
+        [
+          {
+            "node": "Clone RN Repo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clone RN Repo": {
+      "main": [
+        [
+          {
+            "node": "Find Component Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Component Files": {
+      "main": [
+        [
+          {
+            "node": "Split Into Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Files": {
+      "main": [
+        [
+          {
+            "node": "Read File Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read File Content": {
+      "main": [
+        [
+          {
+            "node": "Analyze Component with LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Component with LLM": {
+      "main": [
+        [
+          {
+            "node": "Parse LLM Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse LLM Response": {
+      "main": [
+        [
+          {
+            "node": "Save Component Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Component Analysis": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Components",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Components": {
+      "main": [
+        [
+          {
+            "node": "Build Component Inventory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Component Inventory": {
+      "main": [
+        [
+          {
+            "node": "Return Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-15T00:00:00.000Z",
+  "versionId": "1"
+}

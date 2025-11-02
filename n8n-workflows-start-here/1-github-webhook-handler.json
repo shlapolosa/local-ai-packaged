@@ -1,0 +1,267 @@
+{
+  "name": "GitHub Webhook Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "github/events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "GitHub Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "github-events"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Verify GitHub webhook signature\nconst crypto = require('crypto');\nconst signature = $input.item.headers['x-hub-signature-256'];\nconst payload = JSON.stringify($input.item.body);\nconst secret = 'f5ef9c2a7a657ca80a5ea26175038564adce5fd95b2dad0e04683126a058da15';\n\nconst hmac = crypto.createHmac('sha256', secret);\nhmac.update(payload);\nconst calculatedSignature = 'sha256=' + hmac.digest('hex');\n\nif (signature !== calculatedSignature) {\n  throw new Error('Invalid signature');\n}\n\nconst event = $input.item.headers['x-github-event'];\nconst body = $input.item.body;\n\nreturn {\n  json: {\n    event,\n    action: body.action,\n    prNumber: body.pull_request?.number,\n    prUrl: body.pull_request?.html_url,\n    prState: body.pull_request?.state,\n    merged: body.pull_request?.merged,\n    repository: body.repository?.full_name,\n    sender: body.sender?.login,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "verify-signature",
+      "name": "Verify Signature",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.event }}",
+              "value2": "pull_request"
+            }
+          ]
+        }
+      },
+      "id": "switch-event-type",
+      "name": "Switch Event Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.action }}",
+              "value2": "closed"
+            }
+          ],
+          "boolean": [
+            {
+              "value1": "={{ $json.merged }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-pr-merged",
+      "name": "Check if PR Merged",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT migration_id, gate_name FROM approval_gates WHERE pr_number = {{ $json.prNumber }} AND status = 'pending'",
+        "options": {}
+      },
+      "id": "find-migration",
+      "name": "Find Migration by PR",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1050, 200],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE approval_gates SET status = 'merged', approved_at = NOW() WHERE pr_number = {{ $json.prNumber }} RETURNING migration_id",
+        "options": {}
+      },
+      "id": "update-gate-status",
+      "name": "Update Gate Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1250, 200],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://n8n:5678/webhook/pr-merged",
+        "authentication": "none",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "migrationId",
+              "value": "={{ $json.migration_id }}"
+            },
+            {
+              "name": "prNumber",
+              "value": "={{ $json.prNumber }}"
+            },
+            {
+              "name": "action",
+              "value": "merged"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "resume-workflow",
+      "name": "Resume Master Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE approval_gates SET status = 'closed' WHERE pr_number = {{ $json.prNumber }}",
+        "options": {}
+      },
+      "id": "update-gate-closed",
+      "name": "Update Gate Closed",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [1050, 400],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"received\", \"event\": $json.event } }}"
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    }
+  ],
+  "connections": {
+    "GitHub Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verify Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Signature": {
+      "main": [
+        [
+          {
+            "node": "Switch Event Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Event Type": {
+      "main": [
+        [
+          {
+            "node": "Check if PR Merged",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if PR Merged": {
+      "main": [
+        [
+          {
+            "node": "Find Migration by PR",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Gate Closed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Migration by PR": {
+      "main": [
+        [
+          {
+            "node": "Update Gate Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Gate Status": {
+      "main": [
+        [
+          {
+            "node": "Resume Master Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resume Master Workflow": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Gate Closed": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-15T00:00:00.000Z",
+  "versionId": "1"
+}

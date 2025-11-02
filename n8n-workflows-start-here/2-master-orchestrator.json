@@ -1,0 +1,391 @@
+{
+  "name": "Migration Master Orchestrator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "start-migration",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "start-migration-webhook",
+      "name": "Start Migration",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "start-migration"
+    },
+    {
+      "parameters": {
+        "functionCode": "const { v4: uuidv4 } = require('uuid');\nconst input = $input.item.json;\n\nreturn {\n  json: {\n    migrationId: uuidv4(),\n    repoRN: input.repoRN,\n    repoNative: input.repoNative || null,\n    monorepoUrl: input.monorepoUrl,\n    strategy: input.strategy || { startStage: 1, endStage: 3 },\n    platforms: input.platforms || ['ios', 'android', 'web'],\n    reviewers: input.reviewers || ['shlapolosa'],\n    targetBranch: input.targetBranch || 'main',\n    createdAt: new Date().toISOString()\n  }\n};"
+      },
+      "id": "initialize-config",
+      "name": "Initialize Config",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO migrations (id, repo_rn, repo_native, monorepo_url, strategy, platforms, status, created_at) VALUES ('{{ $json.migrationId }}', '{{ $json.repoRN }}', '{{ $json.repoNative }}', '{{ $json.monorepoUrl }}', '{{ JSON.stringify($json.strategy) }}', '{{ JSON.stringify($json.platforms) }}', 'running', NOW()) RETURNING id",
+        "options": {}
+      },
+      "id": "save-migration",
+      "name": "Save Migration to DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"migrationId\": $json.migrationId, \"status\": \"started\", \"message\": \"Migration workflow started in background\" } }}"
+      },
+      "id": "respond-started",
+      "name": "Respond Started",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd /tmp && mkdir -p migrations/{{ $json.migrationId }} && cd migrations/{{ $json.migrationId }} && git clone {{ $json.monorepoUrl }} . && git config user.name 'Migration Bot' && git config user.email 'socrates.hlapolosa@gmail.com'"
+      },
+      "id": "clone-monorepo",
+      "name": "Clone Monorepo",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd /tmp/migrations/{{ $json.migrationId }} && mkdir -p packages/shared-core packages/shared-components/contracts packages/native-components/ios packages/native-components/android packages/web-components docs/migration apps/native-ios apps/native-android apps/rn-app"
+      },
+      "id": "scaffold-structure",
+      "name": "Scaffold Monorepo",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://n8n:5678/webhook/agent-analyze-repos",
+        "authentication": "none",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "migrationId",
+              "value": "={{ $json.migrationId }}"
+            },
+            {
+              "name": "repoRN",
+              "value": "={{ $json.repoRN }}"
+            },
+            {
+              "name": "repoNative",
+              "value": "={{ $json.repoNative }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "call-analyzer-agent",
+      "name": "Call Repo Analyzer Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const fs = require('fs');\nconst path = '/tmp/migrations/' + $json.migrationId;\nconst inventory = $json.inventory;\nconst riskMatrix = $json.riskMatrix;\n\n// Write inventory.json\nfs.writeFileSync(\n  path + '/docs/migration/inventory.json',\n  JSON.stringify(inventory, null, 2)\n);\n\n// Write risk-matrix.md\nlet mdContent = '# Risk Matrix\\n\\n';\nmdContent += '| Component | Risk | Complexity | Priority | Usage Count |\\n';\nmdContent += '|-----------|------|-----------|----------|-------------|\\n';\n\nriskMatrix.forEach(item => {\n  mdContent += `| ${item.component} | ${item.risk} | ${item.complexity} | ${item.priority} | ${item.usageCount} |\\n`;\n});\n\nfs.writeFileSync(\n  path + '/docs/migration/risk-matrix.md',\n  mdContent\n);\n\nreturn { json: $json };"
+      },
+      "id": "write-analysis-files",
+      "name": "Write Analysis Files",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd /tmp/migrations/{{ $json.migrationId }} && git checkout -b migration/stage-1-analysis && git add docs/migration/ && git commit -m 'Stage 1: Repository analysis and component inventory\n\n- Analyzed {{ $json.componentCount }} components\n- Identified {{ $json.highRiskCount }} high-risk components\n- Generated dependency graph\n- Estimated migration effort: {{ $json.estimatedWeeks }} weeks' && git push -u origin migration/stage-1-analysis"
+      },
+      "id": "commit-and-push",
+      "name": "Commit & Push Analysis",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/shlapolosa/coding-assistant/pulls",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.GITHUB_TOKEN }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "Stage 1: Repository Analysis & Migration Plan"
+            },
+            {
+              "name": "head",
+              "value": "migration/stage-1-analysis"
+            },
+            {
+              "name": "base",
+              "value": "main"
+            },
+            {
+              "name": "body",
+              "value": "## Stage 1: Repository Analysis\\n\\n### Summary\\n- ✅ Analyzed {{ $json.componentCount }} components\\n- ✅ Generated risk matrix\\n- ✅ Created dependency graph\\n\\n### Key Findings\\n- **High Risk Components**: {{ $json.highRiskComponents }}\\n- **Foundation Components**: {{ $json.foundationComponents }}\\n\\n### Files Added\\n- `docs/migration/inventory.json` - Complete component inventory\\n- `docs/migration/risk-matrix.md` - Risk assessment\\n\\n### Review Checklist\\n- [ ] Review component inventory for completeness\\n- [ ] Validate risk assessments\\n- [ ] Confirm migration priorities\\n- [ ] Approve to proceed to Stage 2\\n\\n---\\n🤖 Generated by Migration Platform"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-pr-stage1",
+      "name": "Create PR Stage 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO approval_gates (migration_id, gate_name, pr_number, pr_url, status, webhook_url, created_at) VALUES ('{{ $json.migrationId }}', 'stage_1_analysis', {{ $json.number }}, '{{ $json.html_url }}', 'pending', 'http://n8n:5678/webhook/pr-merged', NOW())",
+        "options": {}
+      },
+      "id": "save-pr-info",
+      "name": "Save PR Info",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [2250, 300],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-main",
+          "name": "PostgreSQL Main"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pr-merged",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wait-pr-merged",
+      "name": "Wait for PR Merge",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [2450, 300],
+      "webhookId": "pr-merged"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Check if this is the right migration\nconst expectedMigrationId = $('Save PR Info').first().json.migrationId;\nconst receivedMigrationId = $input.item.json.migrationId;\n\nif (expectedMigrationId !== receivedMigrationId) {\n  throw new Error('Wrong migration ID');\n}\n\nreturn { json: $input.item.json };"
+      },
+      "id": "verify-migration-id",
+      "name": "Verify Migration ID",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2650, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://n8n:5678/webhook/agent-generate-contracts",
+        "authentication": "none",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "migrationId",
+              "value": "={{ $json.migrationId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "call-contract-agent",
+      "name": "Call Contract Generator Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [2850, 300]
+    }
+  ],
+  "connections": {
+    "Start Migration": {
+      "main": [
+        [
+          {
+            "node": "Initialize Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Config": {
+      "main": [
+        [
+          {
+            "node": "Save Migration to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Migration to DB": {
+      "main": [
+        [
+          {
+            "node": "Respond Started",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond Started": {
+      "main": [
+        [
+          {
+            "node": "Clone Monorepo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clone Monorepo": {
+      "main": [
+        [
+          {
+            "node": "Scaffold Monorepo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scaffold Monorepo": {
+      "main": [
+        [
+          {
+            "node": "Call Repo Analyzer Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Repo Analyzer Agent": {
+      "main": [
+        [
+          {
+            "node": "Write Analysis Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Analysis Files": {
+      "main": [
+        [
+          {
+            "node": "Commit & Push Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Commit & Push Analysis": {
+      "main": [
+        [
+          {
+            "node": "Create PR Stage 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create PR Stage 1": {
+      "main": [
+        [
+          {
+            "node": "Save PR Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save PR Info": {
+      "main": [
+        [
+          {
+            "node": "Wait for PR Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for PR Merge": {
+      "main": [
+        [
+          {
+            "node": "Verify Migration ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Migration ID": {
+      "main": [
+        [
+          {
+            "node": "Call Contract Generator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-15T00:00:00.000Z",
+  "versionId": "1"
+}

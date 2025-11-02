@@ -1,0 +1,172 @@
+{
+  "name": "Configuration Assistant - Interactive Chat",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat/migration-config",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "chat-webhook",
+      "name": "Chat Interface",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "chat-migration-config"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract user message and conversation history\nconst userMessage = $json.message || $json.userMessage || '';\nconst conversationHistory = $json.history || [];\nconst sessionId = $json.sessionId || require('crypto').randomUUID();\n\n// Get or initialize session state\nlet sessionState = $json.state || {\n  repoRN: null,\n  repoNative: null,\n  monorepoUrl: null,\n  platforms: [],\n  strategy: { startStage: 1, endStage: 3 },\n  reviewers: [],\n  targetBranch: 'main',\n  step: 0, // Current step in conversation\n  complete: false\n};\n\nreturn {\n  json: {\n    userMessage,\n    conversationHistory,\n    sessionId,\n    sessionState\n  }\n};"
+      },
+      "id": "parse-message",
+      "name": "Parse User Message",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://open-webui:8080/api/chat/completions",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a helpful migration configuration assistant. Your job is to gather required information from users to set up a React Native to native platform migration.\\n\\nRequired information:\\n1. React Native repository URL (repoRN) - REQUIRED\\n2. Existing native repository URL (repoNative) - optional, can be null if starting fresh\\n3. Monorepo URL where migration will be created (monorepoUrl) - REQUIRED\\n4. Target platforms (platforms) - array, options: ios, android, web - REQUIRED, at least one\\n5. Migration strategy stages (strategy.startStage and strategy.endStage) - numbers 0-3 - REQUIRED\\n6. GitHub reviewers (reviewers) - array of GitHub usernames - REQUIRED\\n7. Target branch (targetBranch) - default 'main'\\n\\nConversation rules:\\n- Ask ONE question at a time\\n- Be friendly and conversational\\n- Validate responses (check URL format, valid stages, etc.)\\n- If user provides invalid input, explain what's wrong and ask again\\n- Show current progress: 'We have X/Y required fields'\\n- When all required fields collected, summarize and ask for confirmation\\n- If user confirms, respond with JSON: {\\\"action\\\": \\\"start_migration\\\", \\\"config\\\": {...}}\\n\\nCurrent state:\\n{{ JSON.stringify($json.sessionState) }}\\n\\nDetermine:\\n1. What information is still missing?\\n2. What question to ask next?\\n3. If user just provided info, validate it and update state\\n4. If all info complete, summarize and ask for confirmation\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"User message: {{ $json.userMessage }}\\n\\nConversation history: {{ JSON.stringify($json.conversationHistory) }}\"\n    }\n  ],\n  \"temperature\": 0.3,\n  \"stream\": false\n}"
+      },
+      "id": "chat-with-llm",
+      "name": "Chat with Assistant",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const llmResponse = $json.choices[0].message.content;\nconst sessionState = $('Parse User Message').item.json.sessionState;\nconst userMessage = $('Parse User Message').item.json.userMessage;\n\n// Try to extract structured action from LLM response\nlet action = null;\nlet updatedState = { ...sessionState };\n\n// Check if LLM wants to start migration\nconst actionMatch = llmResponse.match(/\\{\\s*\"action\"\\s*:\\s*\"start_migration\"[\\s\\S]*?\\}/m);\nif (actionMatch) {\n  try {\n    action = JSON.parse(actionMatch[0]);\n    updatedState.complete = true;\n  } catch (e) {\n    // Failed to parse, continue conversation\n  }\n}\n\n// Extract information from user message and update state\n// Check for GitHub repo URLs\nconst githubUrlMatch = userMessage.match(/https:\\/\\/github\\.com\\/[\\w-]+\\/[\\w-]+/g);\nif (githubUrlMatch && githubUrlMatch.length > 0) {\n  if (!updatedState.repoRN) {\n    updatedState.repoRN = githubUrlMatch[0];\n    updatedState.step = Math.max(updatedState.step, 1);\n  } else if (!updatedState.monorepoUrl && githubUrlMatch.length > 1) {\n    updatedState.monorepoUrl = githubUrlMatch[1];\n    updatedState.step = Math.max(updatedState.step, 2);\n  } else if (!updatedState.monorepoUrl) {\n    updatedState.monorepoUrl = githubUrlMatch[0];\n    updatedState.step = Math.max(updatedState.step, 2);\n  }\n}\n\n// Check for platforms\nconst platformsMatch = userMessage.toLowerCase();\nif (platformsMatch.includes('ios')) updatedState.platforms.push('ios');\nif (platformsMatch.includes('android')) updatedState.platforms.push('android');\nif (platformsMatch.includes('web')) updatedState.platforms.push('web');\nif (updatedState.platforms.length > 0) {\n  updatedState.platforms = [...new Set(updatedState.platforms)]; // Remove duplicates\n  updatedState.step = Math.max(updatedState.step, 3);\n}\n\n// Check for stage numbers\nconst stageMatch = userMessage.match(/stage\\s*(\\d)/i) || userMessage.match(/\\b([0-3])\\b/);\nif (stageMatch) {\n  const stage = parseInt(stageMatch[1]);\n  if (stage >= 0 && stage <= 3) {\n    if (!updatedState.strategy.startStage) {\n      updatedState.strategy.startStage = stage;\n    } else {\n      updatedState.strategy.endStage = stage;\n    }\n    updatedState.step = Math.max(updatedState.step, 4);\n  }\n}\n\n// Check for GitHub username\nconst usernameMatch = userMessage.match(/@([\\w-]+)/) || \n                      (userMessage.match(/\\b([\\w-]{3,39})\\b/) && !userMessage.match(/https?:\\/\\//));\nif (usernameMatch && updatedState.reviewers.length === 0) {\n  updatedState.reviewers.push(usernameMatch[1]);\n  updatedState.step = Math.max(updatedState.step, 5);\n}\n\n// Check if user confirmed (yes, confirm, start, go, etc.)\nif (/\\b(yes|confirm|start|go|proceed|looks good|correct)\\b/i.test(userMessage) && updatedState.step >= 5) {\n  action = {\n    action: 'start_migration',\n    config: {\n      repoRN: updatedState.repoRN,\n      repoNative: updatedState.repoNative,\n      monorepoUrl: updatedState.monorepoUrl,\n      platforms: updatedState.platforms,\n      strategy: updatedState.strategy,\n      reviewers: updatedState.reviewers,\n      targetBranch: updatedState.targetBranch\n    }\n  };\n  updatedState.complete = true;\n}\n\nreturn {\n  json: {\n    assistantMessage: llmResponse,\n    action,\n    sessionState: updatedState,\n    sessionId: $('Parse User Message').item.json.sessionId\n  }\n};"
+      },
+      "id": "parse-response",
+      "name": "Parse LLM Response & Update State",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.action?.action }}",
+              "value2": "start_migration"
+            }
+          ]
+        }
+      },
+      "id": "check-complete",
+      "name": "Check if Ready to Start",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://n8n:5678/webhook/start-migration",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "repoRN",
+              "value": "={{ $json.action.config.repoRN }}"
+            },
+            {
+              "name": "repoNative",
+              "value": "={{ $json.action.config.repoNative }}"
+            },
+            {
+              "name": "monorepoUrl",
+              "value": "={{ $json.action.config.monorepoUrl }}"
+            },
+            {
+              "name": "platforms",
+              "value": "={{ $json.action.config.platforms }}"
+            },
+            {
+              "name": "strategy",
+              "value": "={{ $json.action.config.strategy }}"
+            },
+            {
+              "name": "reviewers",
+              "value": "={{ $json.action.config.reviewers }}"
+            },
+            {
+              "name": "targetBranch",
+              "value": "={{ $json.action.config.targetBranch }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "trigger-migration",
+      "name": "Trigger Master Orchestrator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"message\": \"✅ Migration started successfully!\\n\\nMigration ID: \" + $json.migrationId + \"\\n\\nYou can monitor progress and approve PRs on GitHub: https://github.com/\" + $('Parse LLM Response & Update State').item.json.action.config.reviewers[0] + \"/\" + $('Parse LLM Response & Update State').item.json.action.config.monorepoUrl.split('/').pop(),\n  \"migrationId\": $json.migrationId,\n  \"complete\": true\n} }}"
+      },
+      "id": "respond-started",
+      "name": "Respond Migration Started",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"message\": $json.assistantMessage,\n  \"sessionId\": $json.sessionId,\n  \"sessionState\": $json.sessionState,\n  \"complete\": false,\n  \"progress\": {\n    \"repoRN\": !!$json.sessionState.repoRN,\n    \"monorepoUrl\": !!$json.sessionState.monorepoUrl,\n    \"platforms\": $json.sessionState.platforms.length > 0,\n    \"reviewers\": $json.sessionState.reviewers.length > 0\n  }\n} }}"
+      },
+      "id": "respond-continue",
+      "name": "Respond Continue Conversation",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Chat Interface": {
+      "main": [[{"node": "Parse User Message", "type": "main", "index": 0}]]
+    },
+    "Parse User Message": {
+      "main": [[{"node": "Chat with Assistant", "type": "main", "index": 0}]]
+    },
+    "Chat with Assistant": {
+      "main": [[{"node": "Parse LLM Response & Update State", "type": "main", "index": 0}]]
+    },
+    "Parse LLM Response & Update State": {
+      "main": [[{"node": "Check if Ready to Start", "type": "main", "index": 0}]]
+    },
+    "Check if Ready to Start": {
+      "main": [
+        [{"node": "Trigger Master Orchestrator", "type": "main", "index": 0}],
+        [{"node": "Respond Continue Conversation", "type": "main", "index": 0}]
+      ]
+    },
+    "Trigger Master Orchestrator": {
+      "main": [[{"node": "Respond Migration Started", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-15T00:00:00.000Z",
+  "versionId": "1"
+}
