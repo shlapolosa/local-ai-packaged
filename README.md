@@ -309,7 +309,7 @@ To update all containers to their latest versions (n8n, Open WebUI, etc.), run t
 ```bash
 # Stop all services
 docker compose -p localai -f docker-compose.yml --profile <your-profile> down
-
+docker compose -p localai -f docker-compose.yml --profile gpu-nvidia down
 # Pull latest versions of all containers
 docker compose -p localai -f docker-compose.yml --profile <your-profile> pull
 
@@ -489,9 +489,9 @@ EOF
 ### 7. Run Cloudflare Tunnel as Docker container
 
 ```bash
-  docker stop cloudflared 2>/dev/null
-  docker rm cloudflared 2>/dev/null
-  docker network create localai_default 2>/dev/null || true
+  docker stop cloudflared 2>/dev/null &&
+  docker rm cloudflared 2>/dev/null &&
+  docker network create localai_default 2>/dev/null || true &&
   docker run -d \
     --name cloudflared \
     --network localai_default \
@@ -513,6 +513,55 @@ EOF
   cloudflared service install -- --protocol http2
   systemctl start cloudflared
   systemctl enable cloudflared
+```
+
+
+## If Error
+
+```
+Error response from daemon: could not select device driver "nvidia" with capabilities: [[gpu]]
+Traceback (most recent call last):
+  File "/root/local-ai-packaged/start_services.py", line 249, in <module>
+    main()
+  File "/root/local-ai-packaged/start_services.py", line 246, in main
+    start_local_ai(args.profile, args.environment)
+  File "/root/local-ai-packaged/start_services.py", line 79, in start_local_ai
+    run_command(cmd)
+  File "/root/local-ai-packaged/start_services.py", line 22, in run_command
+    subprocess.run(cmd, cwd=cwd, check=True)
+  File "/usr/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['docker', 'compose', '-p', 'localai', '--profile', 'gpu-nvidia', '-f', 'docker-compose.yml', '-f', 'docker-compose.override.private.yml', 'up', '-d']' returned non-zero exit status 1.
+```
+
+### Then Fix
+
+Quick diagnostic — run this to check if nvidia-container-toolkit is installed:
+```bash
+bashdpkg -l | grep nvidia-container
+```
+If it returns nothing, that confirms the toolkit is missing.
+
+The error indicates that while your NVIDIA driver is working (nvidia-smi shows the GPU), Docker can't access the GPU because the NVIDIA Container Toolkit isn't properly configured.
+
+```bash
+
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+apt-get update
+apt-get install -y nvidia-container-toolkit
+nvidia-ctk runtime configure --runtime=docker
+systemctl restart docker
+
+```
+then rerun script;
+
+```bash
+python3 start_services.py --profile gpu-nvidia
 ```
 
 ## 📜 License

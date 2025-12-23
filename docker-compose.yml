@@ -14,6 +14,7 @@ volumes:
   langfuse_clickhouse_data:
   langfuse_clickhouse_logs:
   langfuse_minio_data:
+  opencode_data:
 
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
@@ -371,6 +372,56 @@ services:
       options:
         max-size: "1m"
         max-file: "1"
+  opencode-cpu:
+    profiles: ["cpu"]
+    build:
+      context: ./opencode
+      dockerfile: Dockerfile
+    container_name: opencode
+    restart: unless-stopped
+    volumes:
+      - ./comedian:/workspace
+      - opencode_data:/root/.local/share/opencode
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama-cpu
+    stdin_open: true
+    tty: true
+
+  opencode-gpu:
+    profiles: ["gpu-nvidia"]
+    build:
+      context: ./opencode
+      dockerfile: Dockerfile
+    container_name: opencode
+    restart: unless-stopped
+    volumes:
+      - ./comedian:/workspace
+      - opencode_data:/root/.local/share/opencode
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama-gpu
+    stdin_open: true
+    tty: true
+
+  opencode-gpu-amd:
+    profiles: ["gpu-amd"]
+    build:
+      context: ./opencode
+      dockerfile: Dockerfile
+    container_name: opencode
+    restart: unless-stopped
+    volumes:
+      - ./comedian:/workspace
+      - opencode_data:/root/.local/share/opencode
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama-gpu-amd
+    stdin_open: true
+    tty: true
 
   ollama-cpu:
     profiles: ["cpu"]

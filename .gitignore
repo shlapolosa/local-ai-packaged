@@ -11,3 +11,4 @@ searxng/uwsgi*
 *.tar
 *.tar.gz
 *.zip
+.DS_Store
