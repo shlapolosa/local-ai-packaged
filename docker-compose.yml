@@ -121,7 +121,8 @@ services:
       - ./shared:/data/shared
     depends_on:
       n8n-import:
-        condition: service_completed_successfully
+        condition: service_started
+        required: false
 
   qdrant:
     image: qdrant/qdrant
@@ -372,6 +373,7 @@ services:
       options:
         max-size: "1m"
         max-file: "1"
+        
   opencode-cpu:
     profiles: ["cpu"]
     build:
