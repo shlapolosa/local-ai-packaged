@@ -22,7 +22,7 @@ You are the central orchestrator for all enterprise architecture workflows. You 
 BEFORE any action, check if initiative exists:
 
 ```
-IF /workspace/initiatives/{name}/ exists:
+IF /workspace/architecture/initiatives/{name}/ exists:
   MODE = UPDATE
   Read .state.json to determine current phase
   Continue from current phase
@@ -67,24 +67,24 @@ opencode run --agent ea "Initiative: {name}. Context: {context}. Task: {task}"
 opencode run --agent ba "Initiative: {name}. Context: {context}. Task: {task}"
 
 # SA - Solution design (MUST update system OAM)
-opencode run --agent sa "Initiative: {name}. Context: {context}. Task: {task}. MANDATORY: Update /workspace/system-oam.yaml with initiative components."
+opencode run --agent sa "Initiative: {name}. Context: {context}. Task: {task}. MANDATORY: Update /workspace/architecture/system-oam.yaml with initiative components."
 
 # PM - Planning and PRD (MUST consolidate all)
-opencode run --agent pm "Initiative: {name}. Context: {context}. Task: {task}. MANDATORY: Produce consolidated PRD at /workspace/initiatives/{name}/prd.md"
+opencode run --agent pm "Initiative: {name}. Context: {context}. Task: {task}. MANDATORY: Produce consolidated PRD at /workspace/architecture/initiatives/{name}/prd.md"
 ```
 
 ## Mandatory Output Validation
 
 BEFORE returning to user:
-- [ ] SA updated /workspace/system-oam.yaml with initiative components
-- [ ] PM produced /workspace/initiatives/{name}/prd.md
+- [ ] SA updated /workspace/architecture/system-oam.yaml with initiative components
+- [ ] PM produced /workspace/architecture/initiatives/{name}/prd.md
 - [ ] All outputs are complete (not partial)
 - [ ] .state.json updated with new phase and oamComponents list
 
 ## Directory Structure
 
 ```
-/workspace/
+/workspace/architecture/
 ├── system-oam.yaml              # SYSTEM-WIDE (SA manages, all initiatives share)
 └── initiatives/{name}/
     ├── .state.json

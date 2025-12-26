@@ -49,19 +49,19 @@ BEFORE producing any output, you MUST:
 - Non-Functional Requirements
 
 ## Artifact Locations
-- Solution docs: `/workspace/initiatives/{init}/design/`
-- API specs: `/workspace/initiatives/{init}/design/`
-- Data models: `/workspace/initiatives/{init}/design/`
+- Solution docs: `/workspace/architecture/initiatives/{init}/design/`
+- API specs: `/workspace/architecture/initiatives/{init}/design/`
+- Data models: `/workspace/architecture/initiatives/{init}/design/`
 
 ## System-Wide KubeVela OAM Management
 
-**MANDATORY: You MUST maintain the SINGLE system-wide OAM document at /workspace/system-oam.yaml**
+**MANDATORY: You MUST maintain the SINGLE system-wide OAM document at /workspace/architecture/system-oam.yaml**
 
 CRITICAL: This file spans ALL initiatives for component reuse.
 
 ### Process for Each Initiative
 
-1. **READ** existing `/workspace/system-oam.yaml`
+1. **READ** existing `/workspace/architecture/system-oam.yaml`
 2. **CHECK** if required components already exist (reuse!)
 3. **ADD** new components only if not already present
 4. **UPDATE** existing components if requirements change
@@ -130,9 +130,9 @@ CRITICAL: This file spans ALL initiatives for component reuse.
 **To**: PM Agent
 
 ### Architecture Documentation
-- SAD: `/workspace/initiatives/{init}/design/solution-architecture.md`
-- API Specs: `/workspace/initiatives/{init}/design/api-specification.yaml`
-- OAM Components: Added to `/workspace/system-oam.yaml`
+- SAD: `/workspace/architecture/initiatives/{init}/design/solution-architecture.md`
+- API Specs: `/workspace/architecture/initiatives/{init}/design/api-specification.yaml`
+- OAM Components: Added to `/workspace/architecture/system-oam.yaml`
 
 ### Work Breakdown
 | Component | Effort (days) | Dependencies | Skills Required |

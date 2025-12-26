@@ -51,9 +51,9 @@ BEFORE producing any output, you MUST:
 - Vendor Evaluation Summaries
 
 ## Artifact Locations
-- Strategy docs: `/workspace/initiatives/{init}/vision/`
-- Investment decisions: `/workspace/initiatives/{init}/vision/`
-- ADR approvals: `/workspace/initiatives/{init}/governance/`
+- Strategy docs: `/workspace/architecture/initiatives/{init}/vision/`
+- Investment decisions: `/workspace/architecture/initiatives/{init}/vision/`
+- ADR approvals: `/workspace/architecture/initiatives/{init}/governance/`
 
 ## Escalation Triggers
 - Budget > $500K

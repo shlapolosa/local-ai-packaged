@@ -47,9 +47,9 @@ BEFORE producing any output, you MUST:
 - Technology Radar
 
 ## Artifact Locations
-- Principles: `/workspace/initiatives/{init}/standards/`
-- Compliance reviews: `/workspace/initiatives/{init}/governance/`
-- Vision documents: `/workspace/initiatives/{init}/vision/`
+- Principles: `/workspace/architecture/initiatives/{init}/standards/`
+- Compliance reviews: `/workspace/architecture/initiatives/{init}/governance/`
+- Vision documents: `/workspace/architecture/initiatives/{init}/vision/`
 
 ## Review Checklist for SA Designs
 1. Alignment with principles
@@ -71,7 +71,7 @@ After establishing standards and vision:
 **To**: SA Agent
 
 ### Context
-- Vision document: `/workspace/initiatives/{init}/vision/`
+- Vision document: `/workspace/architecture/initiatives/{init}/vision/`
 - Applicable standards: {list}
 - Reference architecture: {reference}
 
@@ -86,7 +86,7 @@ After establishing standards and vision:
 - [ ] API Specifications
 - [ ] Data Models
 - [ ] ADRs for key decisions
-- [ ] KubeVela OAM components in /workspace/system-oam.yaml
+- [ ] KubeVela OAM components in /workspace/architecture/system-oam.yaml
 
 ### Review Gate
 - Submit for EA review by: {date}

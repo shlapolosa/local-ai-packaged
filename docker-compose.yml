@@ -382,7 +382,8 @@ services:
     container_name: opencode
     restart: unless-stopped
     volumes:
-      - ./comedian:/workspace
+      - ./workspace:/workspace/architecture
+      - ./comedian:/workspace/comedian
       - opencode_data:/root/.local/share/opencode
     environment:
       - OLLAMA_HOST=http://ollama:11434
@@ -399,7 +400,8 @@ services:
     container_name: opencode
     restart: unless-stopped
     volumes:
-      - ./comedian:/workspace
+      - ./workspace:/workspace/architecture
+      - ./comedian:/workspace/comedian
       - opencode_data:/root/.local/share/opencode
     environment:
       - OLLAMA_HOST=http://ollama:11434
@@ -416,7 +418,8 @@ services:
     container_name: opencode
     restart: unless-stopped
     volumes:
-      - ./comedian:/workspace
+      - ./workspace:/workspace/architecture
+      - ./comedian:/workspace/comedian
       - opencode_data:/root/.local/share/opencode
     environment:
       - OLLAMA_HOST=http://ollama:11434

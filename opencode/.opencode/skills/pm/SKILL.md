@@ -44,9 +44,9 @@ BEFORE producing any output, you MUST:
 - **PRD (Product Requirements Document) - MANDATORY CONSOLIDATION**
 
 ## Artifact Locations
-- Project docs: `/workspace/initiatives/{init}/plan/`
-- RAID log: `/workspace/initiatives/{init}/plan/raid-log.md`
-- PRD: `/workspace/initiatives/{init}/prd.md`
+- Project docs: `/workspace/architecture/initiatives/{init}/plan/`
+- RAID log: `/workspace/architecture/initiatives/{init}/plan/raid-log.md`
+- PRD: `/workspace/architecture/initiatives/{init}/prd.md`
 
 ## PRD Consolidation - MANDATORY
 
@@ -56,16 +56,16 @@ This is a MANDATORY deliverable. Every initiative MUST have a PRD.
 
 ### PRD Process
 
-1. **READ** all artifacts from `/workspace/initiatives/{name}/`
+1. **READ** all artifacts from `/workspace/architecture/initiatives/{name}/`
    - Vision documents (CTO/EA)
    - Requirements (BA)
    - Design documents (SA)
    - Standards (EA)
-   - OAM components from `/workspace/system-oam.yaml`
+   - OAM components from `/workspace/architecture/system-oam.yaml`
 2. **EXTRACT** key information from each specialist's output
 3. **SYNTHESIZE** into cohesive PRD
 4. **ENSURE** no gaps between sections
-5. **WRITE** to `/workspace/initiatives/{name}/prd.md`
+5. **WRITE** to `/workspace/architecture/initiatives/{name}/prd.md`
 
 ### PRD Structure
 
@@ -159,10 +159,10 @@ This is a MANDATORY deliverable. Every initiative MUST have a PRD.
 ## 6. Appendices
 
 ### 6.1 Document References
-- OAM Document: `/workspace/system-oam.yaml`
-- Solution Architecture: `/workspace/initiatives/{name}/design/`
-- Requirements: `/workspace/initiatives/{name}/requirements/`
-- RAID Log: `/workspace/initiatives/{name}/plan/raid-log.md`
+- OAM Document: `/workspace/architecture/system-oam.yaml`
+- Solution Architecture: `/workspace/architecture/initiatives/{name}/design/`
+- Requirements: `/workspace/architecture/initiatives/{name}/requirements/`
+- RAID Log: `/workspace/architecture/initiatives/{name}/plan/raid-log.md`
 
 ### 6.2 Glossary
 [Key terms and definitions]

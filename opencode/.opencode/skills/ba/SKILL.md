@@ -42,9 +42,9 @@ BEFORE producing any output, you MUST:
 - UAT Test Cases
 
 ## Artifact Locations
-- Requirements: `/workspace/initiatives/{init}/requirements/`
-- Process models: `/workspace/initiatives/{init}/requirements/`
-- User stories: `/workspace/initiatives/{init}/requirements/`
+- Requirements: `/workspace/architecture/initiatives/{init}/requirements/`
+- Process models: `/workspace/architecture/initiatives/{init}/requirements/`
+- User stories: `/workspace/architecture/initiatives/{init}/requirements/`
 
 ## Requirements Template
 
@@ -109,9 +109,9 @@ BEFORE producing any output, you MUST:
 **To**: SA Agent
 
 ### Requirements Documentation
-- BRD: `/workspace/initiatives/{init}/requirements/business-requirements.md`
-- Process Models: `/workspace/initiatives/{init}/requirements/`
-- User Stories: `/workspace/initiatives/{init}/requirements/user-stories.md`
+- BRD: `/workspace/architecture/initiatives/{init}/requirements/business-requirements.md`
+- Process Models: `/workspace/architecture/initiatives/{init}/requirements/`
+- User Stories: `/workspace/architecture/initiatives/{init}/requirements/user-stories.md`
 
 ### Key Stakeholders
 | Stakeholder | Role | Key Concerns |
