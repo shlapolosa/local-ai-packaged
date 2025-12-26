@@ -1,0 +1,152 @@
+# Enterprise Platform - KubeVela OAM Application
+# This file is SYSTEM-WIDE and spans ALL initiatives
+# SA agent manages this file, adding components while maximizing reuse
+#
+# COMPONENT NAMING CONVENTIONS:
+# - Shared components: shared-{type} (e.g., shared-postgres, shared-redis)
+# - Initiative-specific: {initiative}-{type} (e.g., auth-api, billing-worker)
+#
+# REUSE PRINCIPLES:
+# - Before adding a new component, check if an existing one can be reused
+# - Shared databases should be used across initiatives when possible
+# - Document the initiative and date when adding new components
+
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: enterprise-platform
+  namespace: platform
+  annotations:
+    description: "System-wide OAM definition for all enterprise initiatives"
+    managed-by: "architect-orchestrator"
+spec:
+  components:
+    # ═══════════════════════════════════════════════════════════════════════
+    # SHARED INFRASTRUCTURE COMPONENTS
+    # These components are reused across multiple initiatives
+    # ═══════════════════════════════════════════════════════════════════════
+
+    # Shared PostgreSQL Database
+    # Used by: (list initiatives that use this)
+    - name: shared-postgres
+      type: helm
+      properties:
+        repoType: helm
+        url: https://charts.bitnami.com/bitnami
+        chart: postgresql
+        version: "12.x.x"
+        values:
+          auth:
+            postgresPassword: "${POSTGRES_PASSWORD}"
+            database: enterprise
+          primary:
+            persistence:
+              enabled: true
+              size: 10Gi
+      traits:
+        - type: storage
+          properties:
+            pvc:
+              - name: postgres-data
+                mountPath: /var/lib/postgresql/data
+                storageClassName: standard
+                resources:
+                  requests:
+                    storage: 10Gi
+
+    # Shared Redis Cache
+    # Used by: (list initiatives that use this)
+    - name: shared-redis
+      type: helm
+      properties:
+        repoType: helm
+        url: https://charts.bitnami.com/bitnami
+        chart: redis
+        version: "17.x.x"
+        values:
+          auth:
+            password: "${REDIS_PASSWORD}"
+          master:
+            persistence:
+              enabled: true
+              size: 2Gi
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # INITIATIVE-SPECIFIC COMPONENTS
+    # Add new initiative components below with clear section headers
+    # ═══════════════════════════════════════════════════════════════════════
+
+    # --- Add new initiative components here ---
+    # Template:
+    # # ═══════════════════════════════════════════════════════════════════════
+    # # INITIATIVE: {initiative-name}
+    # # Added: {date}
+    # # Phase: {current ADM phase}
+    # # Description: {brief description}
+    # # ═══════════════════════════════════════════════════════════════════════
+    # - name: {initiative}-{component-type}
+    #   type: webservice|worker|task|helm
+    #   properties:
+    #     ...
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ENVIRONMENT POLICIES
+  # Define deployment policies for different environments
+  # ═══════════════════════════════════════════════════════════════════════════
+  policies:
+    - name: staging-policy
+      type: env-binding
+      properties:
+        envs:
+          - name: staging
+            placement:
+              clusterSelector:
+                labels:
+                  env: staging
+            patch:
+              components:
+                - name: "*"
+                  type: webservice
+                  traits:
+                    - type: scaler
+                      properties:
+                        replicas: 1
+
+    - name: production-policy
+      type: env-binding
+      properties:
+        envs:
+          - name: production
+            placement:
+              clusterSelector:
+                labels:
+                  env: production
+            patch:
+              components:
+                - name: "*"
+                  type: webservice
+                  traits:
+                    - type: scaler
+                      properties:
+                        replicas: 2
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DEPLOYMENT WORKFLOW
+  # Standard deployment workflow: staging -> approval -> production
+  # ═══════════════════════════════════════════════════════════════════════════
+  workflow:
+    steps:
+      - name: deploy-staging
+        type: deploy
+        properties:
+          policies: ["staging-policy"]
+
+      - name: manual-approval
+        type: suspend
+        properties:
+          duration: "0"  # Wait indefinitely for approval
+
+      - name: deploy-production
+        type: deploy
+        properties:
+          policies: ["production-policy"]
