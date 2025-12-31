@@ -56,6 +56,282 @@ results from up to 229 search services. Users are neither tracked nor profiled, 
 
 ✅ [**Langfuse**](https://langfuse.com/) - Open source LLM engineering platform for agent observability
 
+✅ [**OpenCode Agents**](https://opencode.ai/) - Multi-agent architecture for enterprise architecture and development workflows
+
+---
+
+## OpenCode Agent System
+
+The package includes a sophisticated multi-agent system for enterprise architecture (ADM cycle) and software development workflows. The agents run in a containerized OpenCode instance connected to Ollama for local LLM inference.
+
+### Architecture Overview
+
+```mermaid
+flowchart TB
+    subgraph "Chat Interface"
+        OW[Open WebUI]
+    end
+
+    subgraph "Orchestration"
+        N8N[n8n Workflow Engine]
+        REDIS[(Redis Streams)]
+    end
+
+    subgraph "Agent Runtime"
+        OC[OpenCode Container]
+        OLLAMA[Ollama LLM]
+    end
+
+    subgraph "Output"
+        GH[GitHub Repos]
+        SLACK[Slack Notifications]
+        GITOPS[GitOps / ArgoCD]
+    end
+
+    OW -->|Webhook| N8N
+    N8N -->|Queue Jobs| REDIS
+    N8N -->|SSH Execute| OC
+    OC -->|Inference| OLLAMA
+    OC -->|Commit| GH
+    N8N -->|Notify| SLACK
+    GH -->|Deploy| GITOPS
+```
+
+### Agent Workflow Cycles
+
+The system operates in two distinct cycles:
+
+#### ADM Cycle (Architecture Decision Making)
+
+Enterprise architecture workflow following TOGAF ADM phases:
+
+```mermaid
+flowchart LR
+    subgraph "Phase A: Vision"
+        CTO[CTO Agent]
+        BA[BA Agent]
+        COMP[Compliance Agent]
+    end
+
+    subgraph "Phase B-D: Architecture"
+        BUS[Business Architect]
+        DATA[Data Architect]
+        APP[App Architect]
+        SEC[Security Architect]
+        INFRA[Infra Architect]
+    end
+
+    subgraph "Phase E-F: Implementation"
+        PM[PM Agent]
+        SOL[Solution Architect]
+    end
+
+    CTO --> BA --> COMP --> BUS --> DATA --> APP --> SEC --> INFRA --> PM --> SOL
+
+    SOL -->|OAM Spec| GITOPS[GitOps Deploy]
+    SOL -->|Trigger| DEV[Development Cycle]
+```
+
+#### Development Cycle (Code Implementation)
+
+Task-driven development workflow:
+
+```mermaid
+flowchart TB
+    subgraph "Task Planning"
+        TL[TechLead Agent]
+        TM[(Taskmaster)]
+    end
+
+    subgraph "Coding Orchestration"
+        CO[Coding Orchestrator]
+    end
+
+    subgraph "Specialist Agents"
+        FE[Frontend Coder]
+        BE[Backend Coder]
+        IC[Infra Coder]
+        DC[DevOps Coder]
+        DAT[Data Coder]
+        TEST[Testing Agent]
+    end
+
+    PRD[PRD from BA] --> TL
+    TL -->|Parse PRD| TM
+    TM -->|Tasks| CO
+
+    CO -->|Route by Domain| FE
+    CO -->|Route by Domain| BE
+    CO -->|Route by Domain| IC
+    CO -->|Route by Domain| DC
+    CO -->|Route by Domain| DAT
+
+    FE --> TEST
+    BE --> TEST
+    IC --> TEST
+    DC --> TEST
+    DAT --> TEST
+
+    TEST -->|Commit| GH[GitHub]
+```
+
+### Industry Configuration System
+
+The agent system supports industry-specific knowledge through a configurable system:
+
+```mermaid
+flowchart TB
+    subgraph "Configuration"
+        IC[industry-config.json]
+    end
+
+    subgraph "Knowledge Base"
+        CAP[Capability Model]
+        COMP[Compliance Standards]
+        DATA[Data Entities]
+        TYPES[Component Types]
+    end
+
+    subgraph "Examples"
+        PRD[PRD Example]
+        SESS[Session Example]
+    end
+
+    subgraph "Agents"
+        BA[Business Architect]
+        COMPA[Compliance Agent]
+        DA[Data Architect]
+        SA[Solution Architect]
+        TL[TechLead]
+    end
+
+    IC --> CAP
+    IC --> COMP
+    IC --> DATA
+    IC --> TYPES
+    IC --> PRD
+    IC --> SESS
+
+    CAP --> BA
+    COMP --> COMPA
+    DATA --> DA
+    TYPES --> SA
+    PRD --> BA
+    SESS --> TL
+```
+
+#### Current Industry: Healthcare
+
+The default configuration is for healthcare providers with:
+
+| Knowledge Type | Content |
+|---------------|---------|
+| Capability Model | 1,666 healthcare capabilities (Patient Care, Clinical Ops, etc.) |
+| Compliance Standards | HIPAA, HITECH, GDPR, SOC2, ISO 27001 |
+| Data Entities | HL7 FHIR R4 resources (Patient, Encounter, Observation, etc.) |
+| Component Types | EHR, PMS, Patient Portal, Telehealth, etc. |
+
+#### Switching Industries
+
+To configure for a different industry (e.g., banking):
+
+1. Create knowledge files in `opencode/.opencode/knowledge/{industry}/`
+2. Update `opencode/industry-config.json`:
+
+```json
+{
+  "industry": "banking",
+  "displayName": "Banking & Financial Services",
+  "agentKnowledge": {
+    "compliance": {
+      "standards": ["PSD2", "Basel III", "GLBA", "SOX"],
+      "primaryStandard": "PSD2"
+    },
+    "data-architect": {
+      "standards": ["ISO 20022", "SWIFT", "FIX Protocol"]
+    }
+  }
+}
+```
+
+3. Rebuild the container: `./deploy-update.sh --build-only`
+
+### OpenCode Deployment Scripts
+
+#### deploy-update.sh
+
+Build and test OpenCode agents, then clean up for `start_services.py`:
+
+```bash
+# Full deploy: build, test, cleanup (default)
+./deploy-update.sh
+
+# Build only (fastest - no test, no start)
+./deploy-update.sh --build-only
+
+# Full deploy but leave containers running
+./deploy-update.sh --keep-running
+
+# Show help
+./deploy-update.sh --help
+```
+
+| Option | Description |
+|--------|-------------|
+| `(default)` | Full deploy → test → cleanup containers |
+| `--build-only` | Pull → build only (no start, no test) |
+| `--rebuild-only` | Rebuild → verify → cleanup |
+| `--no-test` | Full deploy → verify → cleanup (skip test) |
+| `--keep-running` | Full deploy → test → leave running |
+| `--test-only` | Run quick test only |
+| `--pull-only` | Git pull and show changes |
+
+#### test-agents.sh
+
+Test agent functionality and industry configuration:
+
+```bash
+# Full test suite (all 21 agents + industry tests)
+./test-agents.sh
+
+# Quick connectivity test
+./test-agents.sh --quick
+
+# Verify industry configuration only
+./test-agents.sh --config
+
+# Test industry-specific knowledge
+./test-agents.sh --industry
+```
+
+### Agent List
+
+| Category | Agent | Purpose |
+|----------|-------|---------|
+| **Orchestrators** | architect-orchestrator | ADM workflow coordinator |
+| | coding-orchestrator | Development cycle coordinator |
+| **ADM Cycle** | cto | Strategic technology decisions |
+| | ba-agent | Requirements and PRD |
+| | compliance | Regulatory assessment |
+| | business-architect | Capability mapping |
+| | data-architect | Data modeling |
+| | app-architect | Application design |
+| | security-architect | Security controls |
+| | infra-architect | Infrastructure design |
+| | pm | Project planning |
+| | solution-architect | OAM deployment specs |
+| **Dev Cycle** | techlead | PRD to tasks breakdown |
+| | frontend-coder | React, Vue, CSS |
+| | backend-coder | APIs, services |
+| | infra-coder | Kubernetes, Terraform |
+| | devops-coder | CI/CD, Docker |
+| | data-coder | SQL, migrations |
+| | testing-agent | Unit/integration tests |
+| **Utility** | general | General assistance |
+| | comedian | Programming jokes |
+
+---
+
 ## Prerequisites
 
 Before you begin, make sure you have the following software installed:

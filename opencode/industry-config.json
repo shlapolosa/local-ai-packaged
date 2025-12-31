@@ -1,0 +1,48 @@
+{
+  "$schema": "./industry-config.schema.json",
+  "industry": "healthcare",
+  "displayName": "Healthcare Provider",
+  "description": "Configuration for healthcare provider enterprise architecture and development",
+
+  "knowledgeBase": {
+    "capabilityModel": ".opencode/skills/adoit-archimate/references/healthcare-capability-model.md",
+    "complianceStandards": ".opencode/knowledge/healthcare/compliance-standards.md",
+    "dataEntities": ".opencode/knowledge/healthcare/data-entities.md",
+    "componentTypes": ".opencode/knowledge/healthcare/component-types.md",
+    "prdExample": ".opencode/examples/healthcare-prd-example.md",
+    "sessionExample": ".opencode/examples/healthcare-session-example.md"
+  },
+
+  "agentKnowledge": {
+    "compliance": {
+      "standards": ["HIPAA", "HITECH", "GDPR", "SOC2", "ISO 27001"],
+      "referenceFile": ".opencode/knowledge/healthcare/compliance-standards.md",
+      "primaryStandard": "HIPAA"
+    },
+    "business-architect": {
+      "capabilityModel": ".opencode/skills/adoit-archimate/references/healthcare-capability-model.md",
+      "domainFocus": ["Patient Care", "Clinical Operations", "Revenue Cycle", "Administrative Services"]
+    },
+    "data-architect": {
+      "entities": ".opencode/knowledge/healthcare/data-entities.md",
+      "standards": ["HL7 FHIR R4", "ICD-10", "SNOMED CT", "CPT", "LOINC"],
+      "primaryDataModel": "HL7 FHIR"
+    },
+    "solution-architect": {
+      "componentTypes": ".opencode/knowledge/healthcare/component-types.md",
+      "integrationPatterns": ["EHR Integration", "HIE Connectivity", "PACS/Imaging", "Lab Systems"]
+    },
+    "techlead": {
+      "sessionExample": ".opencode/examples/healthcare-session-example.md"
+    },
+    "ba-agent": {
+      "prdExample": ".opencode/examples/healthcare-prd-example.md"
+    }
+  },
+
+  "infrastructure": {
+    "slackChannel": "C0952L4JNHH",
+    "githubOrg": "health-org",
+    "sshCredential": "gpuServerSsh"
+  }
+}

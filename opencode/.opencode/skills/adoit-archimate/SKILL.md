@@ -1,6 +1,6 @@
 ---
 name: adoit-archimate
-description: "Enterprise Architecture management with ADOIT using ArchiMate 3.1. Use when: (1) Analyzing current state architecture in ADOIT repositories, (2) Creating or updating ArchiMate models via Excel import, (3) Working with capability maps, application portfolios, or technology landscapes, (4) Designing future state architectures for healthcare or enterprise platforms, (5) Generating ADOIT-compliant import files for any ArchiMate element type. Supports all 61 ArchiMate element types and 11 relationship types."
+description: "Enterprise Architecture management with ADOIT using ArchiMate 3.1. Use when: (1) Analyzing current state architecture in ADOIT repositories, (2) Creating or updating ArchiMate models via Excel import, (3) Working with capability maps, application portfolios, or technology landscapes, (4) Designing future state architectures for any industry, (5) Generating ADOIT-compliant import files for any ArchiMate element type. Supports all 61 ArchiMate element types and 11 relationship types. Industry-specific capability models are loaded from the industry configuration."
 ---
 
 # ADOIT ArchiMate Skill
@@ -164,15 +164,28 @@ gen.save("output.xlsx")
 Child Name | Composition (<-Capability) = Parent Name
 ```
 
-## Healthcare Capability Model
+## Industry Capability Model
 
-See `references/healthcare-capability-model.md` for the complete Healthcare Provider Reference Model with 1,666 capabilities across 4 levels.
+The capability model is loaded from the industry configuration at `/root/.config/opencode/industry-config.json`:
 
-### Capability Hierarchy
-- **L1**: 42 top-level domains (e.g., Patient Access, Clinical Operations)
-- **L2**: 353 functional areas
-- **L3**: 1,042 specific capabilities
-- **L4**: 229 detailed sub-capabilities
+```python
+import json
+config_path = "/root/.config/opencode/industry-config.json"
+with open(config_path) as f:
+    config = json.load(f)
+
+industry = config.get("displayName", "Enterprise")
+capability_model_path = config.get("knowledgeBase", {}).get("capabilityModel")
+# Load /root/.config/opencode/{capability_model_path} for industry-specific capabilities
+```
+
+### Capability Hierarchy Structure
+- **L1**: Top-level domains (industry-specific focus areas)
+- **L2**: Functional areas within each domain
+- **L3**: Specific capabilities
+- **L4**: Detailed sub-capabilities
+
+See the capability model file specified in `config.knowledgeBase.capabilityModel` for the complete reference model.
 
 ## Architecture Role Guidelines
 

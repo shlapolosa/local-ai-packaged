@@ -113,28 +113,37 @@ Return your output as JSON:
 
 ## Example Session
 
+For a complete example session, see the industry-specific example file:
+
+```python
+import json
+config_path = "/root/.config/opencode/industry-config.json"
+with open(config_path) as f:
+    config = json.load(f)
+
+# Get session example path
+techlead_config = config.get("agentKnowledge", {}).get("techlead", {})
+session_example_path = techlead_config.get("sessionExample")
+# Read /root/.config/opencode/{session_example_path} for detailed example
 ```
-TechLead: Initializing Taskmaster for patient-portal service...
+
+### Session Flow Pattern
+
+```
+TechLead: Initializing Taskmaster for {service-name} service...
 TechLead: Copying PRD from docs/PRD.md to .taskmaster/docs/prd.txt
 TechLead: Parsing PRD...
-TechLead: Initial parse complete. 15 tasks generated.
+TechLead: Initial parse complete. {N} tasks generated.
 TechLead: Analyzing complexity...
-TechLead: Found 4 tasks with complexity > 6:
-  - Task 3: "User Authentication System" (complexity: 8)
-  - Task 7: "Patient Records Management" (complexity: 9)
-  - Task 10: "API Integration Layer" (complexity: 7)
-  - Task 12: "Notification System" (complexity: 8)
-TechLead: Expanding Task 3...
-TechLead: Task 3 expanded into 3 subtasks (complexities: 4, 5, 4)
-TechLead: Expanding Task 7...
-TechLead: Task 7 expanded into 4 subtasks (complexities: 5, 5, 4, 5)
-TechLead: Expanding Task 10...
-TechLead: Task 10 expanded into 2 subtasks (complexities: 4, 5)
-TechLead: Expanding Task 12...
-TechLead: Task 12 expanded into 3 subtasks (complexities: 4, 4, 5)
+TechLead: Found {M} tasks with complexity > 6:
+  - Task {id}: "{task-name}" (complexity: {score})
+  [... additional large tasks ...]
+TechLead: Expanding Task {id}...
+TechLead: Task {id} expanded into {count} subtasks (complexities: ...)
+[... additional expansions ...]
 TechLead: Re-analyzing complexity...
-TechLead: All tasks now ≤ medium (complexity ≤ 6)
-TechLead: Final count: 24 tasks (10 small, 14 medium, 0 large)
+TechLead: All tasks now <= medium (complexity <= 6)
+TechLead: Final count: {total} tasks ({small} small, {medium} medium, 0 large)
 TechLead: Committing tasks to GitHub...
 TechLead: Task backlog ready for Coding Agent.
 ```

@@ -55,6 +55,30 @@ show_changes() {
 
     echo -e "\n${BLUE}opencode.json last modified:${NC}"
     ls -la opencode/opencode.json 2>/dev/null || echo "opencode.json not found"
+
+    echo -e "\n${BLUE}Industry configuration:${NC}"
+    if [ -f "opencode/industry-config.json" ]; then
+        ls -la opencode/industry-config.json
+        INDUSTRY=$(cat opencode/industry-config.json | grep '"industry"' | head -1 | sed 's/.*: *"\([^"]*\)".*/\1/')
+        DISPLAY_NAME=$(cat opencode/industry-config.json | grep '"displayName"' | head -1 | sed 's/.*: *"\([^"]*\)".*/\1/')
+        echo -e "${GREEN}Industry: ${INDUSTRY} (${DISPLAY_NAME})${NC}"
+    else
+        echo -e "${YELLOW}Warning: industry-config.json not found${NC}"
+    fi
+
+    echo -e "\n${BLUE}Knowledge files:${NC}"
+    if [ -d "opencode/.opencode/knowledge" ]; then
+        find opencode/.opencode/knowledge -name "*.md" -type f 2>/dev/null | head -10
+    else
+        echo -e "${YELLOW}Warning: knowledge directory not found${NC}"
+    fi
+
+    echo -e "\n${BLUE}Example files:${NC}"
+    if [ -d "opencode/.opencode/examples" ]; then
+        ls -la opencode/.opencode/examples/*.md 2>/dev/null || echo "No example files found"
+    else
+        echo -e "${YELLOW}Warning: examples directory not found${NC}"
+    fi
 }
 
 # Step 3: Stop and remove existing opencode container
@@ -68,6 +92,31 @@ stop_container() {
     else
         echo -e "${BLUE}Container not running${NC}"
     fi
+}
+
+# Stop all containers (opencode and ollama) - for cleanup
+stop_all_containers() {
+    echo -e "\n${YELLOW}Stopping all containers (cleanup for start_services.py)...${NC}"
+
+    # Stop opencode
+    if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+        docker stop ${CONTAINER_NAME} 2>/dev/null || true
+        docker rm ${CONTAINER_NAME} 2>/dev/null || true
+        echo -e "${GREEN}OpenCode container stopped and removed${NC}"
+    else
+        echo -e "${BLUE}OpenCode container not running${NC}"
+    fi
+
+    # Stop ollama
+    if docker ps -a --format '{{.Names}}' | grep -q "^ollama$"; then
+        docker stop ollama 2>/dev/null || true
+        docker rm ollama 2>/dev/null || true
+        echo -e "${GREEN}Ollama container stopped and removed${NC}"
+    else
+        echo -e "${BLUE}Ollama container not running${NC}"
+    fi
+
+    echo -e "${GREEN}All containers cleaned up - ready for start_services.py${NC}"
 }
 
 # Step 4: Rebuild opencode container
@@ -110,6 +159,25 @@ verify_agents() {
 
     echo -e "\n${BLUE}Agent instruction files in container:${NC}"
     docker exec -i ${CONTAINER_NAME} ls -la /root/.config/opencode/.opencode/agent/ 2>/dev/null || echo "Agent directory not found in config"
+
+    echo -e "\n${BLUE}Industry configuration in container:${NC}"
+    if docker exec -i ${CONTAINER_NAME} test -f /root/.config/opencode/industry-config.json; then
+        INDUSTRY=$(docker exec -i ${CONTAINER_NAME} cat /root/.config/opencode/industry-config.json | grep '"industry"' | head -1 | sed 's/.*: *"\([^"]*\)".*/\1/')
+        DISPLAY_NAME=$(docker exec -i ${CONTAINER_NAME} cat /root/.config/opencode/industry-config.json | grep '"displayName"' | head -1 | sed 's/.*: *"\([^"]*\)".*/\1/')
+        echo -e "${GREEN}Industry: ${INDUSTRY} (${DISPLAY_NAME})${NC}"
+
+        # Show configured knowledge paths
+        echo -e "\n${BLUE}Knowledge base paths:${NC}"
+        docker exec -i ${CONTAINER_NAME} cat /root/.config/opencode/industry-config.json | grep -E '"(capabilityModel|complianceStandards|dataEntities|componentTypes|prdExample|sessionExample)"' | head -10
+    else
+        echo -e "${RED}Warning: industry-config.json not found in container${NC}"
+    fi
+
+    echo -e "\n${BLUE}Knowledge files in container:${NC}"
+    docker exec -i ${CONTAINER_NAME} find /root/.config/opencode/.opencode/knowledge -name "*.md" -type f 2>/dev/null | head -10 || echo "Knowledge directory not found"
+
+    echo -e "\n${BLUE}Example files in container:${NC}"
+    docker exec -i ${CONTAINER_NAME} ls /root/.config/opencode/.opencode/examples/ 2>/dev/null || echo "Examples directory not found"
 }
 
 # Step 8: Quick test
@@ -160,16 +228,29 @@ main() {
             pull_latest
             show_changes
             ;;
+        --build-only)
+            # Build only - no start, no test
+            pull_latest
+            show_changes
+            stop_all_containers
+            rebuild_container
+            echo -e "\n${GREEN}Build complete. Containers NOT started.${NC}"
+            echo -e "${BLUE}Run 'python start_services.py' to start services.${NC}"
+            ;;
         --rebuild-only)
+            # Rebuild and verify, then cleanup
             stop_container
             rebuild_container
             start_containers
             wait_ready
+            verify_agents
+            stop_all_containers
             ;;
         --test-only)
             quick_test
             ;;
         --no-test)
+            # Full deploy without test, then cleanup
             pull_latest
             show_changes
             stop_container
@@ -177,19 +258,10 @@ main() {
             start_containers
             wait_ready
             verify_agents
+            stop_all_containers
             ;;
-        --help|-h)
-            echo "Usage: $0 [options]"
-            echo ""
-            echo "Options:"
-            echo "  (no args)       Full deployment: pull, rebuild, start, test"
-            echo "  --pull-only     Only pull latest changes"
-            echo "  --rebuild-only  Only rebuild and restart containers"
-            echo "  --test-only     Only run quick test"
-            echo "  --no-test       Full deployment without quick test"
-            echo "  --help, -h      Show this help"
-            ;;
-        *)
+        --keep-running)
+            # Full deploy but leave containers running
             pull_latest
             show_changes
             stop_container
@@ -198,6 +270,35 @@ main() {
             wait_ready
             verify_agents
             quick_test
+            echo -e "\n${YELLOW}Containers left running (--keep-running mode)${NC}"
+            ;;
+        --help|-h)
+            echo "Usage: $0 [options]"
+            echo ""
+            echo "Options:"
+            echo "  (no args)       Full deployment: pull, rebuild, start, test, then CLEANUP"
+            echo "  --build-only    Only build container (no start, no test)"
+            echo "  --pull-only     Only pull latest changes"
+            echo "  --rebuild-only  Rebuild, verify, then cleanup"
+            echo "  --test-only     Only run quick test (requires running containers)"
+            echo "  --no-test       Full deployment without quick test, then cleanup"
+            echo "  --keep-running  Full deployment but leave containers running"
+            echo "  --help, -h      Show this help"
+            echo ""
+            echo "Default behavior spins down containers after testing so that"
+            echo "'python start_services.py' can manage them without conflicts."
+            ;;
+        *)
+            # Default: full deploy with test, then cleanup
+            pull_latest
+            show_changes
+            stop_container
+            rebuild_container
+            start_containers
+            wait_ready
+            verify_agents
+            quick_test
+            stop_all_containers
             ;;
     esac
 
@@ -206,10 +307,10 @@ main() {
     echo -e "${BLUE}════════════════════════════════════════════════════════════════${NC}"
 
     echo -e "\n${YELLOW}Next steps:${NC}"
-    echo "  1. Run full agent tests:  ./test-agents.sh"
-    echo "  2. Run quick test only:   ./test-agents.sh --quick"
-    echo "  3. Check container logs:  docker logs opencode"
-    echo "  4. Interactive shell:     docker exec -it opencode /bin/sh"
+    echo "  1. Start services:        python start_services.py"
+    echo "  2. Run full agent tests:  ./test-agents.sh"
+    echo "  3. Run quick test only:   ./test-agents.sh --quick"
+    echo "  4. Check container logs:  docker logs opencode"
 }
 
 main "$@"

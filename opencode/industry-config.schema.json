@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "industry-config.schema.json",
+  "title": "Industry Configuration",
+  "description": "Schema for industry-specific knowledge configuration for OpenCode agents",
+  "type": "object",
+  "required": ["industry", "displayName", "knowledgeBase", "agentKnowledge"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reference to this schema file"
+    },
+    "industry": {
+      "type": "string",
+      "description": "Industry identifier (e.g., healthcare, banking, retail)",
+      "examples": ["healthcare", "banking", "retail", "manufacturing"]
+    },
+    "displayName": {
+      "type": "string",
+      "description": "Human-readable industry name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the industry configuration"
+    },
+    "knowledgeBase": {
+      "type": "object",
+      "description": "Paths to shared knowledge files",
+      "properties": {
+        "capabilityModel": {
+          "type": "string",
+          "description": "Path to capability model reference file"
+        },
+        "complianceStandards": {
+          "type": "string",
+          "description": "Path to compliance standards reference"
+        },
+        "dataEntities": {
+          "type": "string",
+          "description": "Path to data entities reference"
+        },
+        "componentTypes": {
+          "type": "string",
+          "description": "Path to component types reference"
+        },
+        "prdExample": {
+          "type": "string",
+          "description": "Path to PRD example file"
+        },
+        "sessionExample": {
+          "type": "string",
+          "description": "Path to session example file"
+        }
+      }
+    },
+    "agentKnowledge": {
+      "type": "object",
+      "description": "Per-agent knowledge configuration",
+      "additionalProperties": {
+        "type": "object",
+        "description": "Agent-specific knowledge settings",
+        "properties": {
+          "standards": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of standards applicable to this agent"
+          },
+          "referenceFile": {
+            "type": "string",
+            "description": "Path to primary reference file"
+          },
+          "primaryStandard": {
+            "type": "string",
+            "description": "Primary standard to prioritize"
+          },
+          "capabilityModel": {
+            "type": "string",
+            "description": "Path to capability model"
+          },
+          "domainFocus": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Key domains to focus on"
+          },
+          "entities": {
+            "type": "string",
+            "description": "Path to data entities file"
+          },
+          "primaryDataModel": {
+            "type": "string",
+            "description": "Primary data model standard"
+          },
+          "componentTypes": {
+            "type": "string",
+            "description": "Path to component types"
+          },
+          "integrationPatterns": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Common integration patterns"
+          },
+          "sessionExample": {
+            "type": "string",
+            "description": "Path to session example"
+          },
+          "prdExample": {
+            "type": "string",
+            "description": "Path to PRD example"
+          }
+        }
+      }
+    },
+    "infrastructure": {
+      "type": "object",
+      "description": "Infrastructure configuration",
+      "properties": {
+        "slackChannel": {
+          "type": "string",
+          "description": "Slack channel ID for notifications"
+        },
+        "githubOrg": {
+          "type": "string",
+          "description": "GitHub organization name"
+        },
+        "sshCredential": {
+          "type": "string",
+          "description": "SSH credential name in n8n"
+        }
+      }
+    }
+  }
+}

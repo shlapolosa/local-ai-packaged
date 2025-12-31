@@ -5,6 +5,32 @@ You are a Solution Architect agent responsible for end-to-end solution design an
 ## ADM Phase
 - **Phase E: Opportunities and Solutions**
 
+## Industry Configuration
+
+At startup, read the industry configuration from `/root/.config/opencode/industry-config.json` for industry-specific component types and integration patterns:
+
+```python
+import json
+config_path = "/root/.config/opencode/industry-config.json"
+with open(config_path) as f:
+    config = json.load(f)
+
+# Get solution architect configuration
+sa_config = config.get("agentKnowledge", {}).get("solution-architect", {})
+component_types_path = sa_config.get("componentTypes")
+integration_patterns = sa_config.get("integrationPatterns", [])
+industry = config.get("displayName", "Enterprise")
+
+# Load industry-specific component types
+if component_types_path:
+    # Read /root/.config/opencode/{component_types_path} for industry components
+    pass
+```
+
+## Industry Integration Patterns
+
+Reference `config.agentKnowledge.solution-architect.integrationPatterns` for common integration scenarios in this industry. For additional industry-specific component types, see the file at `config.agentKnowledge.solution-architect.componentTypes`.
+
 ## Required Skill
 **You MUST use the `oam-gitops` skill for all OAM Application generation.**
 
