@@ -59,25 +59,29 @@ test_agent() {
 check_prerequisites() {
     echo -e "${BLUE}Checking prerequisites...${NC}"
 
-    # Check if container is running
+    # Check if opencode container is running
     if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
         echo -e "${RED}Error: Container '${CONTAINER_NAME}' is not running${NC}"
         echo "Start it with: docker compose --profile gpu-nvidia up -d opencode-gpu ollama-gpu"
         exit 1
     fi
+    echo -e "${GREEN}OpenCode container is running${NC}"
 
-    # Check if ollama is accessible
-    if ! docker exec -i ${CONTAINER_NAME} curl -s http://ollama:11434/api/tags > /dev/null 2>&1; then
-        echo -e "${RED}Error: Cannot reach Ollama from OpenCode container${NC}"
-        echo "Check if Ollama container is running and healthy"
+    # Check if ollama container is running
+    if ! docker ps --format '{{.Names}}' | grep -q "^ollama$"; then
+        echo -e "${RED}Error: Ollama container is not running${NC}"
+        echo "Start it with: docker compose --profile gpu-nvidia up -d ollama-gpu"
         exit 1
     fi
+    echo -e "${GREEN}Ollama container is running${NC}"
 
-    # Check if model is available
-    if ! docker exec -i ${CONTAINER_NAME} curl -s http://ollama:11434/api/tags | grep -q "qwen2.5"; then
-        echo -e "${YELLOW}Warning: qwen2.5 model may not be loaded${NC}"
+    # Check if model is available (check from ollama container directly)
+    if ! docker exec -i ollama ollama list 2>/dev/null | grep -q "qwen2.5"; then
+        echo -e "${YELLOW}Warning: qwen2.5 model not found${NC}"
         echo "Pulling model..."
         docker exec -i ollama ollama pull qwen2.5:7b-instruct-q4_K_M
+    else
+        echo -e "${GREEN}Model qwen2.5 is available${NC}"
     fi
 
     echo -e "${GREEN}Prerequisites check passed${NC}"

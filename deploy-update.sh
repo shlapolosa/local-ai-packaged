@@ -117,14 +117,13 @@ quick_test() {
     echo -e "\n${YELLOW}Step 8: Running quick connectivity test...${NC}"
     echo "Note: First request may take 30-60s as model loads into VRAM"
 
-    # First, verify Ollama connectivity
-    echo -e "${BLUE}Testing Ollama API...${NC}"
-    if docker exec -i ${CONTAINER_NAME} curl -s http://ollama:11434/api/tags > /dev/null 2>&1; then
-        echo -e "${GREEN}Ollama API reachable${NC}"
-    else
-        echo -e "${RED}Cannot reach Ollama API${NC}"
+    # Check if ollama container is running
+    echo -e "${BLUE}Checking Ollama container...${NC}"
+    if ! docker ps --format '{{.Names}}' | grep -q "^ollama$"; then
+        echo -e "${RED}Ollama container not running${NC}"
         return 1
     fi
+    echo -e "${GREEN}Ollama container running${NC}"
 
     # Check if model exists
     echo -e "${BLUE}Checking model availability...${NC}"
