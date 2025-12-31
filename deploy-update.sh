@@ -115,12 +115,40 @@ verify_agents() {
 # Step 8: Quick test
 quick_test() {
     echo -e "\n${YELLOW}Step 8: Running quick connectivity test...${NC}"
+    echo "Note: First request may take 30-60s as model loads into VRAM"
 
-    if timeout 60 docker exec -i ${CONTAINER_NAME} opencode run --agent "general" "Reply with just: OK" 2>&1; then
+    # First, verify Ollama connectivity
+    echo -e "${BLUE}Testing Ollama API...${NC}"
+    if docker exec -i ${CONTAINER_NAME} curl -s http://ollama:11434/api/tags > /dev/null 2>&1; then
+        echo -e "${GREEN}Ollama API reachable${NC}"
+    else
+        echo -e "${RED}Cannot reach Ollama API${NC}"
+        return 1
+    fi
+
+    # Check if model exists
+    echo -e "${BLUE}Checking model availability...${NC}"
+    if docker exec -i ollama ollama list 2>/dev/null | grep -q "qwen2.5"; then
+        echo -e "${GREEN}Model found${NC}"
+    else
+        echo -e "${YELLOW}Model not found, pulling...${NC}"
+        docker exec -i ollama ollama pull qwen2.5:7b-instruct-q4_K_M
+    fi
+
+    # Run actual test with longer timeout (model loading can take time)
+    echo -e "${BLUE}Running OpenCode agent test (timeout: 180s)...${NC}"
+    if timeout 180 docker exec -i ${CONTAINER_NAME} opencode run --agent "general" "Reply with just: OK" 2>&1; then
         echo -e "\n${GREEN}Quick test passed!${NC}"
     else
-        echo -e "\n${RED}Quick test failed${NC}"
-        echo "Check logs with: docker logs ${CONTAINER_NAME}"
+        EXIT_CODE=$?
+        echo -e "\n${RED}Quick test failed (exit code: ${EXIT_CODE})${NC}"
+        if [ $EXIT_CODE -eq 124 ]; then
+            echo "Timed out - model may still be loading or there's a connectivity issue"
+        fi
+        echo "Debug commands:"
+        echo "  docker logs opencode --tail 50"
+        echo "  docker logs ollama --tail 50"
+        echo "  docker exec -it ollama ollama list"
     fi
 }
 
