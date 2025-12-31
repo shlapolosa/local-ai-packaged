@@ -1,0 +1,19 @@
+{
+  "global": {
+    "ollamaBaseURL": "http://ollama:11434/api"
+  },
+  "models": {
+    "main": {
+      "provider": "ollama",
+      "modelId": "qwen2.5:7b-instruct-q4_K_M"
+    },
+    "research": {
+      "provider": "ollama",
+      "modelId": "qwen2.5:7b-instruct-q4_K_M"
+    },
+    "fallback": {
+      "provider": "ollama",
+      "modelId": "qwen2.5:7b-instruct-q4_K_M"
+    }
+  }
+}
