@@ -1,4 +1,7 @@
+# Environment files (all directories)
 .env
+**/.env
+
 volumes/
 shared/
 neo4j/

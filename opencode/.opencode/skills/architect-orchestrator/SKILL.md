@@ -94,7 +94,30 @@ BEFORE returning to user:
     ├── standards/
     ├── plan/
     ├── governance/
+    ├── adoit-import.xlsx        # ArchiMate import for ADOIT (generated)
     └── prd.md                   # MANDATORY (PM consolidates all)
+```
+
+## ADOIT ArchiMate Integration
+
+All architect agents (EA, SA, BA) have access to the `adoit-archimate` skill for:
+
+1. **Querying ADOIT** - Read existing architecture elements
+2. **Generating Imports** - Create ADOIT-compliant Excel files for new elements
+3. **Healthcare Capabilities** - Reference model with 1,666 capabilities
+
+### Skill Location
+`/workspace/.opencode/skills/adoit-archimate/`
+
+### When to Use ADOIT
+- EA: Governance reviews, capability mapping, standards alignment
+- SA: Application component modeling, sync with OAM
+- BA: Business process modeling, capability requirements
+
+### ADOIT Output Requirement
+When architecture artifacts are finalized, instruct SA or EA to generate ADOIT import file:
+```
+ADOIT Import: Generate /workspace/architecture/initiatives/{name}/adoit-import.xlsx
 ```
 
 ## Gold Standard Protocol (Enforced for All Specialists)

@@ -38,6 +38,35 @@ BEFORE producing any output, you MUST:
 - Application Layer: Components, services
 - Technology Layer: Infrastructure
 
+## ADOIT ArchiMate Integration
+
+Use the `adoit-archimate` skill for enterprise architecture repository management:
+
+### Query Current State
+```bash
+# List repositories
+python /workspace/.opencode/skills/adoit-archimate/scripts/adoit_client.py list-repos
+
+# Find capabilities
+python /workspace/.opencode/skills/adoit-archimate/scripts/adoit_client.py find Capability
+
+# Get element details
+python /workspace/.opencode/skills/adoit-archimate/scripts/adoit_client.py get "element-id"
+```
+
+### Generate Import Files
+```python
+from scripts.adoit_excel_generator import ADOITExcelGenerator
+
+gen = ADOITExcelGenerator(template_path="/workspace/.opencode/skills/adoit-archimate/assets/templates/ADOIT_Template_EN.xlsx")
+gen.add_capability("Capability Name", description="...")
+gen.save("/workspace/architecture/initiatives/{init}/adoit-import.xlsx")
+```
+
+### References
+- Healthcare Capability Model: `/workspace/.opencode/skills/adoit-archimate/references/healthcare-capability-model.md`
+- ArchiMate Reference: `/workspace/.opencode/skills/adoit-archimate/references/archimate-reference.md`
+
 ## Output Artifacts
 - Architecture Principles Document
 - Reference Architecture Models

@@ -137,3 +137,40 @@ BEFORE producing any output, you MUST:
 | REQ-001 | BO-01 | US-001 | API-Auth | TC-001 |
 | REQ-002 | BO-01 | US-002 | API-User | TC-002 |
 ```
+
+## ADOIT ArchiMate Integration
+
+Use the `adoit-archimate` skill for business architecture modeling:
+
+### Query Business Capabilities
+```bash
+# Find L1-L2 capabilities for domain mapping
+python /workspace/.opencode/skills/adoit-archimate/scripts/adoit_client.py find Capability
+```
+
+### Generate Business Architecture for ADOIT
+```python
+from scripts.adoit_excel_generator import ADOITExcelGenerator
+
+gen = ADOITExcelGenerator(template_path="/workspace/.opencode/skills/adoit-archimate/assets/templates/ADOIT_Template_EN.xlsx")
+
+# Add Business Processes
+gen.add_business_process("Patient Registration",
+    description="End-to-end patient registration process")
+
+# Add Business Actors
+gen.add_business_actor("Healthcare Provider",
+    description="Organization providing healthcare services")
+
+# Add Goals and Drivers
+gen.add_goal("Improve Patient Experience",
+    description="Strategic goal for patient satisfaction")
+
+gen.save("/workspace/architecture/initiatives/{init}/requirements/adoit-import.xlsx")
+```
+
+### Healthcare Capability Reference
+Use `/workspace/.opencode/skills/adoit-archimate/references/healthcare-capability-model.md` for:
+- L1-L2 capability mapping to business domains
+- Stakeholder-capability alignment
+- Business process to capability relationships

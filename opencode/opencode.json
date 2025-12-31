@@ -64,28 +64,28 @@
       "mode": "subagent",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.5,
-      "tools": { "read": true, "write": true, "edit": true, "bash": false }
+      "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "sa": {
       "description": "Solution architecture, C4 models, API design, technical specifications, KubeVela OAM management.",
       "mode": "subagent",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.5,
-      "tools": { "read": true, "write": true, "edit": true, "bash": true }
+      "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "ba": {
       "description": "Business requirements, BPMN processes, user stories, stakeholder analysis, acceptance criteria.",
       "mode": "subagent",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.6,
-      "tools": { "read": true, "write": true, "edit": true, "bash": false }
+      "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "pm": {
       "description": "Project planning, RAID logs, WBS, status tracking, milestone management, PRD consolidation.",
       "mode": "subagent",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.5,
-      "tools": { "read": true, "write": true, "edit": true, "bash": false }
+      "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     }
   }
 }

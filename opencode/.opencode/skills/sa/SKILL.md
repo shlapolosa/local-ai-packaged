@@ -107,6 +107,39 @@ CRITICAL: This file spans ALL initiatives for component reuse.
 - KubeVela docs: https://kubevela.io/docs/
 - OAM spec: https://oam.dev/
 
+## ADOIT ArchiMate Integration
+
+Use the `adoit-archimate` skill to maintain ArchiMate models alongside OAM:
+
+### Generate Application Architecture for ADOIT
+```python
+from scripts.adoit_excel_generator import ADOITExcelGenerator
+
+gen = ADOITExcelGenerator(template_path="/workspace/.opencode/skills/adoit-archimate/assets/templates/ADOIT_Template_EN.xlsx")
+
+# Add Application Components
+gen.add_application_component("API Gateway",
+    description="Central API gateway",
+    realization_capability=["API Management"])
+
+# Add Data Objects
+gen.add_data_object("Customer Profile",
+    description="Customer master data")
+
+gen.save("/workspace/architecture/initiatives/{init}/design/adoit-import.xlsx")
+```
+
+### Query Existing Components
+```bash
+python /workspace/.opencode/skills/adoit-archimate/scripts/adoit_client.py find "Application Component"
+```
+
+### Sync OAM with ArchiMate
+When adding components to `system-oam.yaml`, also generate corresponding ArchiMate elements:
+- OAM `webservice` → ArchiMate `Application Component`
+- OAM `helm` chart → ArchiMate `Node` or `System Software`
+- OAM `traits.gateway` → ArchiMate `Application Interface`
+
 ## Input Requirements from BA
 - Business requirements document
 - Process models
