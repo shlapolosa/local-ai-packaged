@@ -54,77 +54,77 @@
     },
     "cto": {
       "description": "CTO advisor: Strategic technology decisions, investment approvals, vendor evaluation, technology roadmap. ADM Phase A (Vision).",
-      "mode": "subagent",
+      "mode": "primary",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": false }
     },
     "ba-agent": {
       "description": "Business Analyst: Requirements elicitation, PRD creation, user stories, acceptance criteria. ADM Phase A.",
-      "mode": "subagent",
+      "mode": "primary",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.6,
       "tools": { "read": true, "write": true, "edit": true, "bash": false }
     },
     "compliance": {
       "description": "Compliance Architect: GDPR/HIPAA/SOC2/PCI-DSS assessment, ArchiMate compliance modeling. ADM Phase A.",
-      "mode": "subagent",
+      "mode": "primary",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": false }
     },
     "business-architect": {
       "description": "Business Architect: Business model canvas, capability mapping, process design, ArchiMate business layer. ADM Phase B.",
-      "mode": "subagent",
+      "mode": "primary",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "data-architect": {
       "description": "Data Architect: Data models, data flows, master data management, ArchiMate data objects. ADM Phase C.",
-      "mode": "subagent",
+      "mode": "primary",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "app-architect": {
       "description": "Application Architect: Component design, API specifications, microservices, ArchiMate application layer. ADM Phase C.",
-      "mode": "subagent",
+      "mode": "primary",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "security-architect": {
       "description": "Security Architect: Threat modeling, security controls, OWASP compliance, ArchiMate security aspects. ADM Phase D.",
-      "mode": "subagent",
+      "mode": "primary",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "infra-architect": {
       "description": "Infrastructure Architect: Cloud design, networking, DevOps, ArchiMate technology layer. ADM Phase D.",
-      "mode": "subagent",
+      "mode": "primary",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "pm": {
       "description": "Project Manager: Implementation roadmap, work packages, milestones, ArchiMate implementation layer. ADM Phase E/F.",
-      "mode": "subagent",
+      "mode": "primary",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "solution-architect": {
       "description": "Solution Architect: Generates compliant KubeVela OAM YAML using oam-gitops skill. Outputs GitOps-ready specs for <repo>-gitops/apps/oam-application.yaml. ADM Phase E.",
-      "mode": "subagent",
+      "mode": "primary",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "techlead": {
       "description": "TechLead: Breaks PRD into development tasks using Taskmaster MCP. Iteratively expands tasks until all are medium-sized (complexity ≤ 6). Development Cycle.",
-      "mode": "subagent",
+      "mode": "primary",
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
