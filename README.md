@@ -330,6 +330,335 @@ Test agent functionality and industry configuration:
 | **Utility** | general | General assistance |
 | | comedian | Programming jokes |
 
+### Updating OpenCode Container
+
+When you make changes to agent instructions, skills, or configuration files, follow this workflow:
+
+```mermaid
+flowchart LR
+    subgraph "1. Edit Files"
+        A1[Agent .md files]
+        A2[opencode.json]
+        A3[industry-config.json]
+        A4[Skill files]
+    end
+
+    subgraph "2. Build & Test"
+        B1[deploy-update.sh]
+        B2[Rebuild Container]
+        B3[Verify Config]
+        B4[Run Tests]
+        B5[Cleanup]
+    end
+
+    subgraph "3. Start Services"
+        C1[start_services.py]
+        C2[Running Stack]
+    end
+
+    A1 --> B1
+    A2 --> B1
+    A3 --> B1
+    A4 --> B1
+    B1 --> B2 --> B3 --> B4 --> B5 --> C1 --> C2
+```
+
+#### Quick Update Workflow
+
+```bash
+# 1. Make your changes to files in opencode/ directory
+#    - opencode/.opencode/agent/*.md      (agent instructions)
+#    - opencode/.opencode/skills/*/       (skills and references)
+#    - opencode/opencode.json             (agent configuration)
+#    - opencode/industry-config.json      (industry knowledge paths)
+
+# 2. Build and test (containers cleaned up after)
+./deploy-update.sh
+
+# 3. Start all services
+python start_services.py --profile gpu-nvidia
+```
+
+#### Development Workflow (Keep Running)
+
+For iterative development where you want to test agents interactively:
+
+```bash
+# Build and keep containers running
+./deploy-update.sh --keep-running
+
+# Test agents manually
+docker exec -it opencode opencode run --agent general "Hello"
+docker exec -it opencode opencode run --agent compliance "What is HIPAA?"
+
+# Run full test suite
+./test-agents.sh
+
+# When done, clean up manually
+docker stop opencode ollama && docker rm opencode ollama
+
+# Then start via services script
+python start_services.py --profile gpu-nvidia
+```
+
+#### Testing Industry Configuration
+
+```bash
+# Verify configuration is loaded correctly
+./test-agents.sh --config
+
+# Test industry-specific agent knowledge
+./test-agents.sh --industry
+
+# Full test suite (includes industry tests)
+./test-agents.sh
+```
+
+#### Troubleshooting
+
+```bash
+# Check container logs
+docker logs opencode --tail 50
+docker logs ollama --tail 50
+
+# Interactive shell in container
+docker exec -it opencode /bin/sh
+
+# Verify files are in container
+docker exec -it opencode ls -la /root/.config/opencode/
+docker exec -it opencode cat /root/.config/opencode/industry-config.json
+
+# Check Ollama model
+docker exec -it ollama ollama list
+```
+
+### Extending for Different Industries
+
+To adapt the agent system for a new industry, follow this guide:
+
+```mermaid
+flowchart TB
+    subgraph "Step 1: Create Knowledge Files"
+        K1[compliance-standards.md]
+        K2[data-entities.md]
+        K3[component-types.md]
+        K4[capability-model.md]
+    end
+
+    subgraph "Step 2: Create Examples"
+        E1[prd-example.md]
+        E2[session-example.md]
+    end
+
+    subgraph "Step 3: Update Config"
+        C1[industry-config.json]
+    end
+
+    subgraph "Step 4: Deploy"
+        D1[deploy-update.sh]
+    end
+
+    K1 --> C1
+    K2 --> C1
+    K3 --> C1
+    K4 --> C1
+    E1 --> C1
+    E2 --> C1
+    C1 --> D1
+```
+
+#### Step 1: Create Knowledge Directory
+
+```bash
+# Create industry-specific knowledge directory
+mkdir -p opencode/.opencode/knowledge/{industry}/
+
+# Example for banking
+mkdir -p opencode/.opencode/knowledge/banking/
+```
+
+#### Step 2: Create Knowledge Files
+
+Each file provides domain expertise for specific agents:
+
+| File | Used By | Content |
+|------|---------|---------|
+| `compliance-standards.md` | Compliance Agent | Regulatory requirements (e.g., PSD2, Basel III) |
+| `data-entities.md` | Data Architect | Domain data model (e.g., Account, Transaction) |
+| `component-types.md` | Solution Architect | System types (e.g., Core Banking, Payment Gateway) |
+
+**Example: `opencode/.opencode/knowledge/banking/compliance-standards.md`**
+
+```markdown
+# Banking Compliance Standards
+
+## Primary Standards
+
+### PSD2 (Payment Services Directive 2)
+**Scope**: Payment services in the European Economic Area
+**Key Requirements**:
+- Strong Customer Authentication (SCA)
+- Open Banking APIs (XS2A)
+- Transaction monitoring
+...
+
+### Basel III
+**Scope**: Banking capital requirements
+**Key Requirements**:
+- Capital adequacy ratios
+- Liquidity coverage ratio
+- Net stable funding ratio
+...
+```
+
+**Example: `opencode/.opencode/knowledge/banking/data-entities.md`**
+
+```markdown
+# Banking Data Entities
+
+## Core Entities
+
+### Account
+**Key Attributes**:
+- `accountNumber`: Unique identifier
+- `accountType`: Checking, Savings, Loan
+- `currency`: ISO 4217 code
+- `balance`: Current balance
+- `status`: Active, Dormant, Closed
+
+### Transaction
+**Key Attributes**:
+- `transactionId`: Unique identifier
+- `type`: Credit, Debit, Transfer
+- `amount`: Transaction amount
+- `timestamp`: ISO 8601 datetime
+- `status`: Pending, Completed, Failed
+...
+```
+
+#### Step 3: Create Example Files
+
+```bash
+# Create examples directory (if not exists)
+mkdir -p opencode/.opencode/examples/
+```
+
+**Example: `opencode/.opencode/examples/banking-prd-example.md`**
+
+```markdown
+# Product Requirements Document: Mobile Banking App
+
+## 1. Overview
+
+### Problem Statement
+Bank customers need secure, convenient access to accounts and transactions
+from mobile devices with real-time notifications and easy transfers.
+
+### Target Audience
+- Primary: Retail banking customers aged 18-65
+- Secondary: Small business owners managing accounts
+...
+```
+
+#### Step 4: Create/Update Capability Model (Optional)
+
+For business architect support, create an industry capability model:
+
+```bash
+# Place in skills references
+opencode/.opencode/skills/adoit-archimate/references/banking-capability-model.md
+```
+
+#### Step 5: Update industry-config.json
+
+```json
+{
+  "$schema": "./industry-config.schema.json",
+  "industry": "banking",
+  "displayName": "Banking & Financial Services",
+  "description": "Configuration for banking and financial services architecture",
+
+  "knowledgeBase": {
+    "capabilityModel": ".opencode/skills/adoit-archimate/references/banking-capability-model.md",
+    "complianceStandards": ".opencode/knowledge/banking/compliance-standards.md",
+    "dataEntities": ".opencode/knowledge/banking/data-entities.md",
+    "componentTypes": ".opencode/knowledge/banking/component-types.md",
+    "prdExample": ".opencode/examples/banking-prd-example.md",
+    "sessionExample": ".opencode/examples/banking-session-example.md"
+  },
+
+  "agentKnowledge": {
+    "compliance": {
+      "standards": ["PSD2", "Basel III", "GLBA", "SOX", "GDPR"],
+      "referenceFile": ".opencode/knowledge/banking/compliance-standards.md",
+      "primaryStandard": "PSD2"
+    },
+    "business-architect": {
+      "capabilityModel": ".opencode/skills/adoit-archimate/references/banking-capability-model.md",
+      "domainFocus": ["Retail Banking", "Corporate Banking", "Payments", "Risk Management"]
+    },
+    "data-architect": {
+      "entities": ".opencode/knowledge/banking/data-entities.md",
+      "standards": ["ISO 20022", "SWIFT MT/MX", "FIX Protocol", "BIAN"],
+      "primaryDataModel": "ISO 20022"
+    },
+    "solution-architect": {
+      "componentTypes": ".opencode/knowledge/banking/component-types.md",
+      "integrationPatterns": ["Core Banking", "Payment Gateway", "Card Management", "AML/KYC"]
+    },
+    "techlead": {
+      "sessionExample": ".opencode/examples/banking-session-example.md"
+    },
+    "ba-agent": {
+      "prdExample": ".opencode/examples/banking-prd-example.md"
+    }
+  },
+
+  "infrastructure": {
+    "slackChannel": "YOUR_SLACK_CHANNEL_ID",
+    "githubOrg": "your-banking-org",
+    "sshCredential": "gpuServerSsh"
+  }
+}
+```
+
+#### Step 6: Deploy and Test
+
+```bash
+# Rebuild with new industry config
+./deploy-update.sh --build-only
+
+# Start services
+python start_services.py --profile gpu-nvidia
+
+# Verify industry is loaded
+./test-agents.sh --config
+
+# Test industry-specific knowledge
+./test-agents.sh --industry
+```
+
+#### Industry Extension Checklist
+
+- [ ] Create `knowledge/{industry}/compliance-standards.md`
+- [ ] Create `knowledge/{industry}/data-entities.md`
+- [ ] Create `knowledge/{industry}/component-types.md`
+- [ ] Create `examples/{industry}-prd-example.md`
+- [ ] Create `examples/{industry}-session-example.md`
+- [ ] (Optional) Create capability model in `skills/adoit-archimate/references/`
+- [ ] Update `industry-config.json` with all paths
+- [ ] Run `./deploy-update.sh --build-only`
+- [ ] Verify with `./test-agents.sh --config`
+
+#### Pre-built Industry Templates
+
+| Industry | Status | Key Standards |
+|----------|--------|---------------|
+| Healthcare | ✅ Included | HIPAA, HL7 FHIR, ICD-10 |
+| Banking | 📋 Template | PSD2, ISO 20022, Basel III |
+| Retail | 📋 Template | PCI-DSS, EDI, GS1 |
+| Manufacturing | 📋 Template | ISO 9001, OPC-UA, ISA-95 |
+
 ---
 
 ## Prerequisites
