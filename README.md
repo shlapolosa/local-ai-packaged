@@ -262,6 +262,12 @@ To configure for a different industry (e.g., banking):
 
 Build and test OpenCode agents, then clean up for `start_services.py`:
 
+sequence: run deploy, without stoping current, then run;
+
+```
+docker compose -p localai --profile gpu-nvidia up -d --build --force-recreate opencode-gpu
+```
+
 ```bash
 # Full deploy: build, test, cleanup (default)
 ./deploy-update.sh
