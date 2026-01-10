@@ -177,6 +177,20 @@
       "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true }
+    },
+    "prefeasibility-ba": {
+      "description": "Pre-feasibility Business Analyst: Derives goals from PRD, validates requirements, creates story hierarchy, performs gap analysis. Healthcare-focused.",
+      "mode": "primary",
+      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "temperature": 0.4,
+      "tools": { "read": true, "write": true, "edit": true, "bash": false, "glob": true, "grep": true }
+    },
+    "prefeasibility-architect": {
+      "description": "Pre-feasibility Architect: Analyzes codebase, extracts architecture, validates dataflows, creates tasks, estimates using rubric. Healthcare-focused.",
+      "mode": "primary",
+      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "temperature": 0.3,
+      "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     }
   }
 }
