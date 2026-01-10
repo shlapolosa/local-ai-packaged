@@ -1,4 +1,23 @@
-FROM ghcr.io/sst/opencode:latest
+FROM ubuntu:22.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install essential tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    unzip \
+    ca-certificates \
+    openssh-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install OpenCode via official installer
+RUN curl -fsSL https://opencode.ai/install | bash
+
+# Add opencode to PATH
+ENV PATH="/root/.local/bin:${PATH}"
 
 # Set working directory for the workspace
 WORKDIR /workspace
