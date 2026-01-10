@@ -145,10 +145,10 @@ clean_opencode_rebuild() {
     echo -e "${GREEN}Clean slate ready for rebuild${NC}"
 }
 
-# Start all containers via compose
+# Start all containers via start_services.py
 start_all_compose() {
-    echo -e "\n${YELLOW}Starting all containers via compose...${NC}"
-    docker compose -p localai --profile ${PROFILE} -f docker-compose.yml -f docker-compose.override.private.yml up -d
+    echo -e "\n${YELLOW}Starting all containers via start_services.py...${NC}"
+    python3 start_services.py --profile ${PROFILE}
     echo -e "${GREEN}All containers started${NC}"
 }
 

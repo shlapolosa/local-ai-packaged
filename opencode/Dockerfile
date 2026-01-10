@@ -16,8 +16,9 @@ RUN apt-get update && apt-get install -y \
 # Install OpenCode via official installer
 RUN curl -fsSL https://opencode.ai/install | bash
 
-# Add opencode to PATH
-ENV PATH="/root/.local/bin:${PATH}"
+# Create symlink to /usr/bin (always in docker exec PATH)
+RUN ln -sf /root/.opencode/bin/opencode /usr/bin/opencode && \
+    opencode --version
 
 # Set working directory for the workspace
 WORKDIR /workspace
