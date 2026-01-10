@@ -119,6 +119,39 @@ stop_all_containers() {
     echo -e "${GREEN}All containers cleaned up - ready for start_services.py${NC}"
 }
 
+# Clean rebuild of opencode only (preserves ollama)
+clean_opencode_rebuild() {
+    echo -e "\n${YELLOW}Performing clean rebuild of OpenCode (preserving Ollama)...${NC}"
+
+    # Step 1: Stop compose project
+    echo -e "${BLUE}Stopping compose project...${NC}"
+    docker compose -p localai -f docker-compose.yml --profile ${PROFILE} down 2>/dev/null || true
+
+    # Step 2: Force stop and remove opencode container if it still exists
+    echo -e "${BLUE}Removing opencode container...${NC}"
+    docker stop ${CONTAINER_NAME} 2>/dev/null || true
+    docker rm ${CONTAINER_NAME} 2>/dev/null || true
+
+    # Step 3: Remove opencode images
+    echo -e "${BLUE}Removing opencode images...${NC}"
+    OPENCODE_IMAGES=$(docker images | grep opencode | awk '{print $3}' 2>/dev/null)
+    if [ -n "$OPENCODE_IMAGES" ]; then
+        echo "$OPENCODE_IMAGES" | xargs docker rmi -f 2>/dev/null || true
+        echo -e "${GREEN}OpenCode images removed${NC}"
+    else
+        echo -e "${BLUE}No opencode images found${NC}"
+    fi
+
+    echo -e "${GREEN}Clean slate ready for rebuild${NC}"
+}
+
+# Start all containers via compose
+start_all_compose() {
+    echo -e "\n${YELLOW}Starting all containers via compose...${NC}"
+    docker compose -p localai --profile ${PROFILE} -f docker-compose.yml -f docker-compose.override.private.yml up -d
+    echo -e "${GREEN}All containers started${NC}"
+}
+
 # Step 4: Rebuild opencode container
 rebuild_container() {
     echo -e "\n${YELLOW}Step 4: Rebuilding opencode container...${NC}"
@@ -229,13 +262,13 @@ main() {
             show_changes
             ;;
         --build-only)
-            # Build only - no start, no test
+            # Clean rebuild opencode only, then start all via compose
             pull_latest
             show_changes
-            stop_all_containers
+            clean_opencode_rebuild
             rebuild_container
-            echo -e "\n${GREEN}Build complete. Containers NOT started.${NC}"
-            echo -e "${BLUE}Run 'python start_services.py' to start services.${NC}"
+            start_all_compose
+            echo -e "\n${GREEN}Build complete. All containers started via compose.${NC}"
             ;;
         --rebuild-only)
             # Rebuild and verify, then cleanup
