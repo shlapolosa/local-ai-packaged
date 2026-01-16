@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ArchiMate Business Architecture Template -->
+<!-- Use this template when generating business.archimate output -->
+
+<archimate:model xmlns:archimate="http://www.archimatetool.com/archimate"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 name="Business Architecture" id="{uuid}" version="5.0.0">
+
+  <!-- STRATEGY & MOTIVATION -->
+  <folder name="Strategy" type="strategy">
+    <element xsi:type="archimate:Goal" id="{uuid}" name="{Goal from BRD}">
+      <documentation>Source: BO-{NNN}</documentation>
+    </element>
+    <element xsi:type="archimate:Driver" id="{uuid}" name="{Business Driver}">
+      <documentation>{Why this matters}</documentation>
+    </element>
+    <element xsi:type="archimate:Principle" id="{uuid}" name="{Architecture Principle}">
+      <documentation>{Guiding principle}</documentation>
+    </element>
+  </folder>
+
+  <!-- BUSINESS CAPABILITIES (L1-L4) -->
+  <folder name="Capabilities" type="business">
+    <!-- L1: Domain -->
+    <element xsi:type="archimate:Capability" id="L1-{domain}" name="{Domain Name}">
+      <documentation>Level: L1 Domain
+Description: {What this domain covers}</documentation>
+    </element>
+    <!-- L2: Function -->
+    <element xsi:type="archimate:Capability" id="L2-{function}" name="{Function Name}">
+      <documentation>Level: L2 Function
+Parent: L1-{domain}
+Description: {What this function covers}</documentation>
+    </element>
+    <!-- L3: Capability -->
+    <element xsi:type="archimate:Capability" id="CAP-{nnn}" name="{Capability Name}">
+      <documentation>Level: L3 Capability
+Parent: L2-{function}
+Priority: {MoSCoW}
+Source: FR-{nnn}
+Description: {What this capability enables}</documentation>
+    </element>
+    <!-- L4: Sub-capability -->
+    <element xsi:type="archimate:Capability" id="CAP-{nnn}.{n}" name="{Sub-capability Name}">
+      <documentation>Level: L4 Sub-capability
+Parent: CAP-{nnn}
+Description: {Detailed capability}</documentation>
+    </element>
+  </folder>
+
+  <!-- BUSINESS ORGANIZATION -->
+  <folder name="Organization" type="business">
+    <element xsi:type="archimate:BusinessActor" id="{uuid}" name="{Actor Name}">
+      <documentation>Type: {Customer/Partner/Regulator}
+Description: {Who this actor is}</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessRole" id="{uuid}" name="{Role Name}">
+      <documentation>Description: {Role responsibilities}</documentation>
+    </element>
+  </folder>
+
+  <!-- BUSINESS PROCESSES -->
+  <folder name="Processes" type="business">
+    <element xsi:type="archimate:BusinessProcess" id="BP-{nnn}" name="{Process Name}">
+      <documentation>Realizes: CAP-{nnn}
+Trigger: {What starts this process}
+Outcome: {What this process produces}
+Steps:
+1. {Step 1}
+2. {Step 2}
+3. {Step 3}</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessEvent" id="{uuid}" name="{Event Name}">
+      <documentation>Triggers: BP-{nnn}</documentation>
+    </element>
+  </folder>
+
+  <!-- BUSINESS SERVICES -->
+  <folder name="Services" type="business">
+    <element xsi:type="archimate:BusinessService" id="BS-{nnn}" name="{Service Name}">
+      <documentation>Exposed by: BP-{nnn}
+Consumed by: {Actor/Role}
+Description: {What this service provides}</documentation>
+    </element>
+    <element xsi:type="archimate:BusinessInterface" id="{uuid}" name="{Interface Name}">
+      <documentation>Channel: {Web/Mobile/Phone/In-person}</documentation>
+    </element>
+  </folder>
+
+  <!-- BUSINESS OBJECTS -->
+  <folder name="Objects" type="business">
+    <element xsi:type="archimate:BusinessObject" id="BO-{nnn}" name="{Entity Name}">
+      <documentation>Description: {What this entity represents}
+Key Attributes: {attr1}, {attr2}, {attr3}
+Used by: BP-{nnn}, BS-{nnn}</documentation>
+    </element>
+  </folder>
+
+  <!-- RELATIONSHIPS -->
+  <folder name="Relations" type="relations">
+    <!-- Capability Hierarchy -->
+    <element xsi:type="archimate:CompositionRelationship" id="{uuid}" source="L1-{domain}" target="L2-{function}"/>
+    <element xsi:type="archimate:CompositionRelationship" id="{uuid}" source="L2-{function}" target="CAP-{nnn}"/>
+    <!-- Process realizes Capability -->
+    <element xsi:type="archimate:RealizationRelationship" id="{uuid}" source="BP-{nnn}" target="CAP-{nnn}"/>
+    <!-- Service exposes Process -->
+    <element xsi:type="archimate:ServingRelationship" id="{uuid}" source="BP-{nnn}" target="BS-{nnn}"/>
+    <!-- Actor uses Service -->
+    <element xsi:type="archimate:ServingRelationship" id="{uuid}" source="BS-{nnn}" target="{actor_id}"/>
+    <!-- Process accesses Business Object -->
+    <element xsi:type="archimate:AccessRelationship" id="{uuid}" source="BP-{nnn}" target="BO-{nnn}" accessType="ReadWrite"/>
+  </folder>
+
+  <!-- VIEWS -->
+  <folder name="Views" type="diagrams">
+    <element xsi:type="archimate:ArchimateDiagramModel" id="{uuid}" name="Business Capability Map"/>
+    <element xsi:type="archimate:ArchimateDiagramModel" id="{uuid}" name="Business Process Flow"/>
+    <element xsi:type="archimate:ArchimateDiagramModel" id="{uuid}" name="Business Service Catalog"/>
+  </folder>
+
+</archimate:model>

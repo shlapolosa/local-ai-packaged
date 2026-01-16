@@ -1,0 +1,218 @@
+{
+  "architecture": {
+    "stack": {
+      "language": "",
+      "framework": "",
+      "database": "",
+      "orm": "",
+      "messaging": "",
+      "cache": ""
+    },
+    "modules": [
+      {
+        "name": "module-name",
+        "type": "domain_module|infrastructure|shared",
+        "path": "src/module",
+        "responsibility": "Description of what this module does",
+        "dependencies": ["other-module"],
+        "entities": ["Entity1", "Entity2"],
+        "controllers": ["Controller1"],
+        "services": ["Service1"]
+      }
+    ],
+    "apis": [
+      {
+        "method": "GET|POST|PUT|DELETE",
+        "path": "/api/v1/resource/:id",
+        "handler": "Controller.method",
+        "authentication": "jwt|none",
+        "authorization": "permission:name"
+      }
+    ],
+    "dataModels": [
+      {
+        "name": "EntityName",
+        "type": "entity|dto|interface",
+        "location": "src/path/to/file.ts",
+        "fields": [
+          { "name": "fieldName", "type": "string|number|uuid", "nullable": false }
+        ],
+        "relations": [
+          { "name": "relationName", "type": "OneToMany|ManyToOne", "target": "OtherEntity" }
+        ]
+      }
+    ],
+    "integrations": [
+      {
+        "name": "IntegrationName",
+        "type": "HIE|API|Queue",
+        "protocol": "FHIR R4|REST|AMQP",
+        "direction": "inbound|outbound|bidirectional",
+        "resources": ["Resource1", "Resource2"]
+      }
+    ]
+  },
+
+  "tasks": [
+    {
+      "id": "T-001",
+      "storyId": "S-001",
+      "title": "Task title",
+      "description": "Detailed description",
+      "type": "implementation|modification|integration|testing|documentation|infrastructure",
+      "impactedModules": ["module1", "module2"],
+      "newComponents": ["NewService", "NewController"],
+      "modifiedComponents": ["ExistingService"],
+      "dependencies": ["T-002"]
+    }
+  ],
+
+  "architectureGaps": [
+    {
+      "storyId": "S-001",
+      "gapType": "missing_module|missing_api|missing_model|modification|integration|infrastructure|tech_debt",
+      "description": "Description of the gap",
+      "currentState": "What exists now",
+      "requiredState": "What is needed",
+      "severity": "critical|high|medium|low",
+      "impactedModules": ["module1"],
+      "suggestedResolution": "How to fix",
+      "effortImpact": "1-3 days",
+      "risks": ["Risk 1", "Risk 2"]
+    }
+  ],
+
+  "dataflowGaps": [
+    {
+      "storyId": "S-001",
+      "uiComponent": "ComponentName",
+      "field": "fieldName",
+      "issue": "missing_api|missing_field|type_mismatch|missing_model",
+      "description": "Description of the issue",
+      "severity": "critical|high|medium|low",
+      "resolution": "How to fix"
+    }
+  ],
+
+  "missingDefinitions": {
+    "apis": [
+      {
+        "suggestedPath": "/api/v1/resource",
+        "method": "POST",
+        "purpose": "What this API does",
+        "linkedStory": "S-001",
+        "suggestedRequest": {},
+        "suggestedResponse": {}
+      }
+    ],
+    "models": [
+      {
+        "suggestedName": "NewEntity",
+        "purpose": "What this model represents",
+        "linkedStory": "S-001",
+        "suggestedFields": [
+          { "name": "fieldName", "type": "string" }
+        ]
+      }
+    ]
+  },
+
+  "estimations": {
+    "tasks": [
+      {
+        "taskId": "T-001",
+        "storyId": "S-001",
+        "title": "Task title",
+        "type": "implementation",
+        "rubricScores": {
+          "ui_complexity": 0,
+          "frontend_state": 0,
+          "accessibility": 0,
+          "backend_complexity": 3,
+          "database_changes": 2,
+          "api_complexity": 2,
+          "caching": 0,
+          "fhir_standards": 0,
+          "clinical_workflow": 0,
+          "compliance": 1,
+          "interoperability": 0,
+          "security": 2,
+          "testing_complexity": 2,
+          "documentation": 1,
+          "devops": 0
+        },
+        "totalScore": 13,
+        "confidence": 0.8,
+        "rationale": "Why this estimate",
+        "similarWork": [
+          {
+            "location": "src/path/to/similar.ts",
+            "similarity": "high|medium|low",
+            "notes": "What can be reused"
+          }
+        ],
+        "risks": ["Risk 1"]
+      }
+    ],
+    "rollups": {
+      "byStory": {
+        "S-001": {
+          "totalScore": 34,
+          "maxScore": 13,
+          "taskCount": 4,
+          "averageConfidence": 0.75
+        }
+      },
+      "byFeature": {
+        "F-001": {
+          "totalScore": 89,
+          "maxScore": 13,
+          "storyCount": 3,
+          "averageConfidence": 0.7
+        }
+      },
+      "total": 89,
+      "maxScore": 13,
+      "averageConfidence": 0.7
+    }
+  },
+
+  "feasibility": {
+    "score": "green|amber|red",
+    "summary": "Overall assessment",
+    "criticalBlockers": [
+      {
+        "issue": "Description",
+        "impact": "What happens if not addressed",
+        "resolution": "How to resolve"
+      }
+    ],
+    "highRisks": [
+      {
+        "risk": "Description",
+        "likelihood": "high|medium|low",
+        "impact": "high|medium|low",
+        "mitigation": "How to mitigate"
+      }
+    ],
+    "recommendations": ["Recommendation 1", "Recommendation 2"],
+    "alternativeApproaches": [
+      {
+        "approach": "Description",
+        "pros": ["Pro 1"],
+        "cons": ["Con 1"],
+        "effort": "relative effort"
+      }
+    ]
+  },
+
+  "analysisMetadata": {
+    "filesAnalyzed": 0,
+    "modulesIdentified": 0,
+    "apisFound": 0,
+    "modelsFound": 0,
+    "tasksCreated": 0,
+    "totalEstimatedPoints": 0,
+    "completedAt": "ISO timestamp"
+  }
+}

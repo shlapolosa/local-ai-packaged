@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ArchiMate Application Architecture Template -->
+<!-- Use this template when generating application.archimate output -->
+
+<archimate:model xmlns:archimate="http://www.archimatetool.com/archimate"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 name="Application Architecture" id="{uuid}" version="5.0.0">
+
+  <!-- APPLICATION COMPONENTS -->
+  <folder name="Components" type="application">
+    <element xsi:type="archimate:ApplicationComponent" id="AC-{nnn}" name="{Component Name}">
+      <documentation>Realizes: CAP-{nnn} ({Capability Name})
+Description: {What this component does}
+Technology: {Runtime/framework}</documentation>
+    </element>
+  </folder>
+
+  <!-- APPLICATION SERVICES -->
+  <folder name="Services" type="application">
+    <element xsi:type="archimate:ApplicationService" id="AS-{nnn}" name="{Service Name}">
+      <documentation>Realizes: BS-{nnn} ({Business Service})
+Exposed by: AC-{nnn}
+Description: {What this service provides}</documentation>
+    </element>
+  </folder>
+
+  <!-- APPLICATION INTERFACES -->
+  <folder name="Interfaces" type="application">
+    <element xsi:type="archimate:ApplicationInterface" id="AI-{nnn}" name="{Interface Name}">
+      <documentation>Type: REST API
+Base Path: /api/v1/{resource}
+Operations: GET, POST, PUT, DELETE
+Authentication: {JWT/OAuth2}
+Exposes: AS-{nnn}</documentation>
+    </element>
+  </folder>
+
+  <!-- APPLICATION FUNCTIONS -->
+  <folder name="Functions" type="application">
+    <element xsi:type="archimate:ApplicationFunction" id="AF-{nnn}" name="{Function Name}">
+      <documentation>Supports: BP-{nnn} ({Business Process})
+Component: AC-{nnn}
+Inputs: {input list}
+Outputs: {output list}
+Behavior: {processing steps}</documentation>
+    </element>
+  </folder>
+
+  <!-- DATA OBJECTS -->
+  <folder name="Data" type="application">
+    <element xsi:type="archimate:DataObject" id="DO-{nnn}" name="{Entity Name}">
+      <documentation>Realizes: BO-{nnn} ({Business Object})
+Attributes: id, {attr1}, {attr2}, createdAt, updatedAt</documentation>
+    </element>
+  </folder>
+
+  <!-- APPLICATION EVENTS -->
+  <folder name="Events" type="application">
+    <element xsi:type="archimate:ApplicationEvent" id="AE-{nnn}" name="{Event Name}">
+      <documentation>Triggered by: AF-{nnn}
+Payload: {Data structure}</documentation>
+    </element>
+  </folder>
+
+  <!-- RELATIONSHIPS -->
+  <folder name="Relations" type="relations">
+    <!-- Cross-Layer: Application realizes Business -->
+    <element xsi:type="archimate:RealizationRelationship" id="{uuid}" source="AC-{nnn}" target="CAP-{nnn}"/>
+    <element xsi:type="archimate:RealizationRelationship" id="{uuid}" source="AS-{nnn}" target="BS-{nnn}"/>
+    <element xsi:type="archimate:RealizationRelationship" id="{uuid}" source="DO-{nnn}" target="BO-{nnn}"/>
+
+    <!-- Application Layer Internal -->
+    <element xsi:type="archimate:ServingRelationship" id="{uuid}" source="AC-{nnn}" target="AS-{nnn}"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="{uuid}" source="AI-{nnn}" target="AS-{nnn}"/>
+    <element xsi:type="archimate:CompositionRelationship" id="{uuid}" source="AC-{nnn}" target="AF-{nnn}"/>
+    <element xsi:type="archimate:AccessRelationship" id="{uuid}" source="AF-{nnn}" target="DO-{nnn}" accessType="ReadWrite"/>
+    <element xsi:type="archimate:TriggeringRelationship" id="{uuid}" source="AS-{nnn}" target="AF-{nnn}"/>
+  </folder>
+
+  <!-- VIEWS -->
+  <folder name="Views" type="diagrams">
+    <element xsi:type="archimate:ArchimateDiagramModel" id="{uuid}" name="Application Component Overview"/>
+    <element xsi:type="archimate:ArchimateDiagramModel" id="{uuid}" name="Application Service Catalog"/>
+    <element xsi:type="archimate:ArchimateDiagramModel" id="{uuid}" name="Business-Application Mapping"/>
+  </folder>
+
+</archimate:model>

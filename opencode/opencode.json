@@ -6,7 +6,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama (Docker internal)",
       "options": {
-        "baseURL": "http://ollama:11434/v1",
+        "baseURL": "https://ollama.socrates-hlapolosa.org/v1",
         "apiKey": "ollama"
       },
       "models": {
@@ -29,7 +29,7 @@
     "edit": "allow",
     "write": "allow"
   },
-  "instructions": ["AGENTS.md", ".opencode/agent/*.md", ".opencode/skills/*/SKILL.md", ".opencode/skills/*/references/*.md"],
+  "instructions": ["AGENTS.md", ".opencode/agent/*.md"],
   "agent": {
     "comedian": {
       "description": "A witty comedian that tells, catalogs, counts, and lists jokes",

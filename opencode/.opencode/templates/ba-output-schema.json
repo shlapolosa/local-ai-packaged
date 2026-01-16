@@ -1,0 +1,95 @@
+{
+  "goals": [
+    {
+      "id": "G-001",
+      "description": "",
+      "type": "explicit|derived",
+      "source": "",
+      "category": "patient_outcome|operational|compliance|integration|business",
+      "smartValidation": {
+        "specific": true,
+        "measurable": true,
+        "achievable": "unknown",
+        "relevant": true,
+        "timeBound": false
+      },
+      "dependencies": [],
+      "conflicts": []
+    }
+  ],
+
+  "features": [
+    {
+      "id": "F-001",
+      "title": "",
+      "description": "",
+      "stories": ["S-001"]
+    }
+  ],
+
+  "stories": [
+    {
+      "id": "S-001",
+      "featureId": "F-001",
+      "title": "",
+      "asA": "",
+      "iWant": "",
+      "soThat": "",
+      "acceptanceCriteria": [],
+      "linkedGoals": ["G-001"],
+      "linkedRequirements": ["REQ-001"],
+      "priority": "must|should|could|wont",
+      "notes": ""
+    }
+  ],
+
+  "gaps": {
+    "unaddressedGoals": [
+      {
+        "goalId": "G-001",
+        "reason": "No requirements map to this goal"
+      }
+    ],
+    "orphanRequirements": [
+      {
+        "requirementId": "REQ-005",
+        "reason": "Does not link to any business goal"
+      }
+    ],
+    "ambiguousRequirements": [
+      {
+        "requirementId": "REQ-003",
+        "issue": "Unclear acceptance criteria"
+      }
+    ],
+    "missingRequirements": [
+      {
+        "type": "security|performance|compliance|error_handling",
+        "description": "No audit logging requirements specified"
+      }
+    ],
+    "conflictingRequirements": [
+      {
+        "requirements": ["REQ-002", "REQ-007"],
+        "conflict": "Contradictory data retention policies"
+      }
+    ]
+  },
+
+  "healthcareConsiderations": [
+    {
+      "type": "regulatory|consent|data|integration|clinical_safety",
+      "description": "",
+      "impactedStories": ["S-001"],
+      "recommendation": ""
+    }
+  ],
+
+  "analysisMetadata": {
+    "goalsCount": 0,
+    "featuresCount": 0,
+    "storiesCount": 0,
+    "criticalGapsCount": 0,
+    "completedAt": "ISO timestamp"
+  }
+}
