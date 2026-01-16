@@ -1,6 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+  "plugin": ["opencode-skills"],
+  "model": "ollama/llama3.1:8b-instruct-q4_K_M",
   "provider": {
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
@@ -13,6 +14,10 @@
         "qwen2.5:7b-instruct-q4_K_M": {
           "name": "Qwen 2.5 7B Instruct Q4_K_M",
           "limit": { "context": 32768, "output": 4096 }
+        },
+        "llama3.1:8b-instruct-q4_K_M": {
+          "name": "Llama 3.1 8B Instruct Q4_K_M",
+          "limit": { "context": 131072, "output": 4096 }
         }
       }
     }
@@ -34,163 +39,184 @@
     "comedian": {
       "description": "A witty comedian that tells, catalogs, counts, and lists jokes",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.8,
       "tools": { "read": true, "write": true, "edit": true, "bash": false }
     },
     "general": {
       "description": "General assistant for various tasks, questions, and help",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.7,
       "tools": { "read": true, "write": true, "edit": true, "bash": false }
     },
     "architect-orchestrator": {
       "description": "Central orchestrator for EA workflows. Determines ADM cycle, delegates to specialist agents based on project state.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "cto": {
       "description": "CTO advisor: Strategic technology decisions, investment approvals, vendor evaluation, technology roadmap. ADM Phase A (Vision).",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": false }
     },
     "ba-agent": {
       "description": "Business Analyst: Requirements elicitation, PRD creation, user stories, acceptance criteria. ADM Phase A.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.6,
       "tools": { "read": true, "write": true, "edit": true, "bash": false }
     },
     "compliance": {
       "description": "Compliance Architect: GDPR/HIPAA/SOC2/PCI-DSS assessment, ArchiMate compliance modeling. ADM Phase A.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": false }
     },
     "business-architect": {
       "description": "Business Architect: Business model canvas, capability mapping, process design, ArchiMate business layer. ADM Phase B.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "data-architect": {
       "description": "Data Architect: Data models, data flows, master data management, ArchiMate data objects. ADM Phase C.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "app-architect": {
       "description": "Application Architect: Component design, API specifications, microservices, ArchiMate application layer. ADM Phase C.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "security-architect": {
       "description": "Security Architect: Threat modeling, security controls, OWASP compliance, ArchiMate security aspects. ADM Phase D.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "infra-architect": {
       "description": "Infrastructure Architect: Cloud design, networking, DevOps, ArchiMate technology layer. ADM Phase D.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "pm": {
       "description": "Project Manager: Implementation roadmap, work packages, milestones, ArchiMate implementation layer. ADM Phase E/F.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "solution-architect": {
       "description": "Solution Architect: Generates compliant KubeVela OAM YAML using oam-gitops skill. Outputs GitOps-ready specs for <repo>-gitops/apps/oam-application.yaml. ADM Phase E.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.5,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "techlead": {
       "description": "TechLead: Breaks PRD into development tasks using Taskmaster MCP. Iteratively expands tasks until all are medium-sized (complexity ≤ 6). Development Cycle.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "coding-orchestrator": {
       "description": "Development Cycle orchestrator: Reads tasks from Taskmaster, classifies domain, routes to specialist coding agents. Sequential execution respecting dependencies.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.3,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
     },
     "frontend-coder": {
       "description": "Frontend Specialist: React, Vue, CSS, Tailwind, components, responsive UI. Development Cycle.",
       "mode": "subagent",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true }
     },
     "backend-coder": {
       "description": "Backend Specialist: APIs, services, business logic, databases, authentication. Development Cycle.",
       "mode": "subagent",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true }
     },
     "infra-coder": {
       "description": "Infrastructure Specialist: Kubernetes, Terraform, OAM, Helm, cloud configs. Development Cycle.",
       "mode": "subagent",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true }
     },
     "devops-coder": {
       "description": "DevOps Specialist: CI/CD pipelines, Docker, GitHub Actions, deployments. Development Cycle.",
       "mode": "subagent",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true }
     },
     "data-coder": {
       "description": "Data Specialist: Database schemas, migrations, ORMs, data transformations. Development Cycle.",
       "mode": "subagent",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true }
     },
     "testing-agent": {
       "description": "Testing Specialist: Unit tests, integration tests, E2E tests, coverage analysis. Development Cycle.",
       "mode": "subagent",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": true }
+    },
+    "test-agent": {
+      "description": "Simple test agent for verifying output format",
+      "mode": "primary",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
+      "temperature": 0.3,
+      "tools": { "read": false, "write": false, "edit": false, "bash": false }
     },
     "prefeasibility-ba": {
       "description": "Pre-feasibility Business Analyst: Derives goals from PRD, validates requirements, creates story hierarchy, performs gap analysis. Healthcare-focused.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": false, "glob": true, "grep": true }
     },
     "prefeasibility-architect": {
       "description": "Pre-feasibility Architect: Analyzes codebase, extracts architecture, validates dataflows, creates tasks, estimates using rubric. Healthcare-focused.",
       "mode": "primary",
-      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.3,
       "tools": { "read": true, "write": true, "edit": true, "bash": true, "glob": true, "grep": true }
+    },
+    "qa-architect": {
+      "description": "QA Architect: Test strategy, test pyramid, coverage requirements, test scenarios. ADM Phase 3.6.",
+      "mode": "primary",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
+      "temperature": 0.4,
+      "tools": { "read": true, "write": true, "edit": true, "bash": false, "glob": true, "grep": true }
+    },
+    "risk-analyst": {
+      "description": "Risk Analyst: Technical, dependency, and scope risk assessment with mitigation strategies. ADM Phase 3.6.",
+      "mode": "primary",
+      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
+      "temperature": 0.4,
+      "tools": { "read": true, "write": true, "edit": true, "bash": false, "glob": true, "grep": true }
     }
   }
 }
