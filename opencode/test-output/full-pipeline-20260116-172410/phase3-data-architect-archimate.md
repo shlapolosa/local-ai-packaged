@@ -1,0 +1,1 @@
+{"description": "Creating an ArchiMate 3.1 data layer model for appointment scheduling at a healthcare clinic", "skills": "archimate", "parameters": {"name": "data_layer_model_for_appointment_scheduling"}}

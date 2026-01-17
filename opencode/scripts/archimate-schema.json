@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ArchiMate Model JSON Schema",
+  "description": "JSON schema for LLM-generated ArchiMate models. Use json-to-archimate.py to convert to XML.",
+  "type": "object",
+  "required": ["name", "elements"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the ArchiMate model"
+    },
+    "layer": {
+      "type": "string",
+      "enum": ["business", "application", "technology", "all"],
+      "description": "Primary layer focus of this model"
+    },
+    "elements": {
+      "type": "array",
+      "description": "ArchiMate elements (actors, processes, components, etc.)",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "name"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for referencing in relationships"
+          },
+          "type": {
+            "type": "string",
+            "description": "ArchiMate element type",
+            "enum": [
+              "BusinessActor", "BusinessRole", "BusinessCollaboration", "BusinessInterface",
+              "BusinessProcess", "BusinessFunction", "BusinessInteraction", "BusinessEvent",
+              "BusinessService", "BusinessObject", "Contract", "Representation", "Product",
+              "ApplicationComponent", "ApplicationCollaboration", "ApplicationInterface",
+              "ApplicationFunction", "ApplicationInteraction", "ApplicationProcess",
+              "ApplicationEvent", "ApplicationService", "DataObject",
+              "Node", "Device", "SystemSoftware", "TechnologyCollaboration",
+              "TechnologyInterface", "Path", "CommunicationNetwork", "TechnologyFunction",
+              "TechnologyProcess", "TechnologyInteraction", "TechnologyEvent",
+              "TechnologyService", "Artifact",
+              "Stakeholder", "Driver", "Assessment", "Goal", "Outcome",
+              "Principle", "Requirement", "Constraint", "Meaning", "Value",
+              "Resource", "Capability", "CourseOfAction",
+              "WorkPackage", "Deliverable", "ImplementationEvent", "Plateau", "Gap"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the element"
+          },
+          "description": {
+            "type": "string",
+            "description": "Documentation/description for the element"
+          }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "description": "Relationships between elements",
+      "items": {
+        "type": "object",
+        "required": ["type", "source", "target"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "ArchiMate relationship type",
+            "enum": [
+              "Serving", "Realization", "Assignment", "Flow", "Access",
+              "Composition", "Aggregation", "Triggering", "Influence",
+              "Specialization", "Association"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "description": "ID of the source element"
+          },
+          "target": {
+            "type": "string",
+            "description": "ID of the target element"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description of the relationship"
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "name": "Healthcare Appointment System - Business Layer",
+      "layer": "business",
+      "elements": [
+        {"id": "patient", "type": "BusinessActor", "name": "Patient", "description": "Healthcare consumer seeking appointments"},
+        {"id": "provider", "type": "BusinessActor", "name": "Healthcare Provider", "description": "Physician or medical staff"},
+        {"id": "scheduler", "type": "BusinessRole", "name": "Appointment Scheduler", "description": "Role responsible for managing bookings"},
+        {"id": "book-appt", "type": "BusinessProcess", "name": "Book Appointment", "description": "Process of selecting and confirming appointment slot"},
+        {"id": "manage-avail", "type": "BusinessProcess", "name": "Manage Availability", "description": "Provider updates available time slots"},
+        {"id": "scheduling-svc", "type": "BusinessService", "name": "Appointment Scheduling Service", "description": "External service for booking appointments"},
+        {"id": "appointment", "type": "BusinessObject", "name": "Appointment", "description": "Confirmed booking between patient and provider"},
+        {"id": "timeslot", "type": "BusinessObject", "name": "Time Slot", "description": "Available period for booking"}
+      ],
+      "relationships": [
+        {"type": "Serving", "source": "scheduling-svc", "target": "patient", "description": "Service serves patient"},
+        {"type": "Assignment", "source": "scheduler", "target": "book-appt", "description": "Scheduler assigned to booking process"},
+        {"type": "Access", "source": "book-appt", "target": "appointment", "description": "Process creates/accesses appointment"},
+        {"type": "Realization", "source": "book-appt", "target": "scheduling-svc", "description": "Process realizes service"}
+      ]
+    }
+  ]
+}

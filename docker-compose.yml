@@ -60,7 +60,7 @@ x-init-ollama: &init-ollama
   entrypoint: /bin/sh
   command:
     - "-c"
-    - "sleep 3; OLLAMA_HOST=ollama:11434 ollama pull qwen2.5:7b-instruct-q4_K_M; OLLAMA_HOST=ollama:11434 ollama pull nomic-embed-text"
+    - "sleep 3; OLLAMA_HOST=ollama:11434 ollama pull qwen2.5:7b-instruct-q4_K_M; OLLAMA_HOST=ollama:11434 ollama pull llama3.1:8b-instruct-q4_K_M; OLLAMA_HOST=ollama:11434 ollama pull nomic-embed-text"
   environment:
     - HTTP_PROXY=http://proxy.internal.adhie.ae:8080
     - HTTPS_PROXY=http://proxy.internal.adhie.ae:8080
@@ -373,7 +373,89 @@ services:
       options:
         max-size: "1m"
         max-file: "1"
-        
+
+  # Taskmaster - AI-powered task breakdown from PRDs
+  # Uses Ollama for LLM inference to parse PRDs and generate development tasks
+  # Profile-based to depend on correct Ollama instance
+
+  taskmaster-cpu:
+    profiles: ["cpu"]
+    build:
+      context: .
+      dockerfile: Dockerfile.taskmaster
+    container_name: taskmaster
+    restart: unless-stopped
+    volumes:
+      - ./projects:/app/projects
+      - ./shared:/data/shared
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_BASE_URL=http://ollama:11434/api
+      - TASKMASTER_MODEL=llama3.1:8b-instruct-q4_K_M
+      - MODEL=llama3.1:8b-instruct-q4_K_M
+      - OPENAI_API_KEY=sk-placeholder
+      - TASK_MASTER_TOOLS=standard
+    depends_on:
+      - ollama-cpu
+      - n8n
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  taskmaster-gpu:
+    profiles: ["gpu-nvidia"]
+    build:
+      context: .
+      dockerfile: Dockerfile.taskmaster
+    container_name: taskmaster
+    restart: unless-stopped
+    volumes:
+      - ./projects:/app/projects
+      - ./shared:/data/shared
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_BASE_URL=http://ollama:11434/api
+      - TASKMASTER_MODEL=llama3.1:8b-instruct-q4_K_M
+      - MODEL=llama3.1:8b-instruct-q4_K_M
+      - OPENAI_API_KEY=sk-placeholder
+      - TASK_MASTER_TOOLS=standard
+    depends_on:
+      - ollama-gpu
+      - n8n
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+  taskmaster-gpu-amd:
+    profiles: ["gpu-amd"]
+    build:
+      context: .
+      dockerfile: Dockerfile.taskmaster
+    container_name: taskmaster
+    restart: unless-stopped
+    volumes:
+      - ./projects:/app/projects
+      - ./shared:/data/shared
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_BASE_URL=http://ollama:11434/api
+      - TASKMASTER_MODEL=llama3.1:8b-instruct-q4_K_M
+      - MODEL=llama3.1:8b-instruct-q4_K_M
+      - OPENAI_API_KEY=sk-placeholder
+      - TASK_MASTER_TOOLS=standard
+    depends_on:
+      - ollama-gpu-amd
+      - n8n
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
   opencode-cpu:
     profiles: ["cpu"]
     build:

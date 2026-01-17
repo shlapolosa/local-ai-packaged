@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "n8n-mcp": {
+      "command": "npx",
+      "args": ["n8n-mcp"],
+      "env": {
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true",
+        "N8N_API_URL": "https://n8n.socrates-hlapolosa.org",
+        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MmQzM2FlYS1kZTdiLTRmM2EtYTVkMC0zZmYwMzg0YjMyMmMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzY2NTU1NDk4LCJleHAiOjE3NjkxNDQ0MDB9.1CCxzMbibreWruoRPpFOKKg05ne1hP3dPHq1WIL3984"
+      }
+    }
+  }
+}

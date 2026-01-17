@@ -1,0 +1,554 @@
+{
+  "name": "Architecture Pipeline - TOGAF EA Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Architecture Pipeline - AI-Powered EA Workflow\n\n**Purpose**: Automated TOGAF-based enterprise architecture generation\n\n**Flow**:\n1. Webhook receives requirements\n2. BRD Generation (ba-agent)\n3. Business Architecture (business-architect)\n4. Application Architecture (app-architect)\n5. Solution Design (OpenAPI/SQL)\n6. Convert to ArchiMate XML\n7. Save artifacts to shared volume\n\n**Triggers**: POST to /webhook/architecture-pipeline",
+        "height": 400,
+        "width": 400,
+        "color": 6
+      },
+      "id": "intro-note",
+      "name": "Pipeline Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-600, -200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "architecture-pipeline",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - Receive Requirements",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-100, 300],
+      "webhookId": "architecture-pipeline-001"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "req-id",
+              "name": "requirements",
+              "value": "={{ $json.body.requirements || $json.requirements }}",
+              "type": "string"
+            },
+            {
+              "id": "project-name",
+              "name": "projectName",
+              "value": "={{ $json.body.projectName || $json.projectName || 'architecture-project' }}",
+              "type": "string"
+            },
+            {
+              "id": "session-id",
+              "name": "sessionId",
+              "value": "={{ $now.format('yyyyMMdd-HHmmss') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-input",
+      "name": "Extract Input Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "content": "## Phase 2: BRD Generation\n\nGenerates Business Requirements Document as JSON using ba-agent prompt",
+        "height": 200,
+        "width": 350,
+        "color": 4
+      },
+      "id": "brd-note",
+      "name": "BRD Phase Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [250, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You generate BRD documents as JSON. Use ONLY information from the USER MESSAGE.\\n\\n## CRITICAL RULES\\n1. Output ONLY a JSON object (starts with `{`, ends with `}`)\\n2. Use ONLY information from the user's message\\n3. NO explanations, NO markdown, NO code blocks\\n\\n## BRD JSON Schema\\n{\\n  \\\"type\\\": \\\"brd\\\",\\n  \\\"title\\\": \\\"Business Requirements Document: [PROJECT NAME]\\\",\\n  \\\"version\\\": \\\"1.0.0\\\",\\n  \\\"date\\\": \\\"{{ $now.format('yyyy-MM-dd') }}\\\",\\n  \\\"executiveSummary\\\": \\\"[Brief overview]\\\",\\n  \\\"problemStatement\\\": {\\n    \\\"currentState\\\": \\\"[Current situation]\\\",\\n    \\\"painPoints\\\": [\\\"[Pain points]\\\"],\\n    \\\"impact\\\": \\\"[Business impact]\\\"\\n  },\\n  \\\"businessObjectives\\\": [{\\\"id\\\": \\\"O1\\\", \\\"description\\\": \\\"[Objective]\\\", \\\"metric\\\": \\\"[KPI]\\\"}],\\n  \\\"stakeholders\\\": [{\\\"role\\\": \\\"[Role]\\\", \\\"responsibilities\\\": \\\"[Tasks]\\\", \\\"concerns\\\": \\\"[Issues]\\\"}],\\n  \\\"scope\\\": {\\n    \\\"inScope\\\": [\\\"[In scope items]\\\"],\\n    \\\"outOfScope\\\": [\\\"[Excluded items]\\\"]\\n  },\\n  \\\"constraints\\\": [\\\"[Constraints]\\\"],\\n  \\\"assumptions\\\": [\\\"[Assumptions]\\\"],\\n  \\\"successCriteria\\\": [\\\"[Metrics]\\\"]\\n}\\n\\nRequirements: At least 3 objectives, 4 stakeholders, 3 in-scope items, 2 out-of-scope items.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.requirements }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": 0.3,\n    \"num_predict\": 4096\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 300000
+        }
+      },
+      "id": "generate-brd",
+      "name": "Generate BRD (Ollama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "brd-json",
+              "name": "brdJson",
+              "value": "={{ $json.message.content }}",
+              "type": "string"
+            },
+            {
+              "id": "brd-parsed",
+              "name": "brdParsed",
+              "value": "={{ JSON.parse($json.message.content) }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "parse-brd",
+      "name": "Parse BRD Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "content": "## Phase 3: Business Architecture\n\nGenerates ArchiMate Business Layer JSON",
+        "height": 200,
+        "width": 350,
+        "color": 5
+      },
+      "id": "business-arch-note",
+      "name": "Business Arch Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [700, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a Business Architect generating ArchiMate 3.1 models as JSON.\\n\\n## CRITICAL INSTRUCTIONS\\n1. OUTPUT ONLY JSON - No explanations, no markdown, no code blocks\\n2. FIRST CHARACTER MUST BE `{` - Start immediately with the JSON object\\n3. VALID JSON REQUIRED - Must be parseable by json.loads()\\n\\n## JSON Schema\\n{\\n  \\\"name\\\": \\\"Model Name\\\",\\n  \\\"layer\\\": \\\"business\\\",\\n  \\\"elements\\\": [\\n    {\\\"id\\\": \\\"unique-kebab-case-id\\\", \\\"type\\\": \\\"ElementType\\\", \\\"name\\\": \\\"Display Name\\\", \\\"description\\\": \\\"Description\\\"}\\n  ],\\n  \\\"relationships\\\": [\\n    {\\\"type\\\": \\\"RelationType\\\", \\\"source\\\": \\\"source-id\\\", \\\"target\\\": \\\"target-id\\\"}\\n  ]\\n}\\n\\n## Business Layer Types\\n- BusinessActor, BusinessRole, BusinessProcess, BusinessFunction, BusinessService, BusinessObject, BusinessEvent\\n\\n## Relationship Types\\n- Serving, Realization, Assignment, Access, Flow, Composition, Aggregation, Triggering\\n\\n## Requirements\\n- At least 5 elements\\n- At least 3 relationships\\n- Every element has a description\\n- No orphan elements\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Generate the Business Architecture ArchiMate model for this BRD:\\n\\n{{ JSON.stringify($('Parse BRD Response').item.json.brdParsed) }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": 0.3,\n    \"num_predict\": 4096\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 300000
+        }
+      },
+      "id": "generate-business-arch",
+      "name": "Generate Business Architecture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [760, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "business-arch-json",
+              "name": "businessArchJson",
+              "value": "={{ $json.message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "parse-business-arch",
+      "name": "Parse Business Architecture",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [980, 300]
+    },
+    {
+      "parameters": {
+        "content": "## Phase 3.5: Application Architecture\n\nGenerates ArchiMate Application Layer JSON",
+        "height": 200,
+        "width": 350,
+        "color": 3
+      },
+      "id": "app-arch-note",
+      "name": "App Arch Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1140, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an Application Architect generating ArchiMate 3.1 models as JSON.\\n\\n## CRITICAL INSTRUCTIONS\\n1. OUTPUT ONLY JSON - No explanations, no markdown, no code blocks\\n2. FIRST CHARACTER MUST BE `{`\\n3. VALID JSON REQUIRED\\n\\n## JSON Schema\\n{\\n  \\\"name\\\": \\\"Model Name - Application Layer\\\",\\n  \\\"layer\\\": \\\"application\\\",\\n  \\\"elements\\\": [\\n    {\\\"id\\\": \\\"unique-kebab-case-id\\\", \\\"type\\\": \\\"ElementType\\\", \\\"name\\\": \\\"Display Name\\\", \\\"description\\\": \\\"Description\\\"}\\n  ],\\n  \\\"relationships\\\": [\\n    {\\\"type\\\": \\\"RelationType\\\", \\\"source\\\": \\\"source-id\\\", \\\"target\\\": \\\"target-id\\\"}\\n  ]\\n}\\n\\n## Application Layer Types\\n- ApplicationComponent, ApplicationService, ApplicationInterface, ApplicationFunction, DataObject\\n\\n## Relationship Types\\n- Serving, Realization, Assignment, Access, Flow, Composition, Aggregation\\n\\n## Requirements\\n- At least 5 elements\\n- At least 3 relationships\\n- Map to business capabilities from the business architecture\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Generate the Application Architecture ArchiMate model based on:\\n\\nBRD: {{ JSON.stringify($('Parse BRD Response').item.json.brdParsed) }}\\n\\nBusiness Architecture: {{ $('Parse Business Architecture').item.json.businessArchJson }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": 0.3,\n    \"num_predict\": 4096\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 300000
+        }
+      },
+      "id": "generate-app-arch",
+      "name": "Generate Application Architecture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "app-arch-json",
+              "name": "appArchJson",
+              "value": "={{ $json.message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "parse-app-arch",
+      "name": "Parse Application Architecture",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1420, 300]
+    },
+    {
+      "parameters": {
+        "content": "## Artifact Conversion\n\nConverts JSON outputs to final formats:\n- ArchiMate XML\n- ADOIT Excel\n- Markdown BRD",
+        "height": 200,
+        "width": 350,
+        "color": 7
+      },
+      "id": "conversion-note",
+      "name": "Conversion Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1580, 100]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/data/shared/artifacts/{{ $('Extract Input Parameters').item.json.sessionId }}/brd.json",
+        "fileContent": "={{ $('Parse BRD Response').item.json.brdJson }}"
+      },
+      "id": "save-brd-json",
+      "name": "Save BRD JSON",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1640, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/data/shared/artifacts/{{ $('Extract Input Parameters').item.json.sessionId }}/business-architecture.json",
+        "fileContent": "={{ $('Parse Business Architecture').item.json.businessArchJson }}"
+      },
+      "id": "save-business-arch-json",
+      "name": "Save Business Arch JSON",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1640, 480]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/data/shared/artifacts/{{ $('Extract Input Parameters').item.json.sessionId }}/application-architecture.json",
+        "fileContent": "={{ $('Parse Application Architecture').item.json.appArchJson }}"
+      },
+      "id": "save-app-arch-json",
+      "name": "Save App Arch JSON",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1640, 660]
+    },
+    {
+      "parameters": {
+        "command": "=mkdir -p /data/shared/artifacts/{{ $('Extract Input Parameters').item.json.sessionId }} && cd /data/shared && python3 /data/shared/scripts/json-to-archimate.py /data/shared/artifacts/{{ $('Extract Input Parameters').item.json.sessionId }}/business-architecture.json /data/shared/artifacts/{{ $('Extract Input Parameters').item.json.sessionId }}/business-architecture.archimate",
+        "options": {}
+      },
+      "id": "convert-business-archimate",
+      "name": "Convert Business to ArchiMate XML",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1900, 480]
+    },
+    {
+      "parameters": {
+        "command": "=cd /data/shared && python3 /data/shared/scripts/json-to-archimate.py /data/shared/artifacts/{{ $('Extract Input Parameters').item.json.sessionId }}/application-architecture.json /data/shared/artifacts/{{ $('Extract Input Parameters').item.json.sessionId }}/application-architecture.archimate",
+        "options": {}
+      },
+      "id": "convert-app-archimate",
+      "name": "Convert App to ArchiMate XML",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1900, 660]
+    },
+    {
+      "parameters": {
+        "command": "=cd /data/shared && python3 /data/shared/scripts/json-to-markdown.py /data/shared/artifacts/{{ $('Extract Input Parameters').item.json.sessionId }}/brd.json /data/shared/artifacts/{{ $('Extract Input Parameters').item.json.sessionId }}/brd.md",
+        "options": {}
+      },
+      "id": "convert-brd-markdown",
+      "name": "Convert BRD to Markdown",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1900, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "result-summary",
+              "name": "status",
+              "value": "completed",
+              "type": "string"
+            },
+            {
+              "id": "artifacts-path",
+              "name": "artifactsPath",
+              "value": "=/data/shared/artifacts/{{ $('Extract Input Parameters').item.json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "artifacts-list",
+              "name": "artifacts",
+              "value": "[\"brd.json\", \"brd.md\", \"business-architecture.json\", \"business-architecture.archimate\", \"application-architecture.json\", \"application-architecture.archimate\"]",
+              "type": "object"
+            },
+            {
+              "id": "session-summary",
+              "name": "sessionId",
+              "value": "={{ $('Extract Input Parameters').item.json.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prepare-response",
+      "name": "Prepare Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [2160, 480]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2380, 480]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Receive Requirements": {
+      "main": [
+        [
+          {
+            "node": "Extract Input Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Input Parameters": {
+      "main": [
+        [
+          {
+            "node": "Generate BRD (Ollama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate BRD (Ollama)": {
+      "main": [
+        [
+          {
+            "node": "Parse BRD Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse BRD Response": {
+      "main": [
+        [
+          {
+            "node": "Generate Business Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Business Architecture": {
+      "main": [
+        [
+          {
+            "node": "Parse Business Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Business Architecture": {
+      "main": [
+        [
+          {
+            "node": "Generate Application Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Application Architecture": {
+      "main": [
+        [
+          {
+            "node": "Parse Application Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Application Architecture": {
+      "main": [
+        [
+          {
+            "node": "Save BRD JSON",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Business Arch JSON",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save App Arch JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save BRD JSON": {
+      "main": [
+        [
+          {
+            "node": "Convert BRD to Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Business Arch JSON": {
+      "main": [
+        [
+          {
+            "node": "Convert Business to ArchiMate XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save App Arch JSON": {
+      "main": [
+        [
+          {
+            "node": "Convert App to ArchiMate XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert BRD to Markdown": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Business to ArchiMate XML": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert App to ArchiMate XML": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "arch-pipeline-v1-001",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "local-ai-architecture-pipeline"
+  },
+  "id": "architecture-pipeline-001",
+  "tags": ["architecture", "togaf", "ai"]
+}

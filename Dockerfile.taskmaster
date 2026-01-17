@@ -1,0 +1,41 @@
+# Dockerfile.taskmaster - Taskmaster CLI for AI-powered task breakdown
+#
+# Taskmaster is an npm package that uses LLMs to parse PRDs and break them
+# into development tasks. It connects to Ollama for LLM inference.
+#
+# Usage:
+#   docker build -f Dockerfile.taskmaster -t taskmaster .
+#   docker run --rm -v $(pwd)/projects:/app/projects taskmaster taskmaster --help
+
+FROM node:20-slim
+
+# Install task-master-ai globally
+RUN npm install -g task-master-ai
+
+# Install additional tools that may be needed
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create working directories
+WORKDIR /app/projects
+
+# Create a directory for shared data
+RUN mkdir -p /data/shared
+
+# Set environment variables for Ollama connection
+# Default to external URL for local testing; override in docker-compose for internal networking
+ENV OLLAMA_HOST=https://ollama.socrates-hlapolosa.org
+ENV OLLAMA_BASE_URL=https://ollama.socrates-hlapolosa.org/api
+ENV TASKMASTER_MODEL=llama3.1:8b-instruct-q4_K_M
+ENV MODEL=llama3.1:8b-instruct-q4_K_M
+ENV OPENAI_API_KEY=sk-placeholder
+ENV TASK_MASTER_TOOLS=standard
+
+# Healthcheck - verify taskmaster is available
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD which taskmaster || exit 1
+
+# Default command - keep container running for exec access
+CMD ["tail", "-f", "/dev/null"]

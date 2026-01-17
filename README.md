@@ -667,6 +667,178 @@ python start_services.py --profile gpu-nvidia
 
 ---
 
+## n8n Architecture Pipeline
+
+The package includes a pre-built n8n workflow for automated enterprise architecture generation using AI agents and a Qdrant knowledge base.
+
+### Workflow Overview
+
+```
+┌──────────────┐     ┌─────────────┐     ┌───────────────────┐     ┌──────────────┐
+│   Webhook    │────►│  BRD Agent  │────►│ Business Arch     │────►│   Response   │
+│   Trigger    │     │  (Phase 1)  │     │ Agent (Phase 2)   │     │   Output     │
+└──────────────┘     └─────────────┘     └───────────────────┘     └──────────────┘
+                           │                       │
+                           ▼                       ▼
+                    ┌─────────────┐         ┌─────────────────┐
+                    │ Ollama LLM  │         │ Capability QA   │◄── Qdrant Vector Store
+                    │ + Think Tool│         │ Tool + LLM      │◄── Healthcare Capabilities
+                    └─────────────┘         └─────────────────┘
+```
+
+### Workflows Included
+
+| Workflow | ID | Purpose |
+|----------|------|---------|
+| Architecture Pipeline - AI Agent with Ollama | `iKBlJTWf5HPkKAVX` | Main BRD + Business Architecture generation |
+| Capability Map Loader - Qdrant | `CxkVyFRj6b0GiZuR` | Load healthcare capabilities into Qdrant |
+
+### Setting Up Qdrant Knowledge Base
+
+The Business Architecture Agent uses a Qdrant vector store containing the Healthcare Capability Reference Model (1,666 capabilities across L1-L4 levels). This enables the agent to map business requirements to standard healthcare capabilities.
+
+#### Step 1: Verify Qdrant is Running
+
+```bash
+# Check Qdrant container status
+docker ps | grep qdrant
+
+# Test Qdrant API connectivity
+curl http://localhost:6333/collections
+```
+
+#### Step 2: Verify Capability Data File
+
+The capability map JSON should exist at `shared/capability_map_documents.json`:
+
+```bash
+# Check file exists (should be ~1.2MB with 1,666 capabilities)
+ls -la shared/capability_map_documents.json
+
+# Preview the data structure
+head -c 500 shared/capability_map_documents.json
+```
+
+If the file doesn't exist, it can be regenerated from the source Excel file:
+
+```bash
+# Generate from Excel (requires pandas, openpyxl)
+cd opencode/scripts
+python -c "
+import pandas as pd
+import json
+
+df = pd.read_excel('../../chealth_apability_map.xlsx', sheet_name='Capability Map')
+documents = []
+for idx, row in df.iterrows():
+    level = int(row['Level']) if pd.notna(row['Level']) else 1
+    cap = str(row['Capability']) if pd.notna(row['Capability']) else ''
+    definition = str(row['Definition']) if pd.notna(row['Definition']) else ''
+    documents.append({
+        'id': f'cap-{idx+1}',
+        'level': level,
+        'capability': cap,
+        'text': f'Healthcare Capability L{level}: {cap}\nDefinition: {definition}',
+        'metadata': {'level': level, 'l1': cap if level == 1 else '', 'capability': cap}
+    })
+
+with open('../../shared/capability_map_documents.json', 'w') as f:
+    json.dump(documents, f, indent=2)
+print(f'Exported {len(documents)} capabilities')
+"
+```
+
+#### Step 3: Configure n8n Credentials
+
+1. Open n8n at https://n8n.socrates-hlapolosa.org (or http://localhost:5678)
+2. Go to **Credentials** and ensure these exist:
+
+| Credential | Configuration |
+|------------|---------------|
+| Ollama account | Base URL: `http://ollama:11434` |
+| QdrantApi account | URL: `http://qdrant:6333`, API Key: (any value) |
+
+#### Step 4: Load Capabilities into Qdrant
+
+1. Open the **"Capability Map Loader - Qdrant"** workflow in n8n
+2. Click **"Execute Workflow"** (manual trigger)
+3. Wait for completion - this embeds all capabilities using `nomic-embed-text`
+
+The workflow:
+- Reads `/data/shared/capability_map_documents.json`
+- Parses and limits to 100 items (for testing - modify "Limit to 100" node for full load)
+- Creates embeddings using Ollama's `nomic-embed-text` model
+- Inserts into Qdrant collection `healthcare-capabilities`
+
+#### Step 5: Verify Qdrant Collection
+
+```bash
+# Check the collection was created
+curl http://localhost:6333/collections/healthcare-capabilities
+
+# Check document count
+curl http://localhost:6333/collections/healthcare-capabilities | jq '.result.points_count'
+```
+
+### Testing the Architecture Pipeline
+
+Once Qdrant is populated, test the main workflow:
+
+```bash
+# Trigger the pipeline with sample requirements
+curl -X POST https://n8n.socrates-hlapolosa.org/webhook/architecture-pipeline \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requirements": "Build a patient portal for a healthcare company that allows patients to view their medical records, book appointments, and communicate with healthcare providers. Must be HIPAA compliant.",
+    "projectName": "Healthcare Patient Portal"
+  }'
+```
+
+Expected output includes:
+- **BRD**: Business Requirements Document as JSON
+- **Business Architecture**: ArchiMate Business Layer model with `capabilityMapping` fields referencing the Healthcare Capability Reference Model
+
+### Workflow Architecture Details
+
+#### BRD Agent (Phase 1)
+- Model: `llama3.1:8b-instruct-q4_K_M`
+- Tools: Think Tool (reasoning)
+- Output: Structured BRD JSON
+
+#### Business Arch Agent (Phase 2)
+- Model: `llama3.1:8b-instruct-q4_K_M`
+- Tools: Think Tool, Capability QA Tool (Qdrant)
+- Output: ArchiMate Business Layer JSON with capability mappings
+
+#### Capability QA Tool
+- Vector Store: Qdrant (`healthcare-capabilities` collection)
+- Embeddings: `nomic-embed-text` via Ollama
+- Top K: 5 results per query
+- Purpose: Map business functions to standard healthcare capabilities
+
+### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| "Read Capability JSON" returns 0 items | Verify file exists at `shared/capability_map_documents.json` |
+| Qdrant connection failed | Check credentials: URL should be `http://qdrant:6333` |
+| Embeddings timeout | Ensure Ollama has `nomic-embed-text` model: `docker exec ollama ollama pull nomic-embed-text` |
+| Capability QA Tool not responding | Verify Qdrant collection exists and has documents |
+| Agent not using capability mappings | Check the Business Arch Agent system prompt includes the capability reference model |
+
+### Loading Full Capability Map
+
+To load all 1,666 capabilities instead of the test batch of 100:
+
+1. Open the "Capability Map Loader - Qdrant" workflow
+2. Find the "Limit to 100" node
+3. Either:
+   - Increase `maxItems` to 2000, or
+   - Delete/disable the node entirely
+4. Re-execute the workflow (this will take longer due to embedding generation)
+
+---
+
 ## Prerequisites
 
 Before you begin, make sure you have the following software installed:

@@ -65,11 +65,11 @@
       "tools": { "read": true, "write": true, "edit": true, "bash": false }
     },
     "ba-agent": {
-      "description": "Business Analyst: Requirements elicitation, PRD creation, user stories, acceptance criteria. ADM Phase A.",
+      "description": "Business Analyst: BRD/PRD generation as JSON. No tools, pure text output.",
       "mode": "primary",
-      "model": "ollama/llama3.1:8b-instruct-q4_K_M",
-      "temperature": 0.6,
-      "tools": { "read": true, "write": true, "edit": true, "bash": false }
+      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "temperature": 0.3,
+      "tools": { "read": false, "write": false, "edit": false, "bash": false }
     },
     "compliance": {
       "description": "Compliance Architect: GDPR/HIPAA/SOC2/PCI-DSS assessment, ArchiMate compliance modeling. ADM Phase A.",
@@ -217,6 +217,13 @@
       "model": "ollama/llama3.1:8b-instruct-q4_K_M",
       "temperature": 0.4,
       "tools": { "read": true, "write": true, "edit": true, "bash": false, "glob": true, "grep": true }
+    },
+    "json-test": {
+      "description": "Test agent that outputs only JSON",
+      "mode": "primary",
+      "model": "ollama/qwen2.5:7b-instruct-q4_K_M",
+      "temperature": 0.1,
+      "tools": { "read": false, "write": false, "edit": false, "bash": false }
     }
   }
 }

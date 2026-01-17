@@ -1,0 +1,402 @@
+{
+  "name": "Solution Design - OpenAPI & SQL Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Solution Design Workflow\n\n**Purpose**: Generate OpenAPI specifications and SQL schemas from architecture artifacts\n\n**Input**: Application Architecture JSON\n**Output**: \n- OpenAPI 3.1 YAML specification\n- PostgreSQL DDL script\n\n**Usage**: Called from main architecture pipeline or standalone webhook",
+        "height": 280,
+        "width": 400,
+        "color": 6
+      },
+      "id": "intro-note",
+      "name": "Solution Design Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-600, -100]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "solution-design",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - Solution Design",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-100, 300],
+      "webhookId": "solution-design-001"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "arch-json",
+              "name": "appArchitecture",
+              "value": "={{ $json.body.appArchitecture || $json.appArchitecture }}",
+              "type": "string"
+            },
+            {
+              "id": "brd-json",
+              "name": "brd",
+              "value": "={{ $json.body.brd || $json.brd }}",
+              "type": "string"
+            },
+            {
+              "id": "session-id",
+              "name": "sessionId",
+              "value": "={{ $json.body.sessionId || $json.sessionId || $now.format('yyyyMMdd-HHmmss') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-input",
+      "name": "Extract Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "content": "## OpenAPI Generation\n\nGenerates RESTful API specification based on application components and data objects",
+        "height": 150,
+        "width": 300,
+        "color": 4
+      },
+      "id": "openapi-note",
+      "name": "OpenAPI Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [250, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a Solution Architect generating OpenAPI 3.1 specifications as JSON.\\n\\n## CRITICAL INSTRUCTIONS\\n1. OUTPUT ONLY JSON - No explanations, no markdown, no code blocks\\n2. FIRST CHARACTER MUST BE `{`\\n3. VALID JSON REQUIRED - Must be parseable by json.loads()\\n\\n## JSON Schema\\n{\\n  \\\"title\\\": \\\"API Title\\\",\\n  \\\"description\\\": \\\"API Description\\\",\\n  \\\"version\\\": \\\"1.0.0\\\",\\n  \\\"servers\\\": [{\\\"url\\\": \\\"https://api.example.com/v1\\\", \\\"description\\\": \\\"Production\\\"}],\\n  \\\"tags\\\": [{\\\"name\\\": \\\"resource\\\", \\\"description\\\": \\\"Resource operations\\\"}],\\n  \\\"paths\\\": [\\n    {\\n      \\\"path\\\": \\\"/resource\\\",\\n      \\\"method\\\": \\\"get\\\",\\n      \\\"operationId\\\": \\\"listResources\\\",\\n      \\\"summary\\\": \\\"List resources\\\",\\n      \\\"tags\\\": [\\\"resource\\\"],\\n      \\\"parameters\\\": [{\\\"name\\\": \\\"limit\\\", \\\"in\\\": \\\"query\\\", \\\"type\\\": \\\"integer\\\", \\\"description\\\": \\\"Max items\\\"}],\\n      \\\"responses\\\": [{\\\"status\\\": \\\"200\\\", \\\"description\\\": \\\"Success\\\", \\\"schema\\\": \\\"ResourceList\\\"}]\\n    }\\n  ],\\n  \\\"schemas\\\": [\\n    {\\n      \\\"name\\\": \\\"Resource\\\",\\n      \\\"type\\\": \\\"object\\\",\\n      \\\"description\\\": \\\"Resource entity\\\",\\n      \\\"properties\\\": [\\n        {\\\"name\\\": \\\"id\\\", \\\"type\\\": \\\"string\\\", \\\"format\\\": \\\"uuid\\\", \\\"description\\\": \\\"Unique ID\\\"}\\n      ],\\n      \\\"required\\\": [\\\"id\\\"]\\n    }\\n  ]\\n}\\n\\n## Requirements\\n- At least 3 endpoints (CRUD operations)\\n- At least 2 schemas\\n- Include standard HTTP methods (GET, POST, PUT, DELETE)\\n- Use RESTful resource naming\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Generate the OpenAPI specification for this application architecture:\\n\\n{{ $json.appArchitecture }}\\n\\nBRD Context:\\n{{ $json.brd }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": 0.3,\n    \"num_predict\": 4096\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 300000
+        }
+      },
+      "id": "generate-openapi",
+      "name": "Generate OpenAPI JSON",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "openapi-json",
+              "name": "openapiJson",
+              "value": "={{ $json.message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "parse-openapi",
+      "name": "Parse OpenAPI Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "content": "## SQL Schema Generation\n\nGenerates PostgreSQL DDL based on data objects in the architecture",
+        "height": 150,
+        "width": 300,
+        "color": 5
+      },
+      "id": "sql-note",
+      "name": "SQL Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [700, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen2.5:7b-instruct-q4_K_M\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a Data Architect generating SQL schemas as JSON.\\n\\n## CRITICAL INSTRUCTIONS\\n1. OUTPUT ONLY JSON - No explanations, no markdown, no code blocks\\n2. FIRST CHARACTER MUST BE `{`\\n3. VALID JSON REQUIRED\\n\\n## JSON Schema\\n{\\n  \\\"schema\\\": \\\"public\\\",\\n  \\\"tables\\\": [\\n    {\\n      \\\"name\\\": \\\"table_name\\\",\\n      \\\"description\\\": \\\"Table description\\\",\\n      \\\"columns\\\": [\\n        {\\\"name\\\": \\\"id\\\", \\\"type\\\": \\\"uuid\\\", \\\"primaryKey\\\": true, \\\"default\\\": \\\"gen_random_uuid()\\\"},\\n        {\\\"name\\\": \\\"name\\\", \\\"type\\\": \\\"varchar(255)\\\", \\\"notNull\\\": true},\\n        {\\\"name\\\": \\\"created_at\\\", \\\"type\\\": \\\"timestamp\\\", \\\"default\\\": \\\"CURRENT_TIMESTAMP\\\"}\\n      ],\\n      \\\"indexes\\\": [\\n        {\\\"name\\\": \\\"idx_table_name\\\", \\\"columns\\\": [\\\"name\\\"], \\\"unique\\\": false}\\n      ]\\n    }\\n  ],\\n  \\\"foreignKeys\\\": [\\n    {\\\"table\\\": \\\"child\\\", \\\"column\\\": \\\"parent_id\\\", \\\"references\\\": {\\\"table\\\": \\\"parent\\\", \\\"column\\\": \\\"id\\\"}, \\\"onDelete\\\": \\\"CASCADE\\\"}\\n  ],\\n  \\\"enums\\\": [\\n    {\\\"name\\\": \\\"status_type\\\", \\\"values\\\": [\\\"pending\\\", \\\"active\\\", \\\"completed\\\"]}\\n  ]\\n}\\n\\n## Requirements\\n- Use PostgreSQL types (uuid, varchar, text, integer, timestamp, boolean, jsonb)\\n- Include proper constraints (primaryKey, notNull, unique)\\n- Add indexes for foreign keys and frequently queried columns\\n- Use snake_case for table and column names\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Generate the SQL schema for this application architecture:\\n\\n{{ $('Extract Input').item.json.appArchitecture }}\\n\\nOpenAPI Schema Context:\\n{{ $json.openapiJson }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": 0.3,\n    \"num_predict\": 4096\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 300000
+        }
+      },
+      "id": "generate-sql",
+      "name": "Generate SQL Schema JSON",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [760, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "sql-json",
+              "name": "sqlJson",
+              "value": "={{ $json.message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "parse-sql",
+      "name": "Parse SQL Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [980, 300]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/data/shared/artifacts/{{ $('Extract Input').item.json.sessionId }}/openapi-spec.json",
+        "fileContent": "={{ $('Parse OpenAPI Response').item.json.openapiJson }}"
+      },
+      "id": "save-openapi-json",
+      "name": "Save OpenAPI JSON",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1200, 200]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/data/shared/artifacts/{{ $('Extract Input').item.json.sessionId }}/sql-schema.json",
+        "fileContent": "={{ $json.sqlJson }}"
+      },
+      "id": "save-sql-json",
+      "name": "Save SQL JSON",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1200, 400]
+    },
+    {
+      "parameters": {
+        "command": "=cd /data/shared && python3 /data/shared/scripts/json-to-openapi.py /data/shared/artifacts/{{ $('Extract Input').item.json.sessionId }}/openapi-spec.json /data/shared/artifacts/{{ $('Extract Input').item.json.sessionId }}/openapi.yaml",
+        "options": {}
+      },
+      "id": "convert-openapi",
+      "name": "Convert to OpenAPI YAML",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1420, 200]
+    },
+    {
+      "parameters": {
+        "command": "=cd /data/shared && python3 /data/shared/scripts/json-to-sql.py /data/shared/artifacts/{{ $('Extract Input').item.json.sessionId }}/sql-schema.json /data/shared/artifacts/{{ $('Extract Input').item.json.sessionId }}/schema.sql",
+        "options": {}
+      },
+      "id": "convert-sql",
+      "name": "Convert to SQL DDL",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1420, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "result-status",
+              "name": "status",
+              "value": "completed",
+              "type": "string"
+            },
+            {
+              "id": "artifacts-path",
+              "name": "artifactsPath",
+              "value": "=/data/shared/artifacts/{{ $('Extract Input').item.json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "artifacts-list",
+              "name": "artifacts",
+              "value": "[\"openapi-spec.json\", \"openapi.yaml\", \"sql-schema.json\", \"schema.sql\"]",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prepare-response",
+      "name": "Prepare Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1640, 300]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1860, 300]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Solution Design": {
+      "main": [
+        [
+          {
+            "node": "Extract Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Input": {
+      "main": [
+        [
+          {
+            "node": "Generate OpenAPI JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate OpenAPI JSON": {
+      "main": [
+        [
+          {
+            "node": "Parse OpenAPI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse OpenAPI Response": {
+      "main": [
+        [
+          {
+            "node": "Generate SQL Schema JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate SQL Schema JSON": {
+      "main": [
+        [
+          {
+            "node": "Parse SQL Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse SQL Response": {
+      "main": [
+        [
+          {
+            "node": "Save OpenAPI JSON",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save SQL JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save OpenAPI JSON": {
+      "main": [
+        [
+          {
+            "node": "Convert to OpenAPI YAML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save SQL JSON": {
+      "main": [
+        [
+          {
+            "node": "Convert to SQL DDL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to OpenAPI YAML": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to SQL DDL": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "solution-design-v1-001",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "local-ai-solution-design"
+  },
+  "id": "solution-design-001",
+  "tags": ["architecture", "openapi", "sql"]
+}

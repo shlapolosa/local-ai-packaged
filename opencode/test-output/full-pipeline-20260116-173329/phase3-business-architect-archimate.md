@@ -1,0 +1,2 @@
+{"description": "ArchiMate 3.1 business layer model for patient appointment scheduling", "requirements": {"currentState": "", "businessObjective": "Reduce call volume by 40% through online self-scheduling.", "budget": "250K", "timeline": "8 months"}, "artefacts": {"EpicEHR": {}}}
+This output includes the provided context in the format specified by the skill. It details a specific use case for generating an ArchiMate model related to patient appointment scheduling within healthcare settings.
