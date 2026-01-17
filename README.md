@@ -692,6 +692,64 @@ The package includes a pre-built n8n workflow for automated enterprise architect
 |----------|------|---------|
 | Architecture Pipeline - AI Agent with Ollama | `iKBlJTWf5HPkKAVX` | Main BRD + Business Architecture generation |
 | Capability Map Loader - Qdrant | `CxkVyFRj6b0GiZuR` | Load healthcare capabilities into Qdrant |
+| Knowledge Loader - Generic | `BlN67oV6QwF2hzgb` | Load any knowledge folder into its Qdrant collection |
+| Knowledge Loader - All Collections | `hW4tlUp7CC0BItkN` | Batch load all knowledge folders |
+
+### Knowledge Folder Structure
+
+The package includes a structured knowledge base system for AI agents. Knowledge files are organized by domain and automatically loaded into Qdrant vector store collections.
+
+#### Folder Structure
+
+```
+shared/knowledge/
+├── knowledge-config.json          # Configuration mapping folders to collections
+├── capability-maps/               # Business capability models
+│   ├── README.md
+│   └── capability_map_documents.json
+├── reference-architectures/       # Architecture patterns & templates
+├── guardrails-principles/         # ADRs, constraints, policies
+├── existing-landscape/            # Current system documentation
+├── compliance-requirements/       # HIPAA, GDPR, SOC2 docs
+├── data-standards/                # Data models, naming conventions
+├── security-standards/            # Security policies, threat models
+└── testing-standards/             # QA methodologies, test strategies
+```
+
+#### Collection-to-Agent Mapping
+
+| Collection | Qdrant Collection | Used By Agents |
+|------------|-------------------|----------------|
+| capability-maps | `capability-maps` | business-architect |
+| reference-architectures | `reference-architectures` | app-architect, solution-architect, infra-architect |
+| guardrails-principles | `guardrails-principles` | app-architect, security-architect, compliance, risk-analyst |
+| existing-landscape | `existing-landscape` | All architect agents |
+| compliance-requirements | `compliance-requirements` | compliance, security-architect, risk-analyst |
+| data-standards | `data-standards` | data-architect, solution-architect |
+| security-standards | `security-standards` | security-architect, infra-architect |
+| testing-standards | `testing-standards` | qa-architect, testing-agent |
+
+#### Loading Knowledge
+
+**Option 1: Load a single collection**
+```bash
+# Via webhook (replace collection name as needed)
+curl -X POST http://localhost:5678/webhook/knowledge-loader \
+  -H "Content-Type: application/json" \
+  -d '{"collection": "capability-maps"}'
+```
+
+**Option 2: Load all collections**
+1. Open **"Knowledge Loader - All Collections"** workflow in n8n
+2. Click **"Execute Workflow"** (manual trigger)
+3. Wait for all collections to be embedded and loaded
+
+#### Adding New Knowledge
+
+1. Add files to the appropriate `shared/knowledge/<folder>/` directory
+2. Supported formats: `.json`, `.md`, `.txt`, `.yaml`, `.sql`
+3. Run the Knowledge Loader workflow for that collection
+4. The generic loader will automatically process and embed the files
 
 ### Setting Up Qdrant Knowledge Base
 
@@ -709,14 +767,14 @@ curl http://localhost:6333/collections
 
 #### Step 2: Verify Capability Data File
 
-The capability map JSON should exist at `shared/capability_map_documents.json`:
+The capability map JSON should exist at `shared/knowledge/capability-maps/capability_map_documents.json`:
 
 ```bash
 # Check file exists (should be ~1.2MB with 1,666 capabilities)
-ls -la shared/capability_map_documents.json
+ls -la shared/knowledge/capability-maps/capability_map_documents.json
 
 # Preview the data structure
-head -c 500 shared/capability_map_documents.json
+head -c 500 shared/knowledge/capability-maps/capability_map_documents.json
 ```
 
 If the file doesn't exist, it can be regenerated from the source Excel file:
@@ -742,7 +800,7 @@ for idx, row in df.iterrows():
         'metadata': {'level': level, 'l1': cap if level == 1 else '', 'capability': cap}
     })
 
-with open('../../shared/capability_map_documents.json', 'w') as f:
+with open('../../shared/knowledge/capability-maps/capability_map_documents.json', 'w') as f:
     json.dump(documents, f, indent=2)
 print(f'Exported {len(documents)} capabilities')
 "
@@ -765,19 +823,19 @@ print(f'Exported {len(documents)} capabilities')
 3. Wait for completion - this embeds all capabilities using `nomic-embed-text`
 
 The workflow:
-- Reads `/data/shared/capability_map_documents.json`
+- Reads `/data/shared/knowledge/capability-maps/capability_map_documents.json`
 - Parses and limits to 100 items (for testing - modify "Limit to 100" node for full load)
 - Creates embeddings using Ollama's `nomic-embed-text` model
-- Inserts into Qdrant collection `healthcare-capabilities`
+- Inserts into Qdrant collection `capability-maps`
 
 #### Step 5: Verify Qdrant Collection
 
 ```bash
 # Check the collection was created
-curl http://localhost:6333/collections/healthcare-capabilities
+curl http://localhost:6333/collections/capability-maps
 
 # Check document count
-curl http://localhost:6333/collections/healthcare-capabilities | jq '.result.points_count'
+curl http://localhost:6333/collections/capability-maps | jq '.result.points_count'
 ```
 
 ### Testing the Architecture Pipeline
@@ -811,7 +869,7 @@ Expected output includes:
 - Output: ArchiMate Business Layer JSON with capability mappings
 
 #### Capability QA Tool
-- Vector Store: Qdrant (`healthcare-capabilities` collection)
+- Vector Store: Qdrant (`capability-maps` collection)
 - Embeddings: `nomic-embed-text` via Ollama
 - Top K: 5 results per query
 - Purpose: Map business functions to standard healthcare capabilities
@@ -820,7 +878,7 @@ Expected output includes:
 
 | Issue | Solution |
 |-------|----------|
-| "Read Capability JSON" returns 0 items | Verify file exists at `shared/capability_map_documents.json` |
+| "Read Capability JSON" returns 0 items | Verify file exists at `shared/knowledge/capability-maps/capability_map_documents.json` |
 | Qdrant connection failed | Check credentials: URL should be `http://qdrant:6333` |
 | Embeddings timeout | Ensure Ollama has `nomic-embed-text` model: `docker exec ollama ollama pull nomic-embed-text` |
 | Capability QA Tool not responding | Verify Qdrant collection exists and has documents |
