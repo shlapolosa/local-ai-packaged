@@ -3,22 +3,18 @@
 **/.env
 
 volumes/
-shared/
 neo4j/
 shared-backup/
 .env.test
 searxng/settings.yml
 searxng/uwsgi*
 
+# Shared folder - ignore all except knowledge
+shared/*
+!shared/knowledge/
+
 # Exclude large archive files
 *.tar
 *.tar.gz
 *.zip
 .DS_Store
-
-# Knowledge folder - track structure but not data files
-!shared/knowledge/
-!shared/knowledge/**/
-!shared/knowledge/**/README.md
-!shared/knowledge/knowledge-config.json
-!shared/knowledge/capability-maps/capability_map_documents.json

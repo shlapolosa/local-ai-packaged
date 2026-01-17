@@ -1,0 +1,91 @@
+{
+  "version": "1.0.0",
+  "description": "Maps knowledge folders to Qdrant collections and agent consumers",
+  "embedding_model": "nomic-embed-text",
+  "collections": [
+    {
+      "folder": "capability-maps",
+      "collection_name": "capability-maps",
+      "description": "Organization capability models, business capabilities L1-L4",
+      "file_types": [".json", ".md", ".txt"],
+      "consumers": ["business-architect"],
+      "chunk_size": 1000,
+      "chunk_overlap": 200
+    },
+    {
+      "folder": "reference-architectures",
+      "collection_name": "reference-architectures",
+      "description": "Standard architecture patterns, templates, best practices",
+      "file_types": [".md", ".json", ".yaml", ".txt"],
+      "consumers": ["app-architect", "solution-architect", "infra-architect"],
+      "chunk_size": 1500,
+      "chunk_overlap": 300
+    },
+    {
+      "folder": "guardrails-principles",
+      "collection_name": "guardrails-principles",
+      "description": "Organization constraints, policies, architectural decision records",
+      "file_types": [".md", ".json", ".txt"],
+      "consumers": ["app-architect", "security-architect", "compliance", "risk-analyst"],
+      "chunk_size": 1000,
+      "chunk_overlap": 200
+    },
+    {
+      "folder": "existing-landscape",
+      "collection_name": "existing-landscape",
+      "description": "Current APIs, schemas, components, system documentation",
+      "file_types": [".md", ".json", ".yaml", ".sql", ".txt"],
+      "consumers": ["business-architect", "app-architect", "data-architect", "security-architect", "infra-architect", "solution-architect"],
+      "chunk_size": 2000,
+      "chunk_overlap": 400
+    },
+    {
+      "folder": "compliance-requirements",
+      "collection_name": "compliance-requirements",
+      "description": "HIPAA, GDPR, SOC2, regulatory compliance documentation",
+      "file_types": [".md", ".json", ".pdf", ".txt"],
+      "consumers": ["compliance", "security-architect", "risk-analyst"],
+      "chunk_size": 1500,
+      "chunk_overlap": 300
+    },
+    {
+      "folder": "data-standards",
+      "collection_name": "data-standards",
+      "description": "Data models, naming conventions, data dictionaries",
+      "file_types": [".md", ".json", ".sql", ".yaml", ".txt"],
+      "consumers": ["data-architect", "solution-architect"],
+      "chunk_size": 1500,
+      "chunk_overlap": 300
+    },
+    {
+      "folder": "security-standards",
+      "collection_name": "security-standards",
+      "description": "Security policies, threat models, authentication standards",
+      "file_types": [".md", ".json", ".txt"],
+      "consumers": ["security-architect", "infra-architect"],
+      "chunk_size": 1000,
+      "chunk_overlap": 200
+    },
+    {
+      "folder": "testing-standards",
+      "collection_name": "testing-standards",
+      "description": "QA methodologies, test strategies, quality gates",
+      "file_types": [".md", ".json", ".txt"],
+      "consumers": ["qa-architect", "testing-agent"],
+      "chunk_size": 1000,
+      "chunk_overlap": 200
+    }
+  ],
+  "agent_collection_mapping": {
+    "business-architect": ["capability-maps", "existing-landscape"],
+    "app-architect": ["reference-architectures", "guardrails-principles", "existing-landscape"],
+    "data-architect": ["data-standards", "existing-landscape"],
+    "security-architect": ["security-standards", "guardrails-principles", "compliance-requirements", "existing-landscape"],
+    "infra-architect": ["reference-architectures", "security-standards", "existing-landscape"],
+    "compliance": ["compliance-requirements", "guardrails-principles"],
+    "solution-architect": ["reference-architectures", "data-standards", "existing-landscape"],
+    "qa-architect": ["testing-standards", "guardrails-principles"],
+    "risk-analyst": ["compliance-requirements", "guardrails-principles"],
+    "testing-agent": ["testing-standards"]
+  }
+}
