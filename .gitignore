@@ -14,4 +14,4 @@ searxng/uwsgi*
 *.tar
 *.tar.gz
 *.zip
-.DS_Store
+.DS_Store!shared/capability_map_documents.json
