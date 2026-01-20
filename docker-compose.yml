@@ -399,6 +399,8 @@ services:
     depends_on:
       - ollama-cpu
       - n8n
+    stdin_open: true
+    tty: true
     logging:
       driver: "json-file"
       options:
@@ -425,6 +427,8 @@ services:
     depends_on:
       - ollama-gpu
       - n8n
+    stdin_open: true
+    tty: true
     logging:
       driver: "json-file"
       options:
@@ -451,6 +455,8 @@ services:
     depends_on:
       - ollama-gpu-amd
       - n8n
+    stdin_open: true
+    tty: true
     logging:
       driver: "json-file"
       options:
