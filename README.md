@@ -691,7 +691,6 @@ The package includes a pre-built n8n workflow for automated enterprise architect
 | Workflow | ID | Purpose |
 |----------|------|---------|
 | Architecture Pipeline - AI Agent with Ollama | `iKBlJTWf5HPkKAVX` | Main BRD + Business Architecture generation |
-| Capability Map Loader - Qdrant | `CxkVyFRj6b0GiZuR` | Load healthcare capabilities into Qdrant |
 | Knowledge Loader - Generic | `BlN67oV6QwF2hzgb` | Load any knowledge folder into its Qdrant collection |
 | Knowledge Loader - All Collections | `hW4tlUp7CC0BItkN` | Batch load all knowledge folders |
 
@@ -818,13 +817,17 @@ print(f'Exported {len(documents)} capabilities')
 
 #### Step 4: Load Capabilities into Qdrant
 
-1. Open the **"Capability Map Loader - Qdrant"** workflow in n8n
-2. Click **"Execute Workflow"** (manual trigger)
+1. Open the **"Knowledge Loader - Generic"** workflow in n8n
+2. Trigger via webhook with the collection name:
+   ```bash
+   curl -X POST http://localhost:5678/webhook/knowledge-loader \
+     -H "Content-Type: application/json" \
+     -d '{"collection": "capability-maps"}'
+   ```
 3. Wait for completion - this embeds all capabilities using `nomic-embed-text`
 
 The workflow:
 - Reads `/data/shared/knowledge/capability-maps/capability_map_documents.json`
-- Parses and limits to 100 items (for testing - modify "Limit to 100" node for full load)
 - Creates embeddings using Ollama's `nomic-embed-text` model
 - Inserts into Qdrant collection `capability-maps`
 
@@ -886,14 +889,15 @@ Expected output includes:
 
 ### Loading Full Capability Map
 
-To load all 1,666 capabilities instead of the test batch of 100:
+The **"Knowledge Loader - Generic"** workflow automatically processes all documents in the knowledge folder without limits. To load all 1,666 healthcare capabilities:
 
-1. Open the "Capability Map Loader - Qdrant" workflow
-2. Find the "Limit to 100" node
-3. Either:
-   - Increase `maxItems` to 2000, or
-   - Delete/disable the node entirely
-4. Re-execute the workflow (this will take longer due to embedding generation)
+```bash
+curl -X POST http://localhost:5678/webhook/knowledge-loader \
+  -H "Content-Type: application/json" \
+  -d '{"collection": "capability-maps"}'
+```
+
+This will process all documents and create embeddings using Ollama's `nomic-embed-text` model.
 
 ---
 

@@ -1,0 +1,1493 @@
+{
+  "name": "Architecture Pipeline - AI Agent with Ollama",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Architecture Pipeline with AI Agents\n\n**Pattern:** Two-step capability lookup\n1. Search Qdrant for capabilities\n2. Pass results to agent (no tools)\n\n**Trigger:** POST /webhook/architecture-pipeline",
+        "height": 340,
+        "width": 300,
+        "color": 6
+      },
+      "id": "intro-note",
+      "name": "Pipeline Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "architecture-pipeline",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        304
+      ],
+      "webhookId": "architecture-pipeline-v2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "text",
+              "name": "text",
+              "value": "={{ $json.body.text }}",
+              "type": "string"
+            },
+            {
+              "id": "projectName",
+              "name": "projectName",
+              "value": "={{ $json.body.projectName }}",
+              "type": "string"
+            },
+            {
+              "id": "startAt",
+              "name": "startAt",
+              "value": "={{ $json.body.startAt || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "sessionId",
+              "name": "sessionId",
+              "value": "={{ $now.format('yyyyMMdd-HHmmss') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "init-params",
+      "name": "Initialize Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Phase 1: BRD Generation",
+        "height": 60,
+        "width": 280,
+        "color": 4
+      },
+      "id": "brd-agent-note",
+      "name": "BRD Agent Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        208,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Phase 2: Business Architecture\nDeterministic Qdrant retrieval",
+        "height": 80,
+        "width": 300,
+        "color": 5
+      },
+      "id": "business-arch-note",
+      "name": "Business Arch Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2144,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text"
+      },
+      "id": "qdrant-embeddings",
+      "name": "Search Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        720,
+        528
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "wBImjsvQ8UxvUDz2",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "ollamaUrl",
+              "value": "https://ollama.socrates-hlapolosa.org/api/chat",
+              "type": "string"
+            },
+            {
+              "name": "ollamaModel",
+              "value": "llama3.1:8b-instruct-q4_K_M",
+              "type": "string"
+            },
+            {
+              "name": "ollamaTemperature",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "name": "ollamaSeed",
+              "value": 42,
+              "type": "number"
+            },
+            {
+              "name": "maxRetries",
+              "value": 2,
+              "type": "number"
+            },
+            {
+              "name": "qdrantTopK",
+              "value": 40,
+              "type": "number"
+            },
+            {
+              "name": "capabilityRelevanceThreshold",
+              "value": 0.7,
+              "type": "number"
+            },
+            {
+              "name": "knowledgeConfigPath",
+              "value": "/data/shared/knowledge/knowledge-config.json",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8c25ae25-84da-4002-a76f-99d86c2bb1b5",
+      "name": "Run Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -48,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"{{ $('Run Config').first().json.ollamaModel }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classifier for an architecture pipeline. Output ONLY JSON.\\n\\nReturn: {\\\\\"intent\\\\\":\\\\\"create_project|update_project|regenerate_from_stage\\\\\",\\\\\"proposedProjectName\\\\\":string,\\\\\"startAt\\\\\":\\\\\"business_analyst|business_architect\\\\\",\\\\\"confidence\\\\\":number,\\\\\"notes\\\\\":string}.\\n\\nRules:\\n- If user provided startAt, use it.\\n- If no startAt, default to business_analyst unless the user clearly requests business architecture only.\\n- If projectName not provided, propose a short name.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"text={{ $('Initialize Parameters').first().json.text }}\\nprojectName={{ $('Initialize Parameters').first().json.projectName }}\\nstartAt={{ $('Initialize Parameters').first().json.startAt }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": {{ $('Run Config').first().json.ollamaTemperature }},\n    \"seed\": {{ $('Run Config').first().json.ollamaSeed }}\n  }\n}",
+        "options": {}
+      },
+      "id": "7fca9f84-b7f2-4609-93af-682411ebc292",
+      "name": "Classify Intent (Ollama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        224,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const init = $('Initialize Parameters').first().json;\nconst classified = $json.message?.content ? JSON.parse($json.message.content) : {};\n\nconst projectName = (init.projectName && init.projectName.trim()) ? init.projectName.trim() : (classified.proposedProjectName || 'architecture-project');\nconst startAt = (init.startAt && init.startAt.trim()) ? init.startAt.trim() : (classified.startAt || 'business_analyst');\n\nconst slugify = (s) => String(s || '')\n  .toLowerCase()\n  .trim()\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-+|-+$/g, '')\n  .replace(/--+/g, '-');\n\nconst projectSlug = slugify(projectName) || 'architecture-project';\n\n// Non-crypto stable hash (FNV-1a 32-bit)\nconst fnv1a = (str) => {\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst requestHash = fnv1a(String(init.text || ''));\n\nreturn [{\n  json: {\n    ...init,\n    intent: classified.intent || 'create_project',\n    confidence: classified.confidence ?? null,\n    notes: classified.notes || null,\n    projectName,\n    projectSlug,\n    startAt,\n    runConfig: $('Run Config').first().json,\n    requestHash,\n  }\n}];"
+      },
+      "id": "07f878eb-8ebe-4afd-9908-403a34ee33ab",
+      "name": "Apply Classification + Slugify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE SCHEMA IF NOT EXISTS architecture;\n\nCREATE TABLE IF NOT EXISTS architecture.projects (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  slug text UNIQUE NOT NULL,\n  name text,\n  created_at timestamptz DEFAULT now(),\n  updated_at timestamptz DEFAULT now()\n);\n\nCREATE TABLE IF NOT EXISTS architecture.artifacts (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  project_id uuid NOT NULL REFERENCES architecture.projects(id),\n  type text NOT NULL,\n  version int NOT NULL,\n  content jsonb NOT NULL,\n  content_hash text NOT NULL,\n  meta jsonb NOT NULL DEFAULT '{}'::jsonb,\n  created_at timestamptz DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS artifacts_project_type_version_idx ON architecture.artifacts(project_id, type, version DESC);",
+        "options": {}
+      },
+      "id": "f0ad5120-1342-47d5-adec-b778bf000449",
+      "name": "Ensure DB Schema",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        704,
+        128
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO architecture.projects (slug, name, updated_at)\nVALUES ($1, $2, now())\nON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, updated_at = now()\nRETURNING id, slug, name;",
+        "options": {
+          "queryReplacement": "={{ [ $json.projectSlug, $json.projectName ] }}"
+        }
+      },
+      "id": "7a066ccb-99e7-4163-85ee-be26e84fe7ab",
+      "name": "Upsert Project",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        704,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT content, version, content_hash, created_at\nFROM architecture.artifacts\nWHERE project_id = $1 AND type = 'brd'\nORDER BY version DESC\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ [ $json.id ] }}"
+        }
+      },
+      "id": "b0810fac-157f-43d8-8016-98441984c6bb",
+      "name": "Load Latest BRD",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        944,
+        304
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ (() => { const s = $('Apply Classification + Slugify').first().json.startAt; if (s === 'application_architect') return 2; if (s === 'business_architect') return 1; return 0; })() }}"
+      },
+      "id": "638b0e6a-73c3-415b-9611-33feb44459ec",
+      "name": "StartAt Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Business Analyst. Output ONLY JSON that matches the schema. No markdown.' },\n    { role: 'user', content: $('Apply Classification + Slugify').first().json.text }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['type','title','version','executiveSummary','problemStatement','businessObjectives','stakeholders','scope','constraints','assumptions','successCriteria'],\n    properties: {\n      type: { const: 'brd' },\n      title: { type: 'string' },\n      version: { type: 'string' },\n      executiveSummary: { type: 'string' },\n      problemStatement: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['currentState','painPoints','impact'],\n        properties: {\n          currentState: { type: 'string' },\n          painPoints: { type: 'array', items: { type: 'string' } },\n          impact: { type: 'string' }\n        }\n      },\n      businessObjectives: { type: 'array' },\n      stakeholders: { type: 'array' },\n      scope: { type: 'object' },\n      constraints: { type: 'array' },\n      assumptions: { type: 'array' },\n      successCriteria: { type: 'array' }\n    }\n  },\n  options: {\n    temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {}
+      },
+      "id": "9e836322-af37-4dec-a317-d16cccb80191",
+      "name": "Generate BRD (Llama HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1664,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Basic BRD validation without external modules\nconst raw = $json.message?.content;\nlet brd;\ntry {\n  brd = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { ...$json, valid: false, errors: ['BRD JSON parse failed: ' + e.message], brd: null } }];\n}\n\nconst errors = [];\nif (brd?.type !== 'brd') errors.push('type must be brd');\nif (!brd?.title) errors.push('title is required');\nif (!brd?.executiveSummary) errors.push('executiveSummary is required');\nif (!brd?.problemStatement) errors.push('problemStatement is required');\nif (!Array.isArray(brd?.businessObjectives)) errors.push('businessObjectives must be array');\nif (!Array.isArray(brd?.stakeholders)) errors.push('stakeholders must be array');\nif (!brd?.scope) errors.push('scope is required');\n\n// Non-crypto hash (FNV-1a)\nconst fnv1a = (input) => {\n  const str = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst brdHash = fnv1a(JSON.stringify(brd));\n\nreturn [{ json: { ...$json, valid, errors, brd, brdHash } }];"
+      },
+      "id": "0f3fd4c0-49bc-44ac-9cd8-bdd37cc2fb8e",
+      "name": "Validate BRD",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1904,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'brd'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'brd', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify($json.brd), $json.brdHash, JSON.stringify({ model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+        }
+      },
+      "id": "36e27cd1-6d30-4727-9134-4fdd20fb45e1",
+      "name": "Store BRD Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2144,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "qdrantCollection": {
+          "__rl": true,
+          "mode": "id",
+          "value": "capability-maps"
+        },
+        "prompt": "=healthcare capabilities relevant to this project: {{ JSON.stringify($('Validate BRD').first().json.brd).substring(0, 600) }}",
+        "topK": "={{ $('Run Config').first().json.qdrantTopK }}",
+        "options": {}
+      },
+      "id": "e2bb7059-fff7-4a2c-85c1-575c3f336ac5",
+      "name": "Qdrant Search (Capabilities) v2",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        2384,
+        304
+      ],
+      "credentials": {
+        "qdrantApi": {
+          "id": "dh1JSfFyrr9rh7Xr",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize Qdrant docs into deterministic candidate list with stable ids\nconst items = $input.all();\n\nconst normalizeId = (doc) => {\n  const md = doc.metadata || {};\n  const mdId = md.id || md.path || md.l4 || md.l3 || md.l2 || md.l1;\n  if (mdId) return String(mdId);\n  const firstLine = String(doc.pageContent || '').split('\\n')[0].trim();\n  if (firstLine) return firstLine;\n  return String(doc.pageContent || '').slice(0, 80);\n};\n\nconst candidates = items\n  .map(i => i.json.document)\n  .filter(Boolean)\n  .map((d) => ({\n    id: normalizeId(d),\n    text: d.pageContent,\n    metadata: d.metadata || {},\n    score: typeof d.score === 'number' ? d.score : null,\n  }));\n\ncandidates.sort((a,b) => {\n  const sa = (a.score ?? -1);\n  const sb = (b.score ?? -1);\n  if (sb !== sa) return sb - sa;\n  return String(a.id).localeCompare(String(b.id));\n});\n\nreturn [{ json: { ...$('Validate BRD').first().json, capabilityCandidates: candidates } }];"
+      },
+      "id": "6a8c008b-f445-4725-a661-40bb0cf7b6a3",
+      "name": "Aggregate Capability Candidates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2624,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'Select capabilities relevant to the project.',\n        'Return selection by INDEX into the candidates array (0-based).',\n        'Return integer indexes only.',\n        'Prefer recall over precision (include borderline-relevant capabilities).',\n        'Output ONLY JSON.'\n      ].join('\\n')\n    },\n    {\n      role: 'user',\n      content: 'PROJECT: ' + $('Apply Classification + Slugify').first().json.text +\n        '\\n\\nCANDIDATES (index, preview): ' +\n        JSON.stringify(( $('Aggregate Capability Candidates').first().json.capabilityCandidates || [] ).map((c, idx) => ({ idx, preview: (c.text || '').slice(0, 140) }))).slice(0, 6000)\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['selected'],\n    properties: {\n      selected: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['index','relevanceScore','reason'],\n          properties: {\n            index: { type: 'integer', minimum: 0 },\n            relevanceScore: { type: 'number' },\n            reason: { type: 'string' }\n          }\n        }\n      }\n    }\n  },\n  options: {\n    temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "091189a0-110a-40b0-afc8-196fbe3125e5",
+      "name": "Select Relevant Capabilities (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2864,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const threshold = $('Run Config').first().json.capabilityRelevanceThreshold;\nconst candidates = $('Aggregate Capability Candidates').first().json.capabilityCandidates || [];\n\nconst selectionRaw = $json.message?.content;\nlet selection;\ntry { selection = typeof selectionRaw === 'string' ? JSON.parse(selectionRaw) : selectionRaw; }\ncatch (e) { selection = { selected: [] }; }\n\nconst picked = new Set();\nconst selected = [];\nfor (const s of (selection.selected || [])) {\n  const idx = s?.index;\n  if (typeof idx !== 'number') continue;\n  if ((s.relevanceScore ?? 0) < threshold) continue;\n  if (picked.has(idx)) continue;\n\n  const c = candidates[idx];\n  if (!c) continue;\n\n  picked.add(idx);\n  selected.push(c);\n}\n\nconst capabilityContext = selected.map(s => s.text).join('\\n\\n');\n\nreturn [{\n  json: {\n    ...$('Aggregate Capability Candidates').first().json,\n    selectedCapabilities: selected,\n    capabilityContext,\n    capabilitySelection: selection\n  }\n}];"
+      },
+      "id": "3edbee22-0c84-41ef-9930-65ac9378319d",
+      "name": "Build Capability Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3104,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are a Business Architect.',\n        'Generate an architecture model as JSON with elements and relationships.',\n        'CRITICAL COVERAGE RULE:',\n        '- The BRD scope.features list contains key features. For EACH feature, you MUST represent it explicitly in the model as at least one element (Capability/Service/Process/Function/Component/DataObject), or as a clearly named group of elements, but it must be traceable.',\n        '- Do not omit major features such as approvals, policy enforcement, fraud detection, reporting, integrations, multi-currency, per-diem.',\n        'QUALITY RULES:',\n        '- Output ONLY JSON (no markdown).',\n        '- Relationships must reference existing element ids.',\n        '- Prefer recall over precision for capabilities/context: include relevant items even if broad, but avoid unrelated domains.',\n        '- Use stable, readable ids (kebab-case or short codes) and ensure uniqueness.'\n      ].join('\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'PROJECT: ' + $('Apply Classification + Slugify').first().json.text,\n        'BRD_JSON: ' + JSON.stringify($('Validate BRD').first().json.brd),\n        'BRD_FEATURES: ' + JSON.stringify($('Validate BRD').first().json.brd?.scope?.features || []),\n        'SELECTED_CAPABILITIES: ' + JSON.stringify($('Build Capability Context').first().json.selectedCapabilities || [])\n      ].join('\\n\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','elements','relationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { type: 'string' },\n      elements: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['id','type','name'],\n          properties: {\n            id: { type: 'string' },\n            type: { type: 'string' },\n            name: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      relationships: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['type','source','target'],\n          properties: {\n            type: { type: 'string' },\n            source: { type: 'string' },\n            target: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      }\n    }\n  },\n  options: {\n    temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "e0b81ed5-f83e-4848-9e1e-13c7fff2c43f",
+      "name": "Generate Business Architecture (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3344,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate Business Architecture without external modules\nlet model;\ntry { model = JSON.parse($json.message.content); }\ncatch (e) {\n  return [{ json: { ...$json, valid: false, errors: ['Business arch parse failed: ' + e.message], businessArch: null } }];\n}\n\nconst errors = [];\nif (!model?.name) errors.push('name is required');\nif (!model?.layer) errors.push('layer is required');\nif (!Array.isArray(model?.elements)) errors.push('elements must be array');\nif (!Array.isArray(model?.relationships)) errors.push('relationships must be array');\n\nconst elementIds = new Set((model.elements || []).map(e => e.id));\nfor (const rel of (model.relationships || [])) {\n  if (!elementIds.has(rel.source)) errors.push(`Relationship source not found: ${rel.source}`);\n  if (!elementIds.has(rel.target)) errors.push(`Relationship target not found: ${rel.target}`);\n}\n\nconst fnv1a = (str) => {\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst businessArchHash = fnv1a(JSON.stringify(model));\n\nreturn [{ json: { ...$('Build Capability Context').first().json, valid, errors, businessArch: model, businessArchHash } }];"
+      },
+      "id": "fc58c01d-8126-49ac-bd9d-0040b490be5d",
+      "name": "Validate Business Architecture",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3584,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'business_arch'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'business_arch', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify($json.businessArch), $json.businessArchHash, JSON.stringify({ model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature, capabilitySelection: $('Build Capability Context').first().json.capabilitySelection }) ] }}"
+        }
+      },
+      "id": "a4bedef5-f738-401f-a1b2-7dccab9da97e",
+      "name": "Store Business Arch Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3824,
+        304
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Deterministic ArchiMate XML with type mapping\nconst projectSlug = $('Apply Classification + Slugify').first().json.projectSlug;\nconst model = $json.businessArch;\n\nif (!model || !Array.isArray(model.elements) || !Array.isArray(model.relationships)) {\n  throw new Error('Missing or invalid businessArch for XML conversion');\n}\n\nconst escapeXml = (t) => String(t ?? '')\n  .replace(/&/g,'&amp;')\n  .replace(/</g,'&lt;')\n  .replace(/>/g,'&gt;')\n  .replace(/\\\"/g,'&quot;')\n  .replace(/'/g,'&apos;');\n\nconst fnv1a = (str) => {\n  const s = String(str ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) {\n    hash ^= s.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('000000000000' + hash.toString(16)).slice(-12);\n};\n\nconst stableId = (s) => fnv1a(String(s));\n\n// ArchiMate Tool expects specific xsi:type values\nconst mapElementType = (t) => {\n  const s = String(t || '').toLowerCase();\n  if (s.includes('capability')) return 'Capability';\n  if (s.includes('actor') || s.includes('user') || s.includes('person')) return 'BusinessActor';\n  if (s.includes('service')) return 'ApplicationService';\n  if (s.includes('interface') || s.includes('ui')) return 'ApplicationInterface';\n  if (s.includes('data') || s.includes('repository') || s.includes('storage') || s.includes('db')) return 'DataObject';\n  if (s.includes('process')) return 'BusinessProcess';\n  if (s.includes('component') || s.includes('logic') || s.includes('ingestion') || s.includes('api')) return 'ApplicationComponent';\n  // fallback\n  return 'ApplicationComponent';\n};\n\nconst mapRelType = (t) => {\n  const s = String(t || '').toLowerCase();\n  // Use ArchiMate relationship types supported by Archi tool\n  if (s === 'uses' || s.includes('use')) return 'ServingRelationship';\n  if (s.includes('integrat') || s.includes('flow')) return 'FlowRelationship';\n  if (s.includes('access') || s.includes('read') || s.includes('write') || s.includes('store') || s.includes('calculate')) return 'AccessRelationship';\n  if (s.includes('realiz')) return 'RealizationRelationship';\n  if (s.includes('assign')) return 'AssignmentRelationship';\n  if (s.includes('depend')) return 'InfluenceRelationship';\n  return 'AssociationRelationship';\n};\n\nconst elementXmlId = (el) => `e-${stableId(`${projectSlug}:business_arch:${el.id}`)}`;\nconst relXmlId = (rel) => `r-${stableId(`${projectSlug}:${rel.type}:${rel.source}->${rel.target}`)}`;\n\nconst elements = [...model.elements].sort((a,b) => String(a.id).localeCompare(String(b.id)));\nconst relationships = [...model.relationships].sort((a,b) => `${a.type}|${a.source}|${a.target}`.localeCompare(`${b.type}|${b.source}|${b.target}`));\n\nconst elementIdMap = {};\nfor (const el of elements) elementIdMap[el.id] = elementXmlId(el);\n\nconst modelId = `m-${stableId(`${projectSlug}:model`)}`;\nconst folderId = `f-${stableId(`${projectSlug}:folder:elements`)}`;\nconst relFolderId = `f-${stableId(`${projectSlug}:folder:relations`)}`;\n\nlet xml = `<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?>\\n` +\n  `<archimate:model xmlns:xsi=\\\"http://www.w3.org/2001/XMLSchema-instance\\\" xmlns:archimate=\\\"http://www.archimatetool.com/archimate\\\" name=\\\"${escapeXml(model.name || 'Model')}\\\" id=\\\"${modelId}\\\" version=\\\"5.0.0\\\">\\n`;\n\nxml += `  <folder name=\\\"Elements\\\" id=\\\"${folderId}\\\" type=\\\"elements\\\">\\n`;\nfor (const el of elements) {\n  const xsiType = mapElementType(el.type);\n  xml += `    <element xsi:type=\\\"archimate:${xsiType}\\\" name=\\\"${escapeXml(el.name)}\\\" id=\\\"${elementIdMap[el.id]}\\\">\\n`;\n  if (el.description) xml += `      <documentation>${escapeXml(el.description)}</documentation>\\n`;\n  xml += `    </element>\\n`;\n}\nxml += `  </folder>\\n`;\n\nlet relCount = 0;\nxml += `  <folder name=\\\"Relations\\\" id=\\\"${relFolderId}\\\" type=\\\"relations\\\">\\n`;\nfor (const rel of relationships) {\n  const sid = elementIdMap[rel.source];\n  const tid = elementIdMap[rel.target];\n  if (!sid || !tid) continue;\n  const relType = mapRelType(rel.type);\n  xml += `    <element xsi:type=\\\"archimate:${relType}\\\" id=\\\"${relXmlId(rel)}\\\" source=\\\"${sid}\\\" target=\\\"${tid}\\\"/>\\n`;\n  relCount++;\n}\nxml += `  </folder>\\n</archimate:model>`;\n\nreturn [{ json: { ...$json, archimateXml: xml, elementCount: elements.length, relationshipCount: relCount } }];"
+      },
+      "id": "c8cd3413-16ff-445e-8d5f-9c4f655f15b7",
+      "name": "Convert to ArchiMate XML (Deterministic)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4064,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "status",
+              "value": "={{ ($json.valid === false) ? 'failed' : 'completed' }}",
+              "type": "string"
+            },
+            {
+              "name": "projectSlug",
+              "value": "={{ $('Apply Classification + Slugify').first().json.projectSlug }}",
+              "type": "string"
+            },
+            {
+              "name": "projectName",
+              "value": "={{ $('Apply Classification + Slugify').first().json.projectName }}",
+              "type": "string"
+            },
+            {
+              "name": "startAt",
+              "value": "={{ $('Apply Classification + Slugify').first().json.startAt }}",
+              "type": "string"
+            },
+            {
+              "name": "brd",
+              "value": "={{ $('Validate BRD').first().json.brd }}",
+              "type": "object"
+            },
+            {
+              "name": "businessArchitecture",
+              "value": "={{ $json.businessArch }}",
+              "type": "object"
+            },
+            {
+              "name": "archimateXml",
+              "value": "={{ $json.archimateXml }}",
+              "type": "string"
+            },
+            {
+              "name": "validation",
+              "value": "={{ { brd: { valid: $('Validate BRD').first().json.valid, errors: $('Validate BRD').first().json.errors }, businessArch: { valid: ($json.valid !== false), errors: ($json.errors || []) } } }}",
+              "type": "object"
+            },
+            {
+              "name": "counts",
+              "value": "={{ { elements: $json.elementCount, relationships: $json.relationshipCount } }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2f32eea1-6568-444c-a379-1e2f2bcda299",
+      "name": "Compile Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4304,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input is output of \"Normalize BRD Rows\" which returns { rows: [...] }\nconst rows = $json.rows || [];\nconst hasBrd = Array.isArray(rows) && rows.length > 0;\n\nreturn hasBrd\n  ? [{ json: { hasBrd: true, brdFromDb: rows[0].content } }]\n  : [{ json: { hasBrd: false } }];"
+      },
+      "id": "5166e003-7622-4fc6-9f85-edf9c99a0b41",
+      "name": "Determine BRD Flow",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        304
+      ],
+      "notes": "Output 0=generate BRD if missing, Output 1=use existing BRD (TODO: load into validator)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Carry forward the original request context (slug/name/startAt)\nreturn [{ json: $('Apply Classification + Slugify').first().json }];"
+      },
+      "id": "c796f144-ea41-466f-94dd-426d4928735b",
+      "name": "Pass Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ensure we always output exactly one item with rows[]\nconst items = $input.all();\nif (!items.length) return [{ json: { rows: [] } }];\n\n// Postgres node returns one item per row. Normalize into rows array.\nconst rows = items.map(i => i.json);\nreturn [{ json: { rows } }];"
+      },
+      "id": "cad4012d-f94b-45cc-9291-52e07583e31d",
+      "name": "Normalize BRD Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        304
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $('Determine BRD Flow').first().json.hasBrd ? 0 : 1 }}"
+      },
+      "id": "4ec1a860-b143-4192-812f-a20d6b4b1686",
+      "name": "BRD Source Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "brdSource",
+              "name": "brdSource",
+              "type": "string",
+              "value": "db"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "type": "object",
+              "value": "={{ { content: JSON.stringify($('Determine BRD Flow').first().json.brdFromDb) } }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bdf0a07b-f38c-4866-afe6-7a1056b18ece",
+      "name": "Use Existing BRD",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "brdSource",
+              "name": "brdSource",
+              "type": "string",
+              "value": "generated"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "453fd4ba-2fd5-4b2f-b746-feb960525716",
+      "name": "Mark BRD Generated",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.brdSource === 'generated' ? 0 : 1 }}"
+      },
+      "id": "eb9825be-34da-4828-9834-3c9cab7b62af",
+      "name": "BRD Post-Validate Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2032,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prefer in-flight businessArch, fallback to DB insert output (no businessArch)\nif ($json.businessArch) return [{ json: $json }];\nreturn [{ json: { ...$json, businessArch: $('Validate Business Architecture').first().json.businessArch } }];"
+      },
+      "id": "fbaa4f18-4179-4aff-bcab-b60498f62870",
+      "name": "Reload Business Arch For XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3968,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You repair a Business Architecture JSON model.',\n        'Input may have relationship source/target IDs that do not exist in elements.',\n        'Fix by either: (a) changing relationship source/target to existing element ids, or (b) adding missing elements.',\n        'Return ONLY corrected JSON matching the same schema.',\n        'Do not introduce medication/formulary unless project requires it.'\n      ].join('\\n')\n    },\n    {\n      role: 'user',\n      content: 'PROJECT: ' + $('Apply Classification + Slugify').first().json.text +\n        '\\n\\nVALIDATION_ERRORS: ' + JSON.stringify($json.errors || []) +\n        '\\n\\nBUSINESS_ARCH_JSON: ' + JSON.stringify($json.businessArch)\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','elements','relationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { type: 'string' },\n      elements: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['id','type','name'],\n          properties: {\n            id: { type: 'string' },\n            type: { type: 'string' },\n            name: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      relationships: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['type','source','target'],\n          properties: {\n            type: { type: 'string' },\n            source: { type: 'string' },\n            target: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      }\n    }\n  },\n  options: {\n    temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "248993f4-48f0-43be-8439-7776d19dab0e",
+      "name": "Repair Business Architecture (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3584,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "id": "condition-1768746774228-vmrzugjrd"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "580299f5-8df0-44f8-a23d-9400d42515cb",
+      "name": "Business Arch Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3824,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate repaired Business Architecture\nlet model;\ntry { model = JSON.parse($json.message.content); }\ncatch (e) {\n  return [{ json: { ...$json, valid: false, errors: ['Repair parse failed: ' + e.message], businessArch: null } }];\n}\n\nconst errors = [];\nconst elementIds = new Set((model.elements || []).map(e => e.id));\nfor (const rel of (model.relationships || [])) {\n  if (!elementIds.has(rel.source)) errors.push(`Relationship source not found: ${rel.source}`);\n  if (!elementIds.has(rel.target)) errors.push(`Relationship target not found: ${rel.target}`);\n}\n\nconst valid = errors.length === 0;\n\n// Hash (FNV-1a)\nconst fnv1a = (str) => {\n  let hash = 0x811c9dc5;\n  const s = String(str ?? '');\n  for (let i = 0; i < s.length; i++) {\n    hash ^= s.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst businessArchHash = fnv1a(JSON.stringify(model));\n\nreturn [{ json: { ...$('Build Capability Context').first().json, valid, errors, businessArch: model, businessArchHash, repaired: true } }];"
+      },
+      "id": "f103d140-5788-4751-8d9a-56655890d73b",
+      "name": "Validate Repaired Business Arch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4064,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) {\n    hash ^= s.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nreturn [{ json: { ...$json, archimateXmlHash: fnv1a($json.archimateXml) } }];"
+      },
+      "id": "80a1ce19-5008-49e1-a5d8-30792252a85e",
+      "name": "Hash Business XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4224,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'archimate_xml_business'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'archimate_xml_business', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify({ xml: $json.archimateXml }), $json.archimateXmlHash, JSON.stringify({ stage: 'business_architect', model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+        }
+      },
+      "id": "d36b1580-dea1-46cc-8494-9a267de608f3",
+      "name": "Store Business XML Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4464,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are an Application Architect.',\n        'Generate an application architecture model as JSON.',\n        'You must include crossLayerRelationships to explicitly connect business elements to application elements.',\n        'Direction: businessSourceId -> applicationTargetId.',\n        'Coverage: For each BRD feature, include at least one application element and link it from a business element via crossLayerRelationships.',\n        'Output ONLY JSON. Relationships must reference existing element ids.'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'BRD: ' + JSON.stringify($('Validate BRD').first().json.brd),\n        'BUSINESS_ARCH: ' + JSON.stringify($('Validate Business Architecture').first().json.businessArch),\n        'BRD_FEATURES: ' + JSON.stringify((($('Validate BRD').first().json.brd && $('Validate BRD').first().json.brd.scope && $('Validate BRD').first().json.brd.scope.features) ? $('Validate BRD').first().json.brd.scope.features : []))\n      ].join('\\\\n\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','elements','relationships','crossLayerRelationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { const: 'Application' },\n      elements: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['id','type','name'],\n          properties: {\n            id: { type: 'string' },\n            type: { type: 'string' },\n            name: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      relationships: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['type','source','target'],\n          properties: {\n            type: { type: 'string' },\n            source: { type: 'string' },\n            target: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      crossLayerRelationships: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['type','businessSourceId','applicationTargetId'],\n          properties: {\n            type: { type: 'string' },\n            businessSourceId: { type: 'string' },\n            applicationTargetId: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      }\n    }\n  },\n  options: {\n    temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "8b5973a7-8b29-499e-b722-1c2193c69363",
+      "name": "Generate Application Architecture (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3984,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "let model;\ntry { model = JSON.parse($json.message.content); }\ncatch (e) {\n  return [{ json: { valid: false, errors: ['Application arch parse failed: ' + e.message], applicationArch: null } }];\n}\n\nconst errors = [];\nif (model.layer !== 'Application') errors.push('layer must be Application');\nif (!Array.isArray(model.elements)) errors.push('elements must be array');\nif (!Array.isArray(model.relationships)) errors.push('relationships must be array');\nif (!Array.isArray(model.crossLayerRelationships)) errors.push('crossLayerRelationships must be array');\n\nconst appIds = new Set((model.elements || []).map(e => e.id));\nfor (const rel of (model.relationships || [])) {\n  if (!appIds.has(rel.source)) errors.push(`App relationship source not found: ${rel.source}`);\n  if (!appIds.has(rel.target)) errors.push(`App relationship target not found: ${rel.target}`);\n}\n\nconst businessArch = $('Validate Business Architecture').first().json.businessArch;\nconst bizIds = new Set((businessArch?.elements || []).map(e => e.id));\nfor (const rel of (model.crossLayerRelationships || [])) {\n  if (!bizIds.has(rel.businessSourceId)) errors.push(`Cross-layer businessSourceId not found: ${rel.businessSourceId}`);\n  if (!appIds.has(rel.applicationTargetId)) errors.push(`Cross-layer applicationTargetId not found: ${rel.applicationTargetId}`);\n}\n\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) {\n    hash ^= s.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst applicationArchHash = fnv1a(JSON.stringify(model));\n\nreturn [{ json: { ...$('Validate Business Architecture').first().json, valid, errors, applicationArch: model, applicationArchHash } }];"
+      },
+      "id": "67c58af5-ab41-4e7f-a1fe-fc5217a30314",
+      "name": "Validate Application Architecture",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4224,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'application_arch'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'application_arch', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify($json.applicationArch), $json.applicationArchHash, JSON.stringify({ stage: 'application_architect', model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+        }
+      },
+      "id": "695ee2ac-06ae-49c6-a6a4-0aa18757d6bd",
+      "name": "Store Application Arch Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4464,
+        512
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const projectSlug = $('Apply Classification + Slugify').first().json.projectSlug;\nconst businessArch = $('Validate Business Architecture').first().json.businessArch;\nconst appArch = $json.applicationArch;\n\nif (!businessArch || !Array.isArray(businessArch.elements) || !Array.isArray(businessArch.relationships)) throw new Error('Missing businessArch');\nif (!appArch || !Array.isArray(appArch.elements) || !Array.isArray(appArch.relationships) || !Array.isArray(appArch.crossLayerRelationships)) throw new Error('Missing applicationArch');\n\nconst escapeXml = (t) => String(t ?? '')\n  .replace(/&/g,'&amp;')\n  .replace(/</g,'&lt;')\n  .replace(/>/g,'&gt;')\n  .replace(/\\\"/g,'&quot;')\n  .replace(/'/g,'&apos;');\n\nconst fnv1a = (str) => {\n  const s = String(str ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('000000000000' + hash.toString(16)).slice(-12);\n};\n\nconst stableId = (s) => fnv1a(String(s));\n\nconst mapElementType = (t) => {\n  const s = String(t || '').toLowerCase();\n  if (s.includes('capability')) return 'Capability';\n  if (s.includes('actor') || s.includes('user') || s.includes('person')) return 'BusinessActor';\n  if (s.includes('businessservice') || s.includes('business service')) return 'BusinessService';\n  if (s.includes('process')) return 'BusinessProcess';\n  if (s.includes('service')) return 'ApplicationService';\n  if (s.includes('interface') || s.includes('ui')) return 'ApplicationInterface';\n  if (s.includes('data') || s.includes('repository') || s.includes('storage') || s.includes('db')) return 'DataObject';\n  if (s.includes('component') || s.includes('api') || s.includes('integration') || s.includes('function')) return 'ApplicationComponent';\n  return 'ApplicationComponent';\n};\n\nconst mapRelType = (t) => {\n  const s = String(t || '').toLowerCase();\n  if (s.includes('realiz')) return 'RealizationRelationship';\n  if (s.includes('serve') || s.includes('use')) return 'ServingRelationship';\n  if (s.includes('access') || s.includes('read') || s.includes('write')) return 'AccessRelationship';\n  if (s.includes('flow')) return 'FlowRelationship';\n  return 'AssociationRelationship';\n};\n\nconst bizElements = [...businessArch.elements].sort((a,b) => String(a.id).localeCompare(String(b.id)));\nconst appElements = [...appArch.elements].sort((a,b) => String(a.id).localeCompare(String(b.id)));\n\nconst bizMap = {};\nfor (const el of bizElements) bizMap[el.id] = `e-${stableId(`${projectSlug}:business_arch:${el.id}`)}`;\nconst appMap = {};\nfor (const el of appElements) appMap[el.id] = `e-${stableId(`${projectSlug}:application_arch:${el.id}`)}`;\n\nconst modelId = `m-${stableId(`${projectSlug}:model:biz-app`)}`;\nconst bizFolderId = `f-${stableId(`${projectSlug}:folder:business`)}`;\nconst appFolderId = `f-${stableId(`${projectSlug}:folder:application`)}`;\nconst relFolderId = `f-${stableId(`${projectSlug}:folder:relations`)}`;\n\nlet xml = `<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?>\\n` +\n  `<archimate:model xmlns:xsi=\\\"http://www.w3.org/2001/XMLSchema-instance\\\" xmlns:archimate=\\\"http://www.archimatetool.com/archimate\\\" name=\\\"${escapeXml(appArch.name || businessArch.name || 'Architecture Model')}\\\" id=\\\"${modelId}\\\" version=\\\"5.0.0\\\">\\n`;\n\nxml += `  <folder name=\\\"Business\\\" id=\\\"${bizFolderId}\\\" type=\\\"elements\\\">\\n`;\nfor (const el of bizElements) {\n  const xsiType = mapElementType(el.type);\n  xml += `    <element xsi:type=\\\"archimate:${xsiType}\\\" name=\\\"${escapeXml(el.name)}\\\" id=\\\"${bizMap[el.id]}\\\">\\n`;\n  if (el.description) xml += `      <documentation>${escapeXml(el.description)}</documentation>\\n`;\n  xml += `    </element>\\n`;\n}\nxml += `  </folder>\\n`;\n\nxml += `  <folder name=\\\"Application\\\" id=\\\"${appFolderId}\\\" type=\\\"elements\\\">\\n`;\nfor (const el of appElements) {\n  const xsiType = mapElementType(el.type);\n  xml += `    <element xsi:type=\\\"archimate:${xsiType}\\\" name=\\\"${escapeXml(el.name)}\\\" id=\\\"${appMap[el.id]}\\\">\\n`;\n  if (el.description) xml += `      <documentation>${escapeXml(el.description)}</documentation>\\n`;\n  xml += `    </element>\\n`;\n}\nxml += `  </folder>\\n`;\n\nlet relCount = 0;\nxml += `  <folder name=\\\"Relations\\\" id=\\\"${relFolderId}\\\" type=\\\"relations\\\">\\n`;\nconst addRel = (type, sid, tid, key) => { xml += `    <element xsi:type=\\\"archimate:${type}\\\" id=\\\"r-${stableId(key)}\\\" source=\\\"${sid}\\\" target=\\\"${tid}\\\"/>\\n`; relCount++; };\n\nfor (const rel of (businessArch.relationships || [])) {\n  const sid = bizMap[rel.source];\n  const tid = bizMap[rel.target];\n  if (!sid || !tid) continue;\n  addRel(mapRelType(rel.type), sid, tid, `${projectSlug}:biz:${rel.type}:${rel.source}->${rel.target}`);\n}\nfor (const rel of (appArch.relationships || [])) {\n  const sid = appMap[rel.source];\n  const tid = appMap[rel.target];\n  if (!sid || !tid) continue;\n  addRel(mapRelType(rel.type), sid, tid, `${projectSlug}:app:${rel.type}:${rel.source}->${rel.target}`);\n}\nfor (const rel of (appArch.crossLayerRelationships || [])) {\n  const sid = bizMap[rel.businessSourceId];\n  const tid = appMap[rel.applicationTargetId];\n  if (!sid || !tid) continue;\n  addRel(mapRelType(rel.type), sid, tid, `${projectSlug}:cross:${rel.type}:${rel.businessSourceId}->${rel.applicationTargetId}`);\n}\n\nxml += `  </folder>\\n</archimate:model>`;\n\nreturn [{ json: { ...$json, archimateXml: xml, elementCount: bizElements.length + appElements.length, relationshipCount: relCount } }];"
+      },
+      "id": "83b0d411-bab9-4611-83fe-deb2103f0a44",
+      "name": "Convert to ArchiMate XML (Business+App)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4704,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) {\n    hash ^= s.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\nreturn [{ json: { ...$json, archimateXmlHash: fnv1a($json.archimateXml) } }];"
+      },
+      "id": "8549940c-eb85-4a1a-8b95-abc9487b4e89",
+      "name": "Hash Combined XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4944,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'archimate_xml_business_application'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'archimate_xml_business_application', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify({ xml: $json.archimateXml }), $json.archimateXmlHash, JSON.stringify({ stage: 'application_architect', model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+        }
+      },
+      "id": "b93d93ee-1b63-40d4-a3ea-f2fddc8fb88d",
+      "name": "Store Combined XML Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5184,
+        512
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Apply Classification + Slugify').first().json.startAt }}",
+              "rightValue": "application_architect",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "id": "condition-1768748430088-8v6otgqy3"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5cf76dae-ba19-4ef8-b1ad-de472db4124f",
+      "name": "After Business Stage",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3984,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Store Application Arch Artifact outputs only {id, version}. Reattach the in-flight applicationArch.\nreturn [{ json: { ...$json, applicationArch: $('Validate Application Architecture').first().json.applicationArch } }];"
+      },
+      "id": "62fb9ce4-18d4-41fd-bcd4-58af0fdf60ab",
+      "name": "Reload App Arch For XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4624,
+        512
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Initialize Parameters": {
+      "main": [
+        [
+          {
+            "node": "Classify Intent (Ollama)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Run Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Intent (Ollama)": {
+      "main": [
+        [
+          {
+            "node": "Apply Classification + Slugify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Classification + Slugify": {
+      "main": [
+        [
+          {
+            "node": "Ensure DB Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Project": {
+      "main": [
+        [
+          {
+            "node": "Load Latest BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Search (Capabilities) v2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Search (Capabilities) v2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Capability Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Capability Candidates": {
+      "main": [
+        [
+          {
+            "node": "Select Relevant Capabilities (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Relevant Capabilities (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Build Capability Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Capability Context": {
+      "main": [
+        [
+          {
+            "node": "Generate Business Architecture (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Business Architecture (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Business Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Business Architecture": {
+      "main": [
+        [
+          {
+            "node": "Business Arch Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compile Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure DB Schema": {
+      "main": [
+        [
+          {
+            "node": "Pass Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pass Context": {
+      "main": [
+        [
+          {
+            "node": "Upsert Project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Initialize Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Latest BRD": {
+      "main": [
+        [
+          {
+            "node": "Normalize BRD Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize BRD Rows": {
+      "main": [
+        [
+          {
+            "node": "StartAt Router",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Determine BRD Flow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Existing BRD": {
+      "main": [
+        [
+          {
+            "node": "Validate BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BRD Source Router": {
+      "main": [
+        [
+          {
+            "node": "Use Existing BRD",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate BRD (Llama HTTP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine BRD Flow": {
+      "main": [
+        [
+          {
+            "node": "BRD Source Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate BRD (Llama HTTP)": {
+      "main": [
+        [
+          {
+            "node": "Mark BRD Generated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark BRD Generated": {
+      "main": [
+        [
+          {
+            "node": "Validate BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate BRD": {
+      "main": [
+        [
+          {
+            "node": "BRD Post-Validate Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BRD Post-Validate Router": {
+      "main": [
+        [
+          {
+            "node": "Store BRD Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Qdrant Search (Capabilities) v2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store BRD Artifact": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Search (Capabilities) v2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reload Business Arch For XML": {
+      "main": [
+        [
+          {
+            "node": "Convert to ArchiMate XML (Deterministic)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repair Business Architecture (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Repaired Business Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Repaired Business Arch": {
+      "main": [
+        [
+          {
+            "node": "Store Business Arch Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Business Arch Valid?": {
+      "main": [
+        [
+          {
+            "node": "Store Business Arch Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Repair Business Architecture (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "StartAt Router": {
+      "main": [
+        [
+          {
+            "node": "Generate BRD (Llama HTTP)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Determine BRD Flow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to ArchiMate XML (Deterministic)": {
+      "main": [
+        [
+          {
+            "node": "Hash Business XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash Business XML": {
+      "main": [
+        [
+          {
+            "node": "Store Business XML Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Business XML Artifact": {
+      "main": [
+        [
+          {
+            "node": "Compile Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Application Architecture (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Application Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Application Architecture": {
+      "main": [
+        [
+          {
+            "node": "Store Application Arch Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to ArchiMate XML (Business+App)": {
+      "main": [
+        [
+          {
+            "node": "Hash Combined XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash Combined XML": {
+      "main": [
+        [
+          {
+            "node": "Store Combined XML Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Combined XML Artifact": {
+      "main": [
+        [
+          {
+            "node": "Compile Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Business Arch Artifact": {
+      "main": [
+        [
+          {
+            "node": "After Business Stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "After Business Stage": {
+      "main": [
+        [
+          {
+            "node": "Generate Application Architecture (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reload Business Arch For XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Application Arch Artifact": {
+      "main": [
+        [
+          {
+            "node": "Reload App Arch For XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reload App Arch For XML": {
+      "main": [
+        [
+          {
+            "node": "Convert to ArchiMate XML (Business+App)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "7a98ca2f-9a4a-4a16-a1cd-dcbd9326cf78",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "54865750559b8df5446de695b1f46abd535831febb435d6ec17789556e703153"
+  },
+  "id": "iKBlJTWf5HPkKAVX",
+  "tags": []
+}
