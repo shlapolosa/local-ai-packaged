@@ -13,11 +13,6 @@ ENV NO_PROXY=${NO_PROXY}
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Some corporate proxies block plain HTTP; prefer HTTPS for APT repos
-RUN set -eux; \
-    sed -i 's|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list; \
-    sed -i 's|http://security.ubuntu.com/ubuntu|https://security.ubuntu.com/ubuntu|g' /etc/apt/sources.list
-
 # Install essential tools
 RUN apt-get update && apt-get install -y \
     curl \
