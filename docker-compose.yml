@@ -424,6 +424,14 @@ services:
       - MODEL=llama3.1:8b-instruct-q4_K_M
       - OPENAI_API_KEY=sk-placeholder
       - TASK_MASTER_TOOLS=standard
+      - HTTP_PROXY=http://proxy.internal.adhie.ae:8080
+      - HTTPS_PROXY=http://proxy.internal.adhie.ae:8080
+      - NO_PROXY=localhost,127.0.0.1,*.internal.adhie.ae
+      - OLLAMA_DEBUG=VERBOSE
+      # - OLLAMA_HOST=http://127.0.0.1:11434
+      - http_proxy=http://proxy.internal.adhie.ae:8080
+      - https_proxy=http://proxy.internal.adhie.ae:8080
+      - no_proxy=localhost,127.0.0.1,.internal.adhie.ae
     depends_on:
       - ollama-gpu
       - n8n
@@ -452,6 +460,14 @@ services:
       - MODEL=llama3.1:8b-instruct-q4_K_M
       - OPENAI_API_KEY=sk-placeholder
       - TASK_MASTER_TOOLS=standard
+      - HTTP_PROXY=http://proxy.internal.adhie.ae:8080
+      - HTTPS_PROXY=http://proxy.internal.adhie.ae:8080
+      - NO_PROXY=localhost,127.0.0.1,*.internal.adhie.ae
+      - OLLAMA_DEBUG=VERBOSE
+      # - OLLAMA_HOST=http://127.0.0.1:11434
+      - http_proxy=http://proxy.internal.adhie.ae:8080
+      - https_proxy=http://proxy.internal.adhie.ae:8080
+      - no_proxy=localhost,127.0.0.1,.internal.adhie.ae
     depends_on:
       - ollama-gpu-amd
       - n8n
@@ -494,6 +510,14 @@ services:
       - opencode_data:/root/.local/share/opencode
     environment:
       - OLLAMA_HOST=http://ollama:11434
+      - HTTP_PROXY=http://proxy.internal.adhie.ae:8080
+      - HTTPS_PROXY=http://proxy.internal.adhie.ae:8080
+      - NO_PROXY=localhost,127.0.0.1,*.internal.adhie.ae
+      - OLLAMA_DEBUG=VERBOSE
+      # - OLLAMA_HOST=http://127.0.0.1:11434
+      - http_proxy=http://proxy.internal.adhie.ae:8080
+      - https_proxy=http://proxy.internal.adhie.ae:8080
+      - no_proxy=localhost,127.0.0.1,.internal.adhie.ae
     depends_on:
       - ollama-gpu
     stdin_open: true
