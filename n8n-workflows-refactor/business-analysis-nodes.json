@@ -1,0 +1,350 @@
+{
+  "parameters": {
+    "assignments": {
+      "assignments": [
+        {
+          "id": "text",
+          "name": "text",
+          "value": "={{ (() => { const b = $json.body ?? $json; const obj = (typeof b === 'string') ? JSON.parse(b) : b; return obj.text || obj.requirements || ''; })() }}",
+          "type": "string"
+        },
+        {
+          "id": "projectName",
+          "name": "projectName",
+          "value": "={{ (() => { const b = $json.body ?? $json; const obj = (typeof b === 'string') ? JSON.parse(b) : b; return obj.projectName || 'architecture-project'; })() }}",
+          "type": "string"
+        },
+        {
+          "id": "projectSlug",
+          "name": "projectSlug",
+          "value": "={{ (() => { const b = $json.body ?? $json; const obj = (typeof b === 'string') ? JSON.parse(b) : b; const pn = obj.projectName || 'architecture-project'; return pn.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').replace(/--+/g,'-'); })() }}",
+          "type": "string"
+        },
+        {
+          "id": "startAt",
+          "name": "startAt",
+          "value": "={{ (() => { const b = $json.body ?? $json; const obj = (typeof b === 'string') ? JSON.parse(b) : b; return obj.startAt || ''; })() }}",
+          "type": "string"
+        },
+        {
+          "id": "jobId",
+          "name": "jobId",
+          "value": "={{ (() => { const b = $json.body ?? $json; const obj = (typeof b === 'string') ? JSON.parse(b) : b; return obj.jobId || null; })() }}",
+          "type": "string"
+        },
+        {
+          "id": "sessionId",
+          "name": "sessionId",
+          "value": "={{ $now.format('yyyyMMdd-HHmmss') }}",
+          "type": "string"
+        }
+      ]
+    },
+    "options": {}
+  },
+  "id": "init-params",
+  "name": "Initialize Parameters",
+  "type": "n8n-nodes-base.set",
+  "typeVersion": 3.4,
+  "position": [
+    0,
+    304
+  ]
+}
+{
+  "parameters": {
+    "content": "## Phase 1: BRD Generation",
+    "height": 60,
+    "width": 280,
+    "color": 4
+  },
+  "id": "brd-agent-note",
+  "name": "BRD Agent Note",
+  "type": "n8n-nodes-base.stickyNote",
+  "typeVersion": 1,
+  "position": [
+    208,
+    224
+  ]
+}
+{
+  "parameters": {
+    "method": "POST",
+    "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={\n  \"model\": \"{{ $('Run Config').first().json.ollamaModel }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classifier for an architecture pipeline. Output ONLY JSON.\\n\\nReturn: {\\\\\"intent\\\\\":\\\\\"create_project|update_project|regenerate_from_stage\\\\\",\\\\\"proposedProjectName\\\\\":string,\\\\\"startAt\\\\\":\\\\\"business_analyst|business_architect\\\\\",\\\\\"confidence\\\\\":number,\\\\\"notes\\\\\":string}.\\n\\nRules:\\n- If user provided startAt, use it.\\n- If no startAt, default to business_analyst unless the user clearly requests business architecture only.\\n- If projectName not provided, propose a short name.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"text={{ $('Initialize Parameters').first().json.text }}\\nprojectName={{ $('Initialize Parameters').first().json.projectName }}\\nstartAt={{ $('Initialize Parameters').first().json.startAt }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": {{ $('Run Config').first().json.ollamaTemperature }},\n    \"seed\": {{ $('Run Config').first().json.ollamaSeed }}\n  }\n}",
+    "options": {}
+  },
+  "id": "7fca9f84-b7f2-4609-93af-682411ebc292",
+  "name": "Classify Intent (Ollama)",
+  "type": "n8n-nodes-base.httpRequest",
+  "typeVersion": 4.3,
+  "position": [
+    224,
+    304
+  ],
+  "retryOnFail": true
+}
+{
+  "parameters": {
+    "jsCode": "const init = $('Initialize Parameters').first().json;\nconst classified = $json.message?.content ? JSON.parse($json.message.content) : {};\n\nconst projectName = (init.projectName && init.projectName.trim()) ? init.projectName.trim() : (classified.proposedProjectName || 'architecture-project');\nconst startAt = (init.startAt && init.startAt.trim()) ? init.startAt.trim() : (classified.startAt || 'business_analyst');\n\nconst slugify = (s) => String(s || '')\n  .toLowerCase()\n  .trim()\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-+|-+$/g, '')\n  .replace(/--+/g, '-');\n\nconst projectSlug = slugify(projectName) || 'architecture-project';\n\n// Non-crypto stable hash (FNV-1a 32-bit)\nconst fnv1a = (str) => {\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst requestHash = fnv1a(String(init.text || ''));\n\nreturn [{\n  json: {\n    ...init,\n    intent: classified.intent || 'create_project',\n    confidence: classified.confidence ?? null,\n    notes: classified.notes || null,\n    projectName,\n    projectSlug,\n    startAt,\n    runConfig: $('Run Config').first().json,\n    requestHash,\n  }\n}];"
+  },
+  "id": "07f878eb-8ebe-4afd-9908-403a34ee33ab",
+  "name": "Apply Classification + Slugify",
+  "type": "n8n-nodes-base.code",
+  "typeVersion": 2,
+  "position": [
+    464,
+    304
+  ]
+}
+{
+  "parameters": {
+    "operation": "executeQuery",
+    "query": "CREATE SCHEMA IF NOT EXISTS architecture;\n\nCREATE TABLE IF NOT EXISTS architecture.projects (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  slug text UNIQUE NOT NULL,\n  name text,\n  created_at timestamptz DEFAULT now(),\n  updated_at timestamptz DEFAULT now()\n);\n\nCREATE TABLE IF NOT EXISTS architecture.artifacts (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  project_id uuid NOT NULL REFERENCES architecture.projects(id),\n  type text NOT NULL,\n  version int NOT NULL,\n  content jsonb NOT NULL,\n  content_hash text NOT NULL,\n  meta jsonb NOT NULL DEFAULT '{}'::jsonb,\n  created_at timestamptz DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS artifacts_project_type_version_idx ON architecture.artifacts(project_id, type, version DESC);",
+    "options": {}
+  },
+  "id": "f0ad5120-1342-47d5-adec-b778bf000449",
+  "name": "Ensure DB Schema",
+  "type": "n8n-nodes-base.postgres",
+  "typeVersion": 2.6,
+  "position": [
+    704,
+    128
+  ],
+  "credentials": {
+    "postgres": {
+      "id": "M5eIfNwtZu8y3dOp",
+      "name": "Postgres account"
+    }
+  },
+  "continueOnFail": false
+}
+{
+  "parameters": {
+    "operation": "executeQuery",
+    "query": "INSERT INTO architecture.projects (slug, name, updated_at)\nVALUES ($1, $2, now())\nON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, updated_at = now()\nRETURNING id, slug, name;",
+    "options": {
+      "queryReplacement": "={{ [ $json.projectSlug, $json.projectName ] }}"
+    }
+  },
+  "id": "7a066ccb-99e7-4163-85ee-be26e84fe7ab",
+  "name": "Upsert Project",
+  "type": "n8n-nodes-base.postgres",
+  "typeVersion": 2.6,
+  "position": [
+    704,
+    304
+  ],
+  "credentials": {
+    "postgres": {
+      "id": "M5eIfNwtZu8y3dOp",
+      "name": "Postgres account"
+    }
+  }
+}
+{
+  "parameters": {
+    "operation": "executeQuery",
+    "query": "SELECT content, version, content_hash, created_at\nFROM architecture.artifacts\nWHERE project_id = $1 AND type = 'brd'\nORDER BY version DESC\nLIMIT 1;",
+    "options": {
+      "queryReplacement": "={{ [ $json.id ] }}"
+    }
+  },
+  "id": "b0810fac-157f-43d8-8016-98441984c6bb",
+  "name": "Load Latest BRD",
+  "type": "n8n-nodes-base.postgres",
+  "typeVersion": 2.6,
+  "position": [
+    944,
+    304
+  ],
+  "credentials": {
+    "postgres": {
+      "id": "M5eIfNwtZu8y3dOp",
+      "name": "Postgres account"
+    }
+  },
+  "alwaysOutputData": true
+}
+{
+  "parameters": {
+    "method": "POST",
+    "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ {\n  model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Business Analyst. Output ONLY JSON that matches the schema. No markdown.' },\n    { role: 'user', content: $('Apply Classification + Slugify').first().json.text }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['type','title','version','executiveSummary','problemStatement','businessObjectives','stakeholders','scope','constraints','assumptions','successCriteria'],\n    properties: {\n      type: { const: 'brd' },\n      title: { type: 'string' },\n      version: { type: 'string' },\n      executiveSummary: { type: 'string' },\n      problemStatement: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['currentState','painPoints','impact'],\n        properties: {\n          currentState: { type: 'string' },\n          painPoints: { type: 'array', items: { type: 'string' } },\n          impact: { type: 'string' }\n        }\n      },\n      businessObjectives: { type: 'array' },\n      stakeholders: { type: 'array' },\n      scope: { type: 'object' },\n      constraints: { type: 'array' },\n      assumptions: { type: 'array' },\n      successCriteria: { type: 'array' }\n    }\n  },\n  options: {\n    temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+    "options": {}
+  },
+  "id": "9e836322-af37-4dec-a317-d16cccb80191",
+  "name": "Generate BRD (Llama HTTP)",
+  "type": "n8n-nodes-base.httpRequest",
+  "typeVersion": 4.3,
+  "position": [
+    1664,
+    304
+  ],
+  "retryOnFail": true
+}
+{
+  "parameters": {
+    "jsCode": "// Basic BRD validation without external modules\nconst raw = $json.message?.content;\nlet brd;\ntry {\n  brd = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { ...$json, valid: false, errors: ['BRD JSON parse failed: ' + e.message], brd: null } }];\n}\n\nconst errors = [];\nif (brd?.type !== 'brd') errors.push('type must be brd');\nif (!brd?.title) errors.push('title is required');\nif (!brd?.executiveSummary) errors.push('executiveSummary is required');\nif (!brd?.problemStatement) errors.push('problemStatement is required');\nif (!Array.isArray(brd?.businessObjectives)) errors.push('businessObjectives must be array');\nif (!Array.isArray(brd?.stakeholders)) errors.push('stakeholders must be array');\nif (!brd?.scope) errors.push('scope is required');\n\n// Non-crypto hash (FNV-1a)\nconst fnv1a = (input) => {\n  const str = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst brdHash = fnv1a(JSON.stringify(brd));\n\nreturn [{ json: { ...$json, valid, errors, brd, brdHash } }];"
+  },
+  "id": "0f3fd4c0-49bc-44ac-9cd8-bdd37cc2fb8e",
+  "name": "Validate BRD",
+  "type": "n8n-nodes-base.code",
+  "typeVersion": 2,
+  "position": [
+    1904,
+    304
+  ]
+}
+{
+  "parameters": {
+    "operation": "executeQuery",
+    "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'brd'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'brd', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+    "options": {
+      "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify($json.brd), $json.brdHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+    }
+  },
+  "id": "36e27cd1-6d30-4727-9134-4fdd20fb45e1",
+  "name": "Store BRD Artifact",
+  "type": "n8n-nodes-base.postgres",
+  "typeVersion": 2.6,
+  "position": [
+    2144,
+    304
+  ],
+  "credentials": {
+    "postgres": {
+      "id": "M5eIfNwtZu8y3dOp",
+      "name": "Postgres account"
+    }
+  }
+}
+{
+  "parameters": {
+    "jsCode": "// Input is output of \"Normalize BRD Rows\" which returns { rows: [...] }\nconst rows = Array.isArray($json.rows) ? $json.rows : [];\nconst first = rows[0] || null;\nconst brd = first && typeof first.content === 'object' ? first.content : null;\n\n// Consider BRD present only if it looks like a real BRD\nconst hasBrd = !!(brd && brd.type === 'brd' && brd.title && brd.executiveSummary);\n\nreturn hasBrd\n  ? [{ json: { hasBrd: true, brdFromDb: brd } }]\n  : [{ json: { hasBrd: false } }];"
+  },
+  "id": "5166e003-7622-4fc6-9f85-edf9c99a0b41",
+  "name": "Determine BRD Flow",
+  "type": "n8n-nodes-base.code",
+  "typeVersion": 2,
+  "position": [
+    1424,
+    304
+  ],
+  "notes": "Output 0=generate BRD if missing, Output 1=use existing BRD (TODO: load into validator)"
+}
+{
+  "id": "c796f144-ea41-466f-94dd-426d4928735b",
+  "name": "Pass Context",
+  "type": "n8n-nodes-base.code",
+  "typeVersion": 2,
+  "position": [
+    704,
+    216
+  ],
+  "parameters": {
+    "jsCode": "// Carry forward the original request context (slug/name/startAt)\nreturn [{ json: $('Apply Classification + Slugify').first().json }];"
+  }
+}
+{
+  "id": "cad4012d-f94b-45cc-9291-52e07583e31d",
+  "name": "Normalize BRD Rows",
+  "type": "n8n-nodes-base.code",
+  "typeVersion": 2,
+  "position": [
+    1088,
+    304
+  ],
+  "parameters": {
+    "jsCode": "// Ensure we always output exactly one item with rows[]\nconst items = $input.all();\nif (!items.length) return [{ json: { rows: [] } }];\n\n// Postgres node returns one item per row. Normalize into rows array.\nconst rows = items.map(i => i.json);\nreturn [{ json: { rows } }];"
+  },
+  "alwaysOutputData": true
+}
+{
+  "id": "4ec1a860-b143-4192-812f-a20d6b4b1686",
+  "name": "BRD Source Router",
+  "type": "n8n-nodes-base.switch",
+  "typeVersion": 3.4,
+  "position": [
+    1568,
+    304
+  ],
+  "parameters": {
+    "mode": "expression",
+    "numberOutputs": 2,
+    "output": "={{ $('Determine BRD Flow').first().json.hasBrd ? 0 : 1 }}"
+  }
+}
+{
+  "id": "bdf0a07b-f38c-4866-afe6-7a1056b18ece",
+  "name": "Use Existing BRD",
+  "type": "n8n-nodes-base.set",
+  "typeVersion": 3.4,
+  "position": [
+    1792,
+    192
+  ],
+  "parameters": {
+    "assignments": {
+      "assignments": [
+        {
+          "id": "brdSource",
+          "name": "brdSource",
+          "type": "string",
+          "value": "db"
+        },
+        {
+          "id": "message",
+          "name": "message",
+          "type": "object",
+          "value": "={{ { content: JSON.stringify($('Determine BRD Flow').first().json.brdFromDb) } }}"
+        }
+      ]
+    },
+    "options": {}
+  }
+}
+{
+  "id": "453fd4ba-2fd5-4b2f-b746-feb960525716",
+  "name": "Mark BRD Generated",
+  "type": "n8n-nodes-base.set",
+  "typeVersion": 3.4,
+  "position": [
+    1792,
+    304
+  ],
+  "parameters": {
+    "includeOtherFields": true,
+    "assignments": {
+      "assignments": [
+        {
+          "id": "brdSource",
+          "name": "brdSource",
+          "type": "string",
+          "value": "generated"
+        }
+      ]
+    },
+    "options": {}
+  }
+}
+{
+  "id": "eb9825be-34da-4828-9834-3c9cab7b62af",
+  "name": "BRD Post-Validate Router",
+  "type": "n8n-nodes-base.switch",
+  "typeVersion": 3.4,
+  "position": [
+    2032,
+    304
+  ],
+  "parameters": {
+    "mode": "expression",
+    "numberOutputs": 2,
+    "output": "={{ $json.brdSource === 'generated' ? 0 : 1 }}",
+    "options": {}
+  }
+}

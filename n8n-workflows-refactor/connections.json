@@ -1,0 +1,1081 @@
+{
+  "Classify Intent (Ollama)": {
+    "main": [
+      [
+        {
+          "node": "Apply Classification + Slugify",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Upsert Project": {
+    "main": [
+      [
+        {
+          "node": "Load Latest BRD",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Search Embeddings": {
+    "ai_embedding": [
+      [
+        {
+          "node": "Qdrant Search (Capabilities) v2",
+          "type": "ai_embedding",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Qdrant Search (Capabilities) v2": {
+    "main": [
+      [
+        {
+          "node": "Aggregate Capability Candidates",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Aggregate Capability Candidates": {
+    "main": [
+      [
+        {
+          "node": "Select Relevant Capabilities (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Select Relevant Capabilities (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Build Capability Context",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Build Capability Context": {
+    "main": [
+      [
+        {
+          "node": "Generate Business Architecture (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Generate Business Architecture (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Business Architecture",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Business Architecture": {
+    "main": [
+      [
+        {
+          "node": "Business Arch Valid?",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Ensure DB Schema": {
+    "main": [
+      [
+        {
+          "node": "Pass Context",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Pass Context": {
+    "main": [
+      [
+        {
+          "node": "Upsert Project",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Webhook Trigger": {
+    "main": [
+      [
+        {
+          "node": "Initialize Parameters",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Load Latest BRD": {
+    "main": [
+      [
+        {
+          "node": "Normalize BRD Rows",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Normalize BRD Rows": {
+    "main": [
+      [
+        {
+          "node": "StartAt Router",
+          "type": "main",
+          "index": 0
+        },
+        {
+          "node": "Determine BRD Flow",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Use Existing BRD": {
+    "main": [
+      [
+        {
+          "node": "Validate BRD",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "BRD Source Router": {
+    "main": [
+      [
+        {
+          "node": "Use Existing BRD",
+          "type": "main",
+          "index": 0
+        }
+      ],
+      [
+        {
+          "node": "Generate BRD (Llama HTTP)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Determine BRD Flow": {
+    "main": [
+      [
+        {
+          "node": "BRD Source Router",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Generate BRD (Llama HTTP)": {
+    "main": [
+      [
+        {
+          "node": "Mark BRD Generated",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Mark BRD Generated": {
+    "main": [
+      [
+        {
+          "node": "Validate BRD",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate BRD": {
+    "main": [
+      [
+        {
+          "node": "BRD Post-Validate Router",
+          "type": "main",
+          "index": 0
+        },
+        {
+          "node": "Store BRD Artifact",
+          "type": "main",
+          "index": 0
+        },
+        {
+          "node": "Qdrant Search (Capabilities) v2",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store BRD Artifact": {
+    "main": [
+      [
+        {
+          "node": "Qdrant Search (Capabilities) v2",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Reload Business Arch For XML": {
+    "main": [
+      [
+        {
+          "node": "Convert to ArchiMate XML (Deterministic)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Repair Business Architecture (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Repaired Business Arch",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Repaired Business Arch": {
+    "main": [
+      [
+        {
+          "node": "Store Business Arch Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Business Arch Valid?": {
+    "main": [
+      [
+        {
+          "node": "Store Business Arch Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ],
+      [
+        {
+          "node": "Repair Business Architecture (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "StartAt Router": {
+    "main": [
+      [
+        {
+          "node": "Generate BRD (Llama HTTP)",
+          "type": "main",
+          "index": 0
+        }
+      ],
+      [
+        {
+          "node": "Determine BRD Flow",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Convert to ArchiMate XML (Deterministic)": {
+    "main": [
+      [
+        {
+          "node": "Hash Business XML",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Hash Business XML": {
+    "main": [
+      [
+        {
+          "node": "Store Business XML Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store Business XML Artifact": {
+    "main": [
+      [
+        {
+          "node": "Compile Response",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Generate Application Architecture (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Application Architecture",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Convert to ArchiMate XML (Business+App)": {
+    "main": [
+      [
+        {
+          "node": "Hash Combined XML",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Hash Combined XML": {
+    "main": [
+      [
+        {
+          "node": "Store Combined XML Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store Business Arch Artifact": {
+    "main": [
+      [
+        {
+          "node": "After Business Stage",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "After Business Stage": {
+    "main": [
+      [
+        {
+          "node": "Generate Application Architecture (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ],
+      [
+        {
+          "node": "Reload Business Arch For XML",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store Application Arch Artifact": {
+    "main": [
+      [
+        {
+          "node": "Reload App Arch For XML",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Reload App Arch For XML": {
+    "main": [
+      [
+        {
+          "node": "Convert to ArchiMate XML (Business+App)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Application Architecture": {
+    "main": [
+      [
+        {
+          "node": "App Arch Valid?",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "App Arch Valid?": {
+    "main": [
+      [
+        {
+          "node": "Store Application Arch Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ],
+      [
+        {
+          "node": "Repair Application Architecture (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Repair Application Architecture (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Repaired App Arch",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Repaired App Arch": {
+    "main": [
+      [
+        {
+          "node": "Store Application Arch Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store Combined XML Artifact": {
+    "main": [
+      [
+        {
+          "node": "After App Stage",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "After App Stage": {
+    "main": [
+      [
+        {
+          "node": "Generate Data Architecture (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Generate Data Architecture (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Data Architecture",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Data Architecture": {
+    "main": [
+      [
+        {
+          "node": "Store Data Arch Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Convert to ArchiMate XML (Biz+App+Data)": {
+    "main": [
+      [
+        {
+          "node": "Hash Biz+App+Data XML",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Hash Biz+App+Data XML": {
+    "main": [
+      [
+        {
+          "node": "Store Biz+App+Data XML Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store Data Arch Artifact": {
+    "main": [
+      [
+        {
+          "node": "Reload Data Arch For XML",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Reload Data Arch For XML": {
+    "main": [
+      [
+        {
+          "node": "Convert to ArchiMate XML (Biz+App+Data)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store Biz+App+Data XML Artifact": {
+    "main": [
+      [
+        {
+          "node": "After Data Stage",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "After Data Stage": {
+    "main": [
+      [
+        {
+          "node": "Generate Infrastructure Architecture (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Generate Infrastructure Architecture (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Infrastructure Architecture",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store Infra Arch Artifact": {
+    "main": [
+      [
+        {
+          "node": "Reload Infra Arch For XML",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Reload Infra Arch For XML": {
+    "main": [
+      [
+        {
+          "node": "Convert to ArchiMate XML (Biz+App+Data+Infra)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Convert to ArchiMate XML (Biz+App+Data+Infra)": {
+    "main": [
+      [
+        {
+          "node": "Hash Biz+App+Data+Infra XML",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Hash Biz+App+Data+Infra XML": {
+    "main": [
+      [
+        {
+          "node": "Store Biz+App+Data+Infra XML Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Infrastructure Architecture": {
+    "main": [
+      [
+        {
+          "node": "Infra Arch Valid?",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Infra Arch Valid?": {
+    "main": [
+      [
+        {
+          "node": "Store Infra Arch Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ],
+      [
+        {
+          "node": "Repair Infrastructure Architecture (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Repair Infrastructure Architecture (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Repaired Infra Arch",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Repaired Infra Arch": {
+    "main": [
+      [
+        {
+          "node": "Store Infra Arch Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Apply Classification + Slugify": {
+    "main": [
+      [
+        {
+          "node": "Ensure DB Schema",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Initialize Parameters": {
+    "main": [
+      [
+        {
+          "node": "Respond Ack",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Respond Ack": {
+    "main": [
+      [
+        {
+          "node": "Run Config",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Run Config": {
+    "main": [
+      [
+        {
+          "node": "Classify Intent (Ollama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store Biz+App+Data+Infra XML Artifact": {
+    "main": [
+      [
+        {
+          "node": "Generate Risk Assessment (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Generate Risk Assessment (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Risk Markdown",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Risk Markdown": {
+    "main": [
+      [
+        {
+          "node": "Store Risk Assessment Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store Risk Assessment Artifact": {
+    "main": [
+      [
+        {
+          "node": "Generate Solution Package (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Generate Solution Package (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Solution Package",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Explode Solution Artifacts": {
+    "main": [
+      [
+        {
+          "node": "Store Solution Artifact(s)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Solution Package": {
+    "main": [
+      [
+        {
+          "node": "Solution Valid?",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Solution Valid?": {
+    "main": [
+      [
+        {
+          "node": "Explode Solution Artifacts",
+          "type": "main",
+          "index": 0
+        }
+      ],
+      [
+        {
+          "node": "Repair Solution Package (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Repair Solution Package (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Repaired Solution",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Repaired Solution": {
+    "main": [
+      [
+        {
+          "node": "Repaired Solution Valid?",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Repaired Solution Valid?": {
+    "main": [
+      [
+        {
+          "node": "Explode Solution Artifacts",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store Solution Artifact(s)": {
+    "main": [
+      [
+        {
+          "node": "After Solution Stage",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Generate PRD (RPG Template)": {
+    "main": [
+      [
+        {
+          "node": "Validate PRD",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate PRD": {
+    "main": [
+      [
+        {
+          "node": "PRD Valid?",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "PRD Valid?": {
+    "main": [
+      [
+        {
+          "node": "Store PRD Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ],
+      [
+        {
+          "node": "Repair PRD (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Repair PRD (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Repaired PRD",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Repaired PRD": {
+    "main": [
+      [
+        {
+          "node": "Repaired PRD Valid?",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Repaired PRD Valid?": {
+    "main": [
+      [
+        {
+          "node": "Store PRD Artifact",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "After Solution Stage": {
+    "main": [
+      [
+        {
+          "node": "Generate QA Package (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Generate QA Package (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate QA Package",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Explode QA Artifacts": {
+    "main": [
+      [
+        {
+          "node": "Store QA Artifact(s)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store QA Artifact(s)": {
+    "main": [
+      [
+        {
+          "node": "Generate PRD (RPG Template)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate QA Package": {
+    "main": [
+      [
+        {
+          "node": "QA Valid?",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "QA Valid?": {
+    "main": [
+      [
+        {
+          "node": "Explode QA Artifacts",
+          "type": "main",
+          "index": 0
+        }
+      ],
+      [
+        {
+          "node": "Repair QA Package (Llama)",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Repair QA Package (Llama)": {
+    "main": [
+      [
+        {
+          "node": "Validate Repaired QA",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Validate Repaired QA": {
+    "main": [
+      [
+        {
+          "node": "Repaired QA Valid?",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Repaired QA Valid?": {
+    "main": [
+      [
+        {
+          "node": "Explode QA Artifacts",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  },
+  "Store PRD Artifact": {
+    "main": [
+      [
+        {
+          "node": "Trigger Software Delivery",
+          "type": "main",
+          "index": 0
+        }
+      ]
+    ]
+  }
+}

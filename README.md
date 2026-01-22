@@ -667,32 +667,271 @@ python start_services.py --profile gpu-nvidia
 
 ---
 
-## n8n Architecture Pipeline
+## End-to-End Software Delivery Pipeline
 
-The package includes a pre-built n8n workflow for automated enterprise architecture generation using AI agents and a Qdrant knowledge base.
+The package includes a complete end-to-end pipeline for automated enterprise architecture generation, artifact management, and software delivery using AI agents, n8n workflows, and GitHub integration.
 
-### Workflow Overview
+### Pipeline Overview
 
 ```
-┌──────────────┐     ┌─────────────┐     ┌───────────────────┐     ┌──────────────┐
-│   Webhook    │────►│  BRD Agent  │────►│ Business Arch     │────►│   Response   │
-│   Trigger    │     │  (Phase 1)  │     │ Agent (Phase 2)   │     │   Output     │
-└──────────────┘     └─────────────┘     └───────────────────┘     └──────────────┘
-                           │                       │
-                           ▼                       ▼
-                    ┌─────────────┐         ┌─────────────────┐
-                    │ Ollama LLM  │         │ Capability QA   │◄── Qdrant Vector Store
-                    │ + Think Tool│         │ Tool + LLM      │◄── Healthcare Capabilities
-                    └─────────────┘         └─────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                           END-TO-END WORKFLOW                                        │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+  Knowledge Loader (optional, periodic/on-demand)
+           ↓ (loaded into Qdrant)
+
+  IMPORTANT: You don't call the sub-workflows directly.
+  You always call the stage webhook exposed by `Architecture Pipeline Ack`.
+  The Ack workflow immediately returns (HTTP 202) while triggering the real pipeline workflow asynchronously.
+
+  Stage webhooks (all owned by `Architecture Pipeline Ack`):
+  1) POST /webhook/business-analysis        (requirements -> BRD)
+  2) POST /webhook/architecture            (projectSlug -> architecture + ArchiMate)
+  3) POST /webhook/solution-architecture   (projectSlug -> solution package: OpenAPI/AsyncAPI/SQL)
+  4) POST /webhook/risk-assessment         (projectSlug -> risk assessment)
+  5) POST /webhook/test-strategy           (projectSlug -> test strategy + scenarios)
+  6) POST /webhook/project-management      (projectSlug -> PRD)
+  7) POST /webhook/software-delivery       (projectSlug -> GitHub publish + Taskmaster backlog)
+
+  Poll at any time:
+    GET /webhook/architecture-artifact-v2?projectSlug=... (shows requiredTypes/missingTypes/complete)
+
+  Optional:
+    POST /webhook/chat (natural language routing to the correct stage)
 ```
 
-### Workflows Included
+### Workflow Reference
 
-| Workflow | ID | Purpose |
-|----------|------|---------|
-| Architecture Pipeline - AI Agent with Ollama | `iKBlJTWf5HPkKAVX` | Main BRD + Business Architecture generation |
-| Knowledge Loader - Generic | `BlN67oV6QwF2hzgb` | Load any knowledge folder into its Qdrant collection |
-| Knowledge Loader - All Collections | `hW4tlUp7CC0BItkN` | Batch load all knowledge folders |
+| Workflow | ID | Status | Endpoint | Purpose |
+|----------|------|--------|----------|---------|
+| Architecture Pipeline Ack | `RlBWh7XL9ZXgOJ7e` | Active | Multiple webhooks (see below) | Entry point and router (direct stage webhooks + chat) |
+| Business Analysis Pipeline | `nmqyIEwcwVfiIIOu` | Active | (triggered by Ack) | Generates BRD, stores artifacts, commits `docs/BRD.md` |
+| Architecture Pipeline | `R4SsOqGqQIkRwUPT` | Active | (triggered by Ack) | Generates Business/App/Data/Infra + ArchiMate XML, commits `architecture/*.archimate` |
+| Solution Architecture Pipeline | `smxRuLpxe8181lbw` | Active | (triggered by Ack) | Generates solution package, commits `docs/solution-architecture.md`, `api/*`, `db/schema.sql` |
+| Risk Assessment Pipeline | `FUDBTPAjmDnFlg7h` | Active | (triggered by Ack) | Generates `docs/risk-assessment.md` |
+| Test Strategy Pipeline | `DZdCDfvObweaHen4` | Active | (triggered by Ack) | Generates `docs/test-strategy.md` + `docs/test-scenarios.md` |
+| Project Management Pipeline | `VvpkyZ9c4dCNv4rd` | Active | (triggered by Ack) | Generates `docs/PRD.md` |
+| Architecture Artifact Get v2 | `7IUOzaD9TUwXP2Qw` | Active | `/webhook/architecture-artifact-v2` | Poll artifacts / completion state |
+| Software Delivery Pipeline | `FlqPvbx2ICZvJiQr` | Active | (triggered by Ack) | Runs Taskmaster and commits backlog |
+| Software Delivery Pipeline (jobId-driven) | `RxOksieHq60Si7A5` | Active | `POST /webhook/software-delivery` | Direct webhook variant that accepts `{ jobId }` |
+| Architecture Pipeline - AI Agent with Ollama (legacy) | `iKBlJTWf5HPkKAVX` | Active | `POST /webhook/architecture-pipeline` | Older monolithic workflow (superseded by the pipelines above) |
+| Knowledge Loader - Generic | `BlN67oV6QwF2hzgb` | Active | `POST /webhook/knowledge-loader` | Load knowledge into Qdrant collection |
+| Knowledge Loader - All Collections | `hW4tlUp7CC0BItkN` | Inactive | (manual trigger) | Batch load all knowledge folders |
+
+### Call Order (Current)
+
+These stage webhooks are designed to be callable independently, but they have explicit dependencies (each pipeline workflow looks for the latest completed job from the previous stage).
+
+Call the stage webhooks on `Architecture Pipeline Ack` (not the sub-workflows).
+
+1. `POST /webhook/business-analysis` (creates project + BRD)
+2. `POST /webhook/architecture` (requires BA completed)
+3. `POST /webhook/solution-architecture` (requires Architecture completed)
+4. `POST /webhook/risk-assessment` (requires Solution completed)
+5. `POST /webhook/test-strategy` (requires Risk completed)
+6. `POST /webhook/project-management` (requires Test Strategy completed)
+7. `POST /webhook/software-delivery` (requires Project Management completed)
+
+Poll anytime:
+`GET /webhook/architecture-artifact-v2?projectSlug=...` (returns `requiredTypes`, `missingTypes`, `complete`)
+
+### How to Use the Pipeline
+
+#### Step 1: Submit Requirements
+
+```bash
+curl -X POST https://n8n.your-domain.org/webhook/business-analysis \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requirements": "Build a patient portal that allows patients to view medical records, book appointments, and communicate with providers. Must be HIPAA compliant.",
+    "projectName": "Healthcare Patient Portal"
+  }'
+```
+
+**Response:**
+```json
+{
+  "status": "accepted",
+  "ackJobId": "job_...",
+  "projectSlug": "patient-portal",
+  "workflow": "business-analysis",
+  "message": "Business Analysis workflow triggered"
+}
+```
+
+#### Step 2: Check Progress (Optional)
+
+```bash
+# List latest artifacts (and completion state) by projectSlug
+curl "https://n8n.your-domain.org/webhook/architecture-artifact-v2?projectSlug=patient-portal"
+
+# Get a specific artifact by jobId + type
+curl "https://n8n.your-domain.org/webhook/architecture-artifact-v2?jobId=job_...&type=prd_md"
+```
+
+#### Step 3: Trigger Software Delivery
+
+Once the artifacts are complete (PRD stored), trigger **Software Delivery** manually. It will:
+
+1. **Commit artifacts to GitHub** on a project-specific branch:
+   - `docs/BRD.md`, `docs/PRD.md`
+   - `architecture/*.archimate` (ArchiMate XML files)
+   - `api/openapi.yaml`, `asyncapi.yaml` (if generated)
+   - `db/schema.sql` (if generated)
+
+2. **Run Taskmaster** to generate development tasks:
+   - Parses the PRD into tasks
+   - Analyzes complexity
+   - Generates `backlog/tasks.json` and `backlog/stories.json`
+
+**Manual Trigger (projectSlug-based):**
+```bash
+curl -X POST https://n8n.your-domain.org/webhook/software-delivery \
+  -H "Content-Type: application/json" \
+  -d '{"projectSlug": "patient-portal"}'
+```
+
+If you want the jobId-driven variant (also produces `backlog/stories.json`), use:
+
+```bash
+curl -X POST https://n8n.your-domain.org/webhook/software-delivery \
+  -H "Content-Type: application/json" \
+  -d '{"jobId": "job_..."}'
+```
+
+Note: In this n8n instance there are multiple workflows wired to the `software-delivery` concept (router workflow + a jobId-driven workflow). Prefer triggering software delivery via the router (`Architecture Pipeline Ack` → `Webhook: Software Delivery`) unless you intentionally want the jobId-driven variant.
+
+### Architecture Pipeline Details
+
+The main architecture pipeline processes requirements through multiple AI agents:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                        ARCHITECTURE PIPELINE STAGES                                  │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+1. INTENT CLASSIFICATION
+   └─► Classify Intent (Ollama) → Apply Classification + Slugify
+
+2. PROJECT SETUP
+   └─► Ensure DB Schema → Upsert Project → Load Latest BRD
+
+3. BRD GENERATION
+   └─► Generate BRD (Llama) → Validate → Store BRD Artifact
+
+4. CAPABILITY MAPPING
+   └─► Qdrant Search (Capabilities) → Select Relevant Capabilities
+
+5. BUSINESS ARCHITECTURE
+   └─► Generate Business Arch → Validate → Store → ArchiMate XML
+
+6. APPLICATION ARCHITECTURE
+   └─► Generate App Arch → Validate → Store → Combined XML
+
+7. DATA ARCHITECTURE
+   └─► Generate Data Arch → Validate → Store → Combined XML
+
+8. INFRASTRUCTURE ARCHITECTURE
+   └─► Generate Infra Arch → Validate → Store → Full XML
+
+9. RISK & SOLUTION
+   └─► Risk Assessment → Solution Package → QA Package
+
+10. PRD GENERATION
+     └─► Generate PRD (RPG Template) → Validate → Store PRD Artifact
+     └─► NEXT STEP: Manually trigger Software Delivery Pipeline
+```
+
+### Artifacts Generated
+
+| Artifact Type | Description | Storage Location |
+|--------------|-------------|------------------|
+| `brd` | Business Requirements Document (JSON) | PostgreSQL `architecture.artifacts` |
+| `archimate_xml_business` | Business layer ArchiMate | PostgreSQL + GitHub |
+| `archimate_xml_business_application` | Business + App layers | PostgreSQL + GitHub |
+| `archimate_xml_business_application_data` | Business + App + Data | PostgreSQL + GitHub |
+| `archimate_xml_business_application_data_infra` | Full ArchiMate model | PostgreSQL + GitHub |
+| `risk_assessment_md` | Risk assessment markdown | PostgreSQL + GitHub |
+| `solution_package` | Solution architecture specs | PostgreSQL + GitHub |
+| `qa_package` | QA strategy and test cases | PostgreSQL + GitHub |
+| `prd_md` | Product Requirements Document | PostgreSQL + GitHub |
+
+### GitHub Repository Structure
+
+After Software Delivery Pipeline completes, the GitHub branch `{projectSlug}` contains:
+
+```
+software-delivery/
+├── org-architecture/
+│   └── full.archimate              # Combined ArchiMate XML (all layers)
+│
+└── {projectSlug}-docs/
+    ├── docs/
+    │   ├── BRD.md                  # Business Requirements Document
+    │   ├── PRD.md                  # Product Requirements Document
+    │   ├── risk-assessment.md      # Risk assessment
+    │   ├── solution-architecture.md # Solution specs
+    │   ├── test-strategy.md        # QA test strategy
+    │   └── test-scenarios.md       # Test scenarios
+    │
+    ├── architecture/
+    │   ├── business.archimate      # Business layer
+    │   ├── application.archimate   # Application layer
+    │   ├── data.archimate          # Data layer
+    │   ├── technology.archimate    # Technology layer
+    │   └── full.archimate          # Combined all layers
+    │
+    ├── api/
+    │   ├── openapi.yaml            # REST API spec (if generated)
+    │   ├── asyncapi.yaml           # Event API spec (if generated)
+    │   └── avro-schemas.json       # Avro schemas (if generated)
+    │
+    ├── db/
+    │   └── schema.sql              # Database schema (if generated)
+    │
+    └── backlog/
+        ├── tasks.json              # Taskmaster tasks
+        └── stories.json            # Stories with story points
+```
+
+---
+
+## Knowledge Management
+
+### Knowledge Loader Workflows
+
+The package includes workflows for loading domain knowledge into Qdrant vector store, which AI agents use for context-aware generation.
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| Knowledge Loader - Generic | `POST /webhook/knowledge-loader` | Load a single collection by name |
+| Knowledge Loader - All Collections | Manual trigger in n8n | Batch load all configured collections |
+
+#### Loading a Single Collection
+
+```bash
+curl -X POST https://n8n.your-domain.org/webhook/knowledge-loader \
+  -H "Content-Type: application/json" \
+  -d '{"collection": "capability-maps"}'
+```
+
+**Available Collections:**
+- `capability-maps` - Business capability models
+- `reference-architectures` - Architecture patterns
+- `guardrails-principles` - ADRs, constraints, policies
+- `existing-landscape` - Current system documentation
+- `compliance-requirements` - HIPAA, GDPR, SOC2 docs
+- `data-standards` - Data models, naming conventions
+- `security-standards` - Security policies
+- `testing-standards` - QA methodologies
+
+#### Loading All Collections
+
+1. Open n8n at `https://n8n.your-domain.org`
+2. Find **"Knowledge Loader - All Collections"** workflow
+3. Click **"Execute Workflow"** (manual trigger)
+4. Wait for all collections to be embedded
 
 ### Knowledge Folder Structure
 
@@ -841,13 +1080,15 @@ curl http://localhost:6333/collections/capability-maps
 curl http://localhost:6333/collections/capability-maps | jq '.result.points_count'
 ```
 
-### Testing the Architecture Pipeline
+### Testing the End-to-End Pipeline
 
-Once Qdrant is populated, test the main workflow:
+Once Qdrant is populated with knowledge, test the complete pipeline:
+
+#### Quick Test (Full Pipeline)
 
 ```bash
-# Trigger the pipeline with sample requirements
-curl -X POST https://n8n.socrates-hlapolosa.org/webhook/architecture-pipeline \
+# Trigger Business Analysis (starts the pipeline)
+curl -X POST https://n8n.your-domain.org/webhook/business-analysis \
   -H "Content-Type: application/json" \
   -d '{
     "requirements": "Build a patient portal for a healthcare company that allows patients to view their medical records, book appointments, and communicate with healthcare providers. Must be HIPAA compliant.",
@@ -855,29 +1096,105 @@ curl -X POST https://n8n.socrates-hlapolosa.org/webhook/architecture-pipeline \
   }'
 ```
 
-Expected output includes:
-- **BRD**: Business Requirements Document as JSON
-- **Business Architecture**: ArchiMate Business Layer model with `capabilityMapping` fields referencing the Healthcare Capability Reference Model
+**What Happens:**
+1. Returns immediately with `{ status: "accepted", ackJobId, projectSlug }`
+2. Downstream stages run asynchronously and store artifacts
+3. You poll `/webhook/architecture-artifact-v2` until `complete: true`
+4. You manually trigger `/webhook/software-delivery` to publish + generate backlog
+
+#### Check Pipeline Status
+
+```bash
+# Save the projectSlug from the initial response
+PROJECT_SLUG="patient-portal"
+
+# Poll artifact status (complete + missingTypes)
+curl "https://n8n.your-domain.org/webhook/architecture-artifact-v2?projectSlug=$PROJECT_SLUG"
+```
+
+#### View Generated Artifacts
+
+```bash
+# Get the BRD (latest)
+curl "https://n8n.your-domain.org/webhook/architecture-artifact-v2?projectSlug=$PROJECT_SLUG&type=brd"
+
+# Get the PRD (latest)
+curl "https://n8n.your-domain.org/webhook/architecture-artifact-v2?projectSlug=$PROJECT_SLUG&type=prd_md"
+
+# Get the full ArchiMate XML (latest)
+curl "https://n8n.your-domain.org/webhook/architecture-artifact-v2?projectSlug=$PROJECT_SLUG&type=archimate_xml_business_application_data_infra"
+```
+
+#### Verify GitHub Output
+
+After the pipeline completes, check the GitHub repository:
+
+```bash
+# Clone or pull the software-delivery repository
+git clone git@github.com:your-org/software-delivery.git
+cd software-delivery
+
+# List branches (should see your project slug)
+git branch -a
+
+# Checkout the project branch
+git checkout {projectSlug}
+
+# View the generated files
+ls -la {projectSlug}-docs/
+```
+
+**Expected output includes:**
+- **docs/BRD.md** - Business Requirements Document
+- **docs/PRD.md** - Product Requirements Document
+- **architecture/*.archimate** - ArchiMate XML files for all layers
+- **backlog/tasks.json** - Taskmaster development tasks
+- **backlog/stories.json** - Stories with complexity scores and story points
 
 ### Workflow Architecture Details
 
-#### BRD Agent (Phase 1)
-- Model: `llama3.1:8b-instruct-q4_K_M`
-- Tools: Think Tool (reasoning)
-- Output: Structured BRD JSON
+#### Architecture Pipeline - AI Agent with Ollama
 
-#### Business Arch Agent (Phase 2)
-- Model: `llama3.1:8b-instruct-q4_K_M`
-- Tools: Think Tool, Capability QA Tool (Qdrant)
-- Output: ArchiMate Business Layer JSON with capability mappings
+The main pipeline uses Ollama LLMs for all generation stages:
 
-#### Capability QA Tool
-- Vector Store: Qdrant (`capability-maps` collection)
-- Embeddings: `nomic-embed-text` via Ollama
-- Top K: 5 results per query
-- Purpose: Map business functions to standard healthcare capabilities
+| Stage | Model | Tools | Output |
+|-------|-------|-------|--------|
+| Intent Classification | `qwen2.5:7b-instruct-q4_K_M` | - | Project classification + slug |
+| BRD Generation | `qwen2.5:7b-instruct-q4_K_M` | Think Tool | Structured BRD JSON |
+| Business Architecture | `qwen2.5:7b-instruct-q4_K_M` | Think Tool, Qdrant | ArchiMate Business Layer |
+| Application Architecture | `qwen2.5:7b-instruct-q4_K_M` | Think Tool | ArchiMate Application Layer |
+| Data Architecture | `qwen2.5:7b-instruct-q4_K_M` | Think Tool | ArchiMate Data Layer |
+| Infrastructure Architecture | `qwen2.5:7b-instruct-q4_K_M` | Think Tool | ArchiMate Technology Layer |
+| Risk Assessment | `qwen2.5:7b-instruct-q4_K_M` | Think Tool | Risk analysis markdown |
+| Solution Package | `qwen2.5:7b-instruct-q4_K_M` | Think Tool | Solution specs (OpenAPI, AsyncAPI, SQL) |
+| QA Package | `qwen2.5:7b-instruct-q4_K_M` | Think Tool | Test strategy + scenarios |
+| PRD Generation | `qwen2.5:7b-instruct-q4_K_M` | Think Tool | Product Requirements Document |
+
+#### Capability QA Tool (Qdrant Integration)
+
+- **Vector Store:** Qdrant (`capability-maps` collection)
+- **Embeddings:** `nomic-embed-text` via Ollama
+- **Top K:** 5 results per query
+- **Purpose:** Map business functions to standard healthcare capabilities
+
+#### Software Delivery Pipeline
+
+| Stage | Action | Output |
+|-------|--------|--------|
+| Resolve Project | Query PostgreSQL by jobId | Project slug and name |
+| Fetch Artifacts | Query all artifacts for job | BRD, PRD, ArchiMate XML |
+| Render BRD.md | Convert JSON to markdown | `docs/BRD.md` |
+| Git Commit | SSH to git server | Commits to `{projectSlug}` branch |
+| Taskmaster Init | Docker exec in taskmaster container | `.taskmaster/` setup |
+| Parse PRD | Taskmaster parse-prd | Task breakdown |
+| Analyze Complexity | Taskmaster analyze-complexity | Complexity scores |
+| Expand Tasks | Taskmaster expand --all | Subtasks |
+| Generate Stories | jq transformation | `backlog/stories.json` with story points |
+| Final Commit | Git add + commit + push | `backlog/tasks.json`, `backlog/stories.json` |
 
 ### Troubleshooting
+
+#### Knowledge Loading Issues
 
 | Issue | Solution |
 |-------|----------|
@@ -885,7 +1202,47 @@ Expected output includes:
 | Qdrant connection failed | Check credentials: URL should be `http://qdrant:6333` |
 | Embeddings timeout | Ensure Ollama has `nomic-embed-text` model: `docker exec ollama ollama pull nomic-embed-text` |
 | Capability QA Tool not responding | Verify Qdrant collection exists and has documents |
-| Agent not using capability mappings | Check the Business Arch Agent system prompt includes the capability reference model |
+
+#### Architecture Pipeline Issues
+
+| Issue | Solution |
+|-------|----------|
+| Pipeline stuck on classification | Check Ollama is running: `docker logs ollama --tail 50` |
+| Missing artifacts | Check PostgreSQL schema: `SELECT * FROM architecture.artifacts WHERE meta->>'jobId' = 'your-job-id'` |
+| Validation failures | Pipeline includes auto-repair - check workflow execution logs in n8n |
+| PRD not generating | Ensure all previous stages completed - check artifact list endpoint |
+
+#### Software Delivery Pipeline Issues
+
+| Issue | Solution |
+|-------|----------|
+| Git SSH fails | Verify SSH key credentials in n8n and GitHub deploy key setup |
+| Taskmaster container not found | Ensure taskmaster container is running: `docker ps \| grep taskmaster` |
+| Tasks not generating | Check PRD exists: `test -f /path/to/project-docs/docs/PRD.md` |
+| GitHub push fails | Check branch permissions and repository exists |
+| Software Delivery does not run automatically | Trigger `POST /webhook/software-delivery` manually with `{ "jobId": "..." }` |
+| `.taskmaster/` committed into the repo | Update the workflow's git add step to exclude `.taskmaster/` (keep only `backlog/tasks.json` + `backlog/stories.json`) |
+
+#### Verification Commands
+
+```bash
+# Check all workflow services are running
+docker ps | grep -E "(n8n|ollama|qdrant|postgres|taskmaster)"
+
+# Check Qdrant collections
+curl http://localhost:6333/collections
+
+# Check Ollama models
+docker exec ollama ollama list
+
+# Test n8n webhook accessibility
+curl -X POST http://localhost:5678/webhook/business-analysis \
+  -H "Content-Type: application/json" \
+  -d '{"requirements": "test"}'
+
+# Check PostgreSQL schema
+docker exec -it supabase-db psql -U postgres -d postgres -c "SELECT COUNT(*) FROM architecture.artifacts;"
+```
 
 ### Loading Full Capability Map
 
@@ -1099,36 +1456,75 @@ to get started.
 1. Open <http://localhost:5678/> in your browser to set up n8n. You’ll only
    have to do this once. You are NOT creating an account with n8n in the setup here,
    it is only a local account for your instance!
-2. Open the included workflow:
-   <http://localhost:5678/workflow/vTN9y2dLXqTiDfPT>
-3. Create credentials for every service:
-   
-   Ollama URL: http://ollama:11434
+2. The included workflows are shipped as n8n backups in `n8n/backup/` and should already be present in your n8n instance after startup. In n8n, search for and review these workflows:
+
+   - `Architecture Pipeline Ack`
+   - `Architecture Pipeline - AI Agent with Ollama`
+   - `Architecture Artifact Get v2`
+   - `Software Delivery Pipeline` (projectSlug-driven)
+   - `Software Delivery Pipeline (GitHub + Taskmaster)` (jobId-driven)
+   - `Knowledge Loader - Generic`
+3. Create credentials for every service used by the workflows:
+    
+    Ollama URL: http://ollama:11434
 
    Postgres (through Supabase): use DB, username, and password from .env. IMPORTANT: Host is 'db'
    Since that is the name of the service running Supabase
 
-   Qdrant URL: http://qdrant:6333 (API key can be whatever since this is running locally)
+    Qdrant URL: http://qdrant:6333 (API key can be whatever since this is running locally)
 
    Google Drive: Follow [this guide from n8n](https://docs.n8n.io/integrations/builtin/credentials/google/).
    Don't use localhost for the redirect URI, just use another domain you have, it will still work!
-   Alternatively, you can set up [local file triggers](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/).
-4. Select **Test workflow** to start running the workflow.
-5. If this is the first time you’re running the workflow, you may need to wait
-   until Ollama finishes downloading Llama3.1. You can inspect the docker
-   console logs to check on the progress.
-6. Make sure to toggle the workflow as active and copy the "Production" webhook URL!
+    Alternatively, you can set up [local file triggers](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/).
+4. Toggle these workflows to **Active**:
+
+   - `Architecture Pipeline Ack`
+   - `Architecture Artifact Get v2`
+   - `Software Delivery Pipeline`
+   - `Knowledge Loader - Generic`
+5. If this is the first time you’re running the stack, you may need to wait until Ollama finishes pulling models. You can inspect Docker logs to check progress.
 7. Open <http://localhost:3000/> in your browser to set up Open WebUI.
-You’ll only have to do this once. You are NOT creating an account with Open WebUI in the 
-setup here, it is only a local account for your instance!
+ You'll only have to do this once. You are NOT creating an account with Open WebUI in the
+ setup here, it is only a local account for your instance!
 8. Go to Workspace -> Functions -> Add Function -> Give name + description then paste in
 the code from `n8n_pipe.py`
 
    The function is also [published here on Open WebUI's site](https://openwebui.com/f/coleam/n8n_pipe/).
 
-9. Click on the gear icon and set the n8n_url to the production URL for the webhook
-you copied in a previous step.
-10. Toggle the function on and now it will be available in your model dropdown in the top left! 
+9. Click on the gear icon to configure the **Architecture Pipeline Pipe** valves (see below).
+10. Toggle the function on and now it will be available in your model dropdown in the top left!
+
+---
+
+## Open WebUI n8n Pipeline Integration
+
+The `n8n_pipe.py` provides a simple chat interface to n8n webhooks.
+
+### Valve Configuration
+
+| Valve | Default | Description |
+|-------|---------|-------------|
+| `webhook_url` | `http://localhost:5678/webhook/chat` | n8n webhook URL to send messages to |
+| `n8n_bearer_token` | (empty) | Optional authentication token |
+| `input_field` | `chatInput` | Field name for the user message in the payload |
+| `response_field` | (empty) | Field to extract from response (empty for auto-format) |
+
+### Recommended Pipe Instances
+
+Create one (or more) pipe instances in Open WebUI:
+
+| Instance Name | Webhook URL | Input Field |
+|---------------|-------------|-------------|
+| Chat (recommended) | `http://localhost:5678/webhook/chat` | `chatInput` |
+| Business Analysis (direct) | `http://localhost:5678/webhook/business-analysis` | `requirements` |
+| Artifacts (polling) | `http://localhost:5678/webhook/architecture-artifact-v2` | (use query params) |
+| Software Delivery (direct) | `http://localhost:5678/webhook/software-delivery` | `projectSlug` or `jobId` |
+
+### Response Handling
+
+The pipe formats responses based on the webhook's return format.
+
+For chat or business-analysis, you should expect an immediate ack containing an `ackJobId` and `projectSlug`, then poll `/webhook/architecture-artifact-v2` until `complete: true`.
 
 To open n8n at any time, visit <http://localhost:5678/> in your browser.
 To open Open WebUI at any time, visit <http://localhost:3000/>.
@@ -1413,3 +1809,29 @@ python3 start_services.py --profile gpu-nvidia
 
 This project (originally created by the n8n team, link at the top of the README) is licensed under the Apache License 2.0 - see the
 [LICENSE](LICENSE) file for details.
+
+
+
+Quick reference for direct endpoints:                                                                                               
+  ┌────────────────────────────┬──────────────┬───────────────────────────────────────────────┐                                       
+  │          Endpoint          │ input_field  │           What your message becomes           │                                       
+  ├────────────────────────────┼──────────────┼───────────────────────────────────────────────┤                                       
+  │ /webhook/chat              │ chatInput    │ Natural language (routes to a stage)          │                                       
+  ├────────────────────────────┼──────────────┼───────────────────────────────────────────────┤                                       
+  │ /webhook/business-analysis │ requirements │ Start project / generate BRD                   │                                       
+  ├────────────────────────────┼──────────────┼───────────────────────────────────────────────┤                                       
+  │ /webhook/architecture-artifact-v2 │ (n/a)    │ Poll w/ query params (jobId/projectSlug/type) │                                       
+  ├────────────────────────────┼──────────────┼───────────────────────────────────────────────┤                                       
+  │ /webhook/software-delivery │ projectSlug  │ Publish + Taskmaster (projectSlug or jobId)   │                                       
+  └────────────────────────────┴──────────────┴───────────────────────────────────────────────┘                                       
+  Note: `/webhook/architecture-artifact-v2` is easiest to call via URL query params.
+
+  Summary                                                                                                                             
+                                                                                                                                      
+  To trigger the pipeline from Open WebUI (recommended):
+
+  webhook_url: http://localhost:5678/webhook/chat
+  input_field: chatInput
+  response_field: output
+
+  The chat handler routes to the right stage and returns a user-friendly `output`.

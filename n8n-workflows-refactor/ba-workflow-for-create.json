@@ -1,0 +1,665 @@
+{
+  "name": "Business Analysis Pipeline",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "requirements",
+              "value": "={{ $json.requirements || '' }}",
+              "type": "string"
+            },
+            {
+              "name": "projectName",
+              "value": "={{ $json.projectName || 'architecture-project' }}",
+              "type": "string"
+            },
+            {
+              "name": "projectSlug",
+              "value": "={{ $json.projectSlug || 'architecture-project' }}",
+              "type": "string"
+            },
+            {
+              "name": "comments",
+              "value": "={{ $json.comments || null }}",
+              "type": "string"
+            },
+            {
+              "name": "ackJobId",
+              "value": "={{ $json.ackJobId || null }}",
+              "type": "string"
+            },
+            {
+              "name": "ollamaUrl",
+              "value": "https://ollama.socrates-hlapolosa.org/api/chat",
+              "type": "string"
+            },
+            {
+              "name": "ollamaModel",
+              "value": "llama3.1:8b-instruct-q4_K_M",
+              "type": "string"
+            },
+            {
+              "name": "ollamaTemperature",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "name": "ollamaSeed",
+              "value": 42,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "init-params",
+      "name": "Initialize Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE SCHEMA IF NOT EXISTS architecture;\n\nCREATE TABLE IF NOT EXISTS architecture.projects (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  slug text UNIQUE NOT NULL,\n  name text,\n  created_at timestamptz DEFAULT now(),\n  updated_at timestamptz DEFAULT now()\n);\n\nCREATE TABLE IF NOT EXISTS architecture.artifacts (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  project_id uuid NOT NULL REFERENCES architecture.projects(id),\n  type text NOT NULL,\n  version int NOT NULL,\n  content jsonb NOT NULL,\n  content_hash text NOT NULL,\n  meta jsonb NOT NULL DEFAULT '{}'::jsonb,\n  created_at timestamptz DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS artifacts_project_type_version_idx ON architecture.artifacts(project_id, type, version DESC);\n\nCREATE TABLE IF NOT EXISTS architecture.jobs (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  project_id uuid REFERENCES architecture.projects(id),\n  stage varchar(50) NOT NULL,\n  input_job_id uuid REFERENCES architecture.jobs(id),\n  status varchar(20) DEFAULT 'running',\n  created_at timestamptz DEFAULT now(),\n  completed_at timestamptz,\n  meta jsonb DEFAULT '{}'::jsonb\n);\n\nCREATE INDEX IF NOT EXISTS jobs_project_stage_idx ON architecture.jobs(project_id, stage, created_at DESC);",
+        "options": {}
+      },
+      "id": "ensure-schema",
+      "name": "Ensure DB Schema",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        480,
+        128
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO architecture.projects (slug, name, updated_at)\nVALUES ($1, $2, now())\nON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, updated_at = now()\nRETURNING id, slug, name;",
+        "options": {
+          "queryReplacement": "={{ [ $json.projectSlug, $json.projectName ] }}"
+        }
+      },
+      "id": "upsert-project",
+      "name": "Upsert Project",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        480,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO architecture.jobs (project_id, stage, status, meta)\nVALUES ($1, 'business-analysis', 'running', $2::jsonb)\nRETURNING id, stage, status, created_at;",
+        "options": {
+          "queryReplacement": "={{ [ $json.id, JSON.stringify({ ackJobId: $('Initialize Parameters').first().json.ackJobId, comments: $('Initialize Parameters').first().json.comments }) ] }}"
+        }
+      },
+      "id": "create-job",
+      "name": "Create BA Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        720,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Carry forward context for downstream nodes\nconst init = $('Initialize Parameters').first().json;\nconst project = $('Upsert Project').first().json;\nconst job = $json;\nreturn [{ json: { ...init, projectId: project.id, projectSlug: project.slug, projectName: project.name, jobId: job.id, jobStage: job.stage } }];"
+      },
+      "id": "pass-context",
+      "name": "Pass Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT content, version, content_hash, created_at\nFROM architecture.artifacts\nWHERE project_id = $1 AND type = 'brd'\nORDER BY version DESC\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ [ $json.projectId ] }}"
+        }
+      },
+      "id": "load-brd",
+      "name": "Load Latest BRD",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1200,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize rows from Postgres\nconst items = $input.all();\nif (!items.length) return [{ json: { rows: [] } }];\nconst rows = items.map(i => i.json);\nreturn [{ json: { rows } }];"
+      },
+      "id": "normalize-brd",
+      "name": "Normalize BRD Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        304
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Determine if we have an existing BRD\nconst rows = Array.isArray($json.rows) ? $json.rows : [];\nconst first = rows[0] || null;\nconst brd = first && typeof first.content === 'object' ? first.content : null;\nconst hasBrd = !!(brd && brd.type === 'brd' && brd.title && brd.executiveSummary);\n\nreturn hasBrd\n  ? [{ json: { hasBrd: true, brdFromDb: brd } }]\n  : [{ json: { hasBrd: false } }];"
+      },
+      "id": "determine-brd-flow",
+      "name": "Determine BRD Flow",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.hasBrd ? 0 : 1 }}"
+      },
+      "id": "brd-router",
+      "name": "BRD Source Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1920,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "brdSource",
+              "name": "brdSource",
+              "type": "string",
+              "value": "db"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "type": "object",
+              "value": "={{ { content: JSON.stringify($('Determine BRD Flow').first().json.brdFromDb) } }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "use-existing-brd",
+      "name": "Use Existing BRD",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2160,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Business Analyst. Output ONLY JSON that matches the schema. No markdown.' },\n    { role: 'user', content: $('Initialize Parameters').first().json.requirements }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['type','title','version','executiveSummary','problemStatement','businessObjectives','stakeholders','scope','constraints','assumptions','successCriteria'],\n    properties: {\n      type: { const: 'brd' },\n      title: { type: 'string' },\n      version: { type: 'string' },\n      executiveSummary: { type: 'string' },\n      problemStatement: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['currentState','painPoints','impact'],\n        properties: {\n          currentState: { type: 'string' },\n          painPoints: { type: 'array', items: { type: 'string' } },\n          impact: { type: 'string' }\n        }\n      },\n      businessObjectives: { type: 'array' },\n      stakeholders: { type: 'array' },\n      scope: { type: 'object' },\n      constraints: { type: 'array' },\n      assumptions: { type: 'array' },\n      successCriteria: { type: 'array' }\n    }\n  },\n  options: {\n    temperature: $('Initialize Parameters').first().json.ollamaTemperature,\n    seed: $('Initialize Parameters').first().json.ollamaSeed\n  }\n} }}",
+        "options": {}
+      },
+      "id": "generate-brd",
+      "name": "Generate BRD",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2160,
+        400
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "brdSource",
+              "name": "brdSource",
+              "type": "string",
+              "value": "generated"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "mark-brd-generated",
+      "name": "Mark BRD Generated",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2400,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate BRD structure\nconst raw = $json.message?.content;\nlet brd;\ntry {\n  brd = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { ...$json, valid: false, errors: ['BRD JSON parse failed: ' + e.message], brd: null } }];\n}\n\nconst errors = [];\nif (brd?.type !== 'brd') errors.push('type must be brd');\nif (!brd?.title) errors.push('title is required');\nif (!brd?.executiveSummary) errors.push('executiveSummary is required');\nif (!brd?.problemStatement) errors.push('problemStatement is required');\nif (!Array.isArray(brd?.businessObjectives)) errors.push('businessObjectives must be array');\nif (!Array.isArray(brd?.stakeholders)) errors.push('stakeholders must be array');\nif (!brd?.scope) errors.push('scope is required');\n\nconst fnv1a = (input) => {\n  const str = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst brdHash = fnv1a(JSON.stringify(brd));\n\nreturn [{ json: { ...$json, valid, errors, brd, brdHash } }];"
+      },
+      "id": "validate-brd",
+      "name": "Validate BRD",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.brdSource === 'generated' ? 0 : 1 }}",
+        "options": {}
+      },
+      "id": "brd-post-router",
+      "name": "BRD Post-Validate Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2880,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'brd'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'brd', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Pass Context').first().json.projectId, JSON.stringify($json.brd), $json.brdHash, JSON.stringify({ jobId: $('Pass Context').first().json.jobId, model: $('Initialize Parameters').first().json.ollamaModel }) ] }}"
+        }
+      },
+      "id": "store-brd",
+      "name": "Store BRD Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3120,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build BRD.md content from validated BRD\nconst ctx = $('Pass Context').first().json;\nconst brd = $('Validate BRD').first().json.brd;\n\nconst md = [\n  `# Business Requirements Document: ${ctx.projectName}`,\n  '',\n  '## Problem Statement',\n  '',\n  `### Current State\\n${brd?.problemStatement?.currentState || ''}`,\n  '',\n  '### Pain Points',\n  ...(Array.isArray(brd?.problemStatement?.painPoints) ? brd.problemStatement.painPoints.map(p => `- ${p}`) : ['-']),\n  '',\n  `### Impact\\n${brd?.problemStatement?.impact || ''}`,\n  '',\n  '## Business Objectives',\n  ...(Array.isArray(brd?.businessObjectives) ? brd.businessObjectives.map(o => `- ${o}`) : ['-']),\n  '',\n  '## Success Metrics (KPIs)',\n  ...(Array.isArray(brd?.successCriteria) ? brd.successCriteria.map(s => `- ${s}`) : ['-']),\n  '',\n  '## Stakeholders',\n  ...(Array.isArray(brd?.stakeholders) ? brd.stakeholders.map(s => `- ${typeof s === 'string' ? s : JSON.stringify(s)}`) : ['-']),\n  '',\n  '## Constraints & Assumptions',\n  '### Constraints',\n  ...(Array.isArray(brd?.constraints) ? brd.constraints.map(c => `- ${c}`) : ['-']),\n  '',\n  '### Assumptions',\n  ...(Array.isArray(brd?.assumptions) ? brd.assumptions.map(a => `- ${a}`) : ['-']),\n  '',\n  '## Scope',\n  '',\n  `### In Scope\\n${(brd?.scope && brd.scope.inScope) ? brd.scope.inScope : ''}`,\n  '',\n  '### Features',\n  ...(((brd?.scope && Array.isArray(brd.scope.features)) ? brd.scope.features : []).map(f => `- ${f}`) || ['-']),\n  '',\n  '### Out of Scope',\n  ...(((brd?.scope && Array.isArray(brd.scope.outOfScope)) ? brd.scope.outOfScope : []).map(f => `- ${f}`) || ['-']),\n].join('\\n');\n\nreturn [{ json: { ...ctx, brdMarkdown: md, brd } }];"
+      },
+      "id": "render-brd-md",
+      "name": "Render BRD.md",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3360,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build git script for BRD.md commit\nconst ctx = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\nlet sh = '';\nsh += 'set -e\\n';\nsh += 'mkdir -p /opt/workspace\\n';\nsh += \"if [ ! -d '\" + repoDir + \"/.git' ]; then git clone '\" + remote + \"' '\" + repoDir + \"'; fi\\n\";\nsh += \"cd '\" + repoDir + \"'\\n\";\nsh += \"git remote set-url origin '\" + remote + \"'\\n\";\nsh += 'git fetch origin\\n';\nsh += \"git checkout -B '\" + projectSlug + \"' 'origin/\" + projectSlug + \"' 2>/dev/null || git checkout -B '\" + projectSlug + \"'\\n\";\nsh += \"mkdir -p '\" + projectDir + \"/docs'\\n\";\n\n// Write BRD.md\nsh += \"cat > '\" + projectDir + \"/docs/BRD.md' <<'EOF_\" + jobId + \"'\\n\";\nsh += ctx.brdMarkdown + \"\\nEOF_\" + jobId + \"\\n\";\n\nsh += \"git add '\" + projectSlug + \"-docs/docs/BRD.md'\\n\";\nsh += \"git commit -m 'Add BRD for \" + projectSlug + \" (job \" + jobId + \")' || true\\n\";\nsh += \"git push -u origin '\" + projectSlug + \"'\\n\";\n\nreturn [{ json: { ...ctx, gitScript: sh } }];"
+      },
+      "id": "build-git-script",
+      "name": "Build Git Script",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3600,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "privateKey",
+        "command": "={{ $json.gitScript }}"
+      },
+      "id": "ssh-commit",
+      "name": "SSH: Commit BRD",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        3840,
+        304
+      ],
+      "credentials": {
+        "sshPrivateKey": {
+          "id": "SxKNiry9nQQ96pnU",
+          "name": "SSH Private Key account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE architecture.jobs SET status = 'completed', completed_at = now() WHERE id = $1 RETURNING id, status, completed_at;",
+        "options": {
+          "queryReplacement": "={{ [ $('Pass Context').first().json.jobId ] }}"
+        }
+      },
+      "id": "update-job-status",
+      "name": "Update Job Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4080,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Return result to caller\nconst ctx = $('Pass Context').first().json;\nreturn [{ json: {\n  success: true,\n  jobId: ctx.jobId,\n  projectSlug: ctx.projectSlug,\n  stage: 'business-analysis',\n  brdPath: ctx.projectSlug + '-docs/docs/BRD.md'\n} }];"
+      },
+      "id": "return-result",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4320,
+        304
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Initialize Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Parameters": {
+      "main": [
+        [
+          {
+            "node": "Ensure DB Schema",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upsert Project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Project": {
+      "main": [
+        [
+          {
+            "node": "Create BA Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create BA Job": {
+      "main": [
+        [
+          {
+            "node": "Pass Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pass Context": {
+      "main": [
+        [
+          {
+            "node": "Load Latest BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Latest BRD": {
+      "main": [
+        [
+          {
+            "node": "Normalize BRD Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize BRD Rows": {
+      "main": [
+        [
+          {
+            "node": "Determine BRD Flow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine BRD Flow": {
+      "main": [
+        [
+          {
+            "node": "BRD Source Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BRD Source Router": {
+      "main": [
+        [
+          {
+            "node": "Use Existing BRD",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Existing BRD": {
+      "main": [
+        [
+          {
+            "node": "Validate BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate BRD": {
+      "main": [
+        [
+          {
+            "node": "Mark BRD Generated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark BRD Generated": {
+      "main": [
+        [
+          {
+            "node": "Validate BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate BRD": {
+      "main": [
+        [
+          {
+            "node": "BRD Post-Validate Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BRD Post-Validate Router": {
+      "main": [
+        [
+          {
+            "node": "Store BRD Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render BRD.md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store BRD Artifact": {
+      "main": [
+        [
+          {
+            "node": "Render BRD.md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render BRD.md": {
+      "main": [
+        [
+          {
+            "node": "Build Git Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Git Script": {
+      "main": [
+        [
+          {
+            "node": "SSH: Commit BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH: Commit BRD": {
+      "main": [
+        [
+          {
+            "node": "Update Job Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Job Status": {
+      "main": [
+        [
+          {
+            "node": "Return Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

@@ -1,0 +1,268 @@
+{
+  "id": "IxuJtVhuqD4WK2UQ",
+  "name": "QA and Compliance Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 304]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "name": "projectSlug", "value": "={{ $json.projectSlug }}", "type": "string" },
+            { "name": "inputJobId", "value": "={{ $json.inputJobId || null }}", "type": "string" },
+            { "name": "comments", "value": "={{ $json.comments || null }}", "type": "string" },
+            { "name": "ollamaModel", "value": "llama3.1:8b-instruct-q4_K_M", "type": "string" },
+            { "name": "ollamaTemperature", "value": 0, "type": "number" },
+            { "name": "ollamaSeed", "value": 42, "type": "number" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "init-params",
+      "name": "Initialize Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [240, 304]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT p.id, p.slug, p.name FROM architecture.projects p WHERE p.slug = $1;",
+        "options": { "queryReplacement": "={{ [ $json.projectSlug ] }}" }
+      },
+      "id": "get-project",
+      "name": "Load Project",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [480, 304],
+      "credentials": { "postgres": { "id": "M5eIfNwtZu8y3dOp", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id FROM architecture.jobs WHERE project_id = $1 AND stage = 'solution-architecture' AND status = 'completed' ORDER BY created_at DESC LIMIT 1;",
+        "options": { "queryReplacement": "={{ [ $json.id ] }}" }
+      },
+      "id": "get-solution-job",
+      "name": "Get Latest Solution Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [720, 304],
+      "credentials": { "postgres": { "id": "M5eIfNwtZu8y3dOp", "name": "Postgres account" } },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO architecture.jobs (project_id, stage, input_job_id, status, meta) VALUES ($1, 'qa-compliance', $2, 'running', $3::jsonb) RETURNING id, stage, status;",
+        "options": { "queryReplacement": "={{ [ $('Load Project').first().json.id, $json.id || null, JSON.stringify({ comments: $('Initialize Parameters').first().json.comments }) ] }}" }
+      },
+      "id": "create-job",
+      "name": "Create QA Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [960, 304],
+      "credentials": { "postgres": { "id": "M5eIfNwtZu8y3dOp", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const init = $('Initialize Parameters').first().json;\nconst project = $('Load Project').first().json;\nconst job = $json;\nreturn [{ json: { ...init, projectId: project.id, projectSlug: project.slug, projectName: project.name || project.slug, jobId: job.id } }];"
+      },
+      "id": "pass-context",
+      "name": "Pass Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 304]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT DISTINCT ON (a.type) a.type, a.content FROM architecture.artifacts a WHERE a.project_id = $1 AND a.type IN ('brd', 'business_arch', 'application_arch', 'data_arch', 'infrastructure_arch', 'solution_arch_md', 'openapi_yaml', 'asyncapi_yaml', 'sql_schema_sql') ORDER BY a.type, a.version DESC;",
+        "options": { "queryReplacement": "={{ [ $json.projectId ] }}" }
+      },
+      "id": "load-artifacts",
+      "name": "Load All Artifacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [1440, 304],
+      "credentials": { "postgres": { "id": "M5eIfNwtZu8y3dOp", "name": "Postgres account" } },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Pass Context').first().json;\nconst rows = $input.all().map(i => i.json);\nconst byType = {};\nfor (const r of rows) byType[r.type] = r.content;\nreturn [{ json: { ...ctx, artifacts: byType } }];"
+      },
+      "id": "collect-artifacts",
+      "name": "Collect Artifacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1680, 304]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Security Architect producing a risk assessment. Output JSON {\"markdown\": \"...\"} only. Markdown must start with \"# Risk Assessment:\" - no code fences. Cover: security risks, data privacy, compliance requirements, technical risks, and mitigation strategies.' },\n    { role: 'user', content: 'PROJECT: ' + $json.projectName + '\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,5000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($json.artifacts.business_arch || {}).slice(0,4000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,4000) + '\\nSOLUTION_ARCH: ' + ($json.artifacts.solution_arch_md?.markdown || '').slice(0,5000) + '\\nOPENAPI: ' + ($json.artifacts.openapi_yaml?.yaml || '').slice(0,3000) + '\\nASYNCAPI: ' + ($json.artifacts.asyncapi_yaml?.yaml || '').slice(0,3000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['markdown'], properties: { markdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
+        "options": { "timeout": 300000 }
+      },
+      "id": "gen-risk",
+      "name": "Generate Risk Assessment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [1920, 304],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content;\nlet parsed; try { parsed = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { return [{ json: { valid: false, riskMarkdown: '', error: 'JSON parse failed' } }]; }\nconst md = String(parsed?.markdown || '');\nconst fnv1a = (s) => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };\nreturn [{ json: { valid: md.startsWith('# Risk Assessment:'), riskMarkdown: md, riskHash: fnv1a(md) } }];"
+      },
+      "id": "val-risk",
+      "name": "Validate Risk",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2160, 304]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (SELECT COALESCE(MAX(version), 0) + 1 AS v FROM architecture.artifacts WHERE project_id = $1 AND type = 'risk_assessment_md') INSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta) SELECT $1, 'risk_assessment_md', next_version.v, $2::jsonb, $3, $4::jsonb FROM next_version RETURNING id, version;",
+        "options": { "queryReplacement": "={{ [ $('Pass Context').first().json.projectId, JSON.stringify({ markdown: $json.riskMarkdown }), $json.riskHash, JSON.stringify({ jobId: $('Pass Context').first().json.jobId, stage: 'qa-compliance' }) ] }}" }
+      },
+      "id": "store-risk",
+      "name": "Store Risk Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [2400, 304],
+      "credentials": { "postgres": { "id": "M5eIfNwtZu8y3dOp", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a QA Architect. Output JSON with testStrategyMarkdown (starts with \"# Test Strategy:\") and testScenariosMarkdown (starts with \"# Test Scenarios:\"). No code fences. Include: testing approach, test types (unit, integration, e2e, performance, security), environments, tools, acceptance criteria, and detailed test scenarios with steps and expected results.' },\n    { role: 'user', content: 'PROJECT: ' + $('Collect Artifacts').first().json.projectName + '\\nBRD: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.brd || {}).slice(0,4000) + '\\nAPP_ARCH: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.application_arch || {}).slice(0,4000) + '\\nSOLUTION_ARCH: ' + ($('Collect Artifacts').first().json.artifacts.solution_arch_md?.markdown || '').slice(0,5000) + '\\nOPENAPI: ' + ($('Collect Artifacts').first().json.artifacts.openapi_yaml?.yaml || '').slice(0,3000) + '\\nRISK_ASSESSMENT: ' + $('Validate Risk').first().json.riskMarkdown.slice(0,4000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['testStrategyMarkdown','testScenariosMarkdown'], properties: { testStrategyMarkdown: { type: 'string' }, testScenariosMarkdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
+        "options": { "timeout": 300000 }
+      },
+      "id": "gen-qa",
+      "name": "Generate QA Package",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [2640, 304],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content;\nlet p; try { p = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { return [{ json: { valid: false, error: 'JSON parse failed' } }]; }\nconst fnv1a = (s) => { let h = 0x811c9dc5; for (let i = 0; i < (s||'').length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };\nconst valid = p.testStrategyMarkdown && p.testStrategyMarkdown.startsWith('# Test Strategy:');\nreturn [{ json: { valid, testStrategyMarkdown: p.testStrategyMarkdown || '', testScenariosMarkdown: p.testScenariosMarkdown || '', hashes: { strategy: fnv1a(p.testStrategyMarkdown), scenarios: fnv1a(p.testScenariosMarkdown) } } }];"
+      },
+      "id": "val-qa",
+      "name": "Validate QA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2880, 304]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $json;\nif (!j.valid) return [];\nconst ctx = $('Pass Context').first().json;\nconst meta = { jobId: ctx.jobId, stage: 'qa-compliance' };\nconst out = [];\nout.push({ json: { artifactType: 'test_strategy_md', content: { markdown: j.testStrategyMarkdown }, contentHash: j.hashes.strategy, meta } });\nout.push({ json: { artifactType: 'test_scenarios_md', content: { markdown: j.testScenariosMarkdown }, contentHash: j.hashes.scenarios, meta } });\nreturn out;"
+      },
+      "id": "explode-qa",
+      "name": "Explode QA Artifacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3120, 304]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (SELECT COALESCE(MAX(version), 0) + 1 AS v FROM architecture.artifacts WHERE project_id = $1 AND type = $2) INSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta) SELECT $1, $2, next_version.v, $3::jsonb, $4, $5::jsonb FROM next_version RETURNING id, version;",
+        "options": { "queryReplacement": "={{ [ $('Pass Context').first().json.projectId, $json.artifactType, JSON.stringify($json.content), $json.contentHash, JSON.stringify($json.meta) ] }}" }
+      },
+      "id": "store-qa",
+      "name": "Store QA Artifacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [3360, 304],
+      "credentials": { "postgres": { "id": "M5eIfNwtZu8y3dOp", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Pass Context').first().json;\nconst risk = $('Validate Risk').first().json;\nconst qa = $('Validate QA').first().json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\nconst safeHeredoc = (content, marker) => {\n  if (!content) return '';\n  return String(content).replace(new RegExp(marker, 'g'), marker + '_ESCAPED');\n};\n\nlet sh = `set -e\nmkdir -p /opt/workspace\n\nif [ ! -d '${repoDir}/.git' ]; then\n  git clone '${remote}' '${repoDir}'\nfi\ncd '${repoDir}'\ngit fetch origin --prune\n\ngit checkout -B '${projectSlug}' 'origin/${projectSlug}' 2>/dev/null || git checkout -B '${projectSlug}'\nmkdir -p '${projectDir}/docs'\n`;\n\n// Risk Assessment\nsh += `cat > '${projectDir}/docs/risk-assessment.md' <<'EOFRISK_${jobId}'\n${safeHeredoc(risk.riskMarkdown, 'EOFRISK_' + jobId)}\nEOFRISK_${jobId}\n`;\n\n// Test Strategy\nsh += `cat > '${projectDir}/docs/test-strategy.md' <<'EOFSTRAT_${jobId}'\n${safeHeredoc(qa.testStrategyMarkdown, 'EOFSTRAT_' + jobId)}\nEOFSTRAT_${jobId}\n`;\n\n// Test Scenarios\nsh += `cat > '${projectDir}/docs/test-scenarios.md' <<'EOFSCEN_${jobId}'\n${safeHeredoc(qa.testScenariosMarkdown, 'EOFSCEN_' + jobId)}\nEOFSCEN_${jobId}\n`;\n\nsh += `\ngit add '${projectSlug}-docs'\ngit commit -m 'Add QA and compliance artifacts for ${projectSlug} (job ${jobId})' || true\ngit push -u origin '${projectSlug}'\n`;\n\nreturn [{ json: { ...ctx, gitScript: sh } }];"
+      },
+      "id": "build-git-script",
+      "name": "Build Git Script",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3600, 304]
+    },
+    {
+      "parameters": {
+        "authentication": "privateKey",
+        "command": "={{ $json.gitScript }}"
+      },
+      "id": "ssh-commit",
+      "name": "SSH: Commit QA Files",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [3840, 304],
+      "credentials": { "sshPrivateKey": { "id": "SxKNiry9nQQ96pnU", "name": "SSH Private Key account" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE architecture.jobs SET status = 'completed', completed_at = now() WHERE id = $1 RETURNING id, status;",
+        "options": { "queryReplacement": "={{ [ $('Pass Context').first().json.jobId ] }}" }
+      },
+      "id": "update-job",
+      "name": "Update Job Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [4080, 304],
+      "credentials": { "postgres": { "id": "M5eIfNwtZu8y3dOp", "name": "Postgres account" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Pass Context').first().json;\nreturn [{ json: {\n  success: true,\n  jobId: ctx.jobId,\n  projectSlug: ctx.projectSlug,\n  stage: 'qa-compliance',\n  artifacts: {\n    riskAssessment: ctx.projectSlug + '-docs/docs/risk-assessment.md',\n    testStrategy: ctx.projectSlug + '-docs/docs/test-strategy.md',\n    testScenarios: ctx.projectSlug + '-docs/docs/test-scenarios.md'\n  }\n} }];"
+      },
+      "id": "return-result",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4320, 304]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": { "main": [[{ "node": "Initialize Parameters", "type": "main", "index": 0 }]] },
+    "Initialize Parameters": { "main": [[{ "node": "Load Project", "type": "main", "index": 0 }]] },
+    "Load Project": { "main": [[{ "node": "Get Latest Solution Job", "type": "main", "index": 0 }]] },
+    "Get Latest Solution Job": { "main": [[{ "node": "Create QA Job", "type": "main", "index": 0 }]] },
+    "Create QA Job": { "main": [[{ "node": "Pass Context", "type": "main", "index": 0 }]] },
+    "Pass Context": { "main": [[{ "node": "Load All Artifacts", "type": "main", "index": 0 }]] },
+    "Load All Artifacts": { "main": [[{ "node": "Collect Artifacts", "type": "main", "index": 0 }]] },
+    "Collect Artifacts": { "main": [[{ "node": "Generate Risk Assessment", "type": "main", "index": 0 }]] },
+    "Generate Risk Assessment": { "main": [[{ "node": "Validate Risk", "type": "main", "index": 0 }]] },
+    "Validate Risk": { "main": [[{ "node": "Store Risk Artifact", "type": "main", "index": 0 }]] },
+    "Store Risk Artifact": { "main": [[{ "node": "Generate QA Package", "type": "main", "index": 0 }]] },
+    "Generate QA Package": { "main": [[{ "node": "Validate QA", "type": "main", "index": 0 }]] },
+    "Validate QA": { "main": [[{ "node": "Explode QA Artifacts", "type": "main", "index": 0 }]] },
+    "Explode QA Artifacts": { "main": [[{ "node": "Store QA Artifacts", "type": "main", "index": 0 }]] },
+    "Store QA Artifacts": { "main": [[{ "node": "Build Git Script", "type": "main", "index": 0 }]] },
+    "Build Git Script": { "main": [[{ "node": "SSH: Commit QA Files", "type": "main", "index": 0 }]] },
+    "SSH: Commit QA Files": { "main": [[{ "node": "Update Job Status", "type": "main", "index": 0 }]] },
+    "Update Job Status": { "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

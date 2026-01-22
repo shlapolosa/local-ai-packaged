@@ -1,17 +1,18 @@
 """
-title: n8n Pipe Function
-author: Cole Medin
+title: n8n Pipeline Pipe
+author: Cole Medin (original), Enhanced for Architecture Pipeline
 author_url: https://www.youtube.com/@ColeMedin
-version: 0.1.0
+version: 0.3.0
 
-This module defines a Pipe class that utilizes N8N for an Agent
+Simple pipe that sends chat messages to an n8n webhook endpoint.
+Create multiple instances with different webhook URLs for different workflows.
 """
 
 from typing import Optional, Callable, Awaitable
 from pydantic import BaseModel, Field
-import os
 import time
 import requests
+
 
 def extract_event_info(event_emitter) -> tuple[Optional[str], Optional[str]]:
     if not event_emitter or not event_emitter.__closure__:
@@ -23,28 +24,40 @@ def extract_event_info(event_emitter) -> tuple[Optional[str], Optional[str]]:
             return chat_id, message_id
     return None, None
 
+
 class Pipe:
     class Valves(BaseModel):
-        n8n_url: str = Field(
-            default="https://n8n.[your domain].com/webhook/[your webhook URL]"
+        webhook_url: str = Field(
+            default="https://n8n.example.com/webhook/chat",
+            description="n8n webhook URL to send messages to"
         )
-        n8n_bearer_token: str = Field(default="...")
-        input_field: str = Field(default="chatInput")
-        response_field: str = Field(default="output")
+        n8n_bearer_token: str = Field(
+            default="",
+            description="Bearer token for n8n webhook authentication (optional)"
+        )
+        input_field: str = Field(
+            default="chatInput",
+            description="Field name for the user message in the request payload"
+        )
+        response_field: str = Field(
+            default="output",
+            description="Field name to extract from the response (use empty for full JSON)"
+        )
         emit_interval: float = Field(
-            default=2.0, description="Interval in seconds between status emissions"
+            default=2.0,
+            description="Interval in seconds between status emissions"
         )
         enable_status_indicator: bool = Field(
-            default=True, description="Enable or disable status indicator emissions"
+            default=True,
+            description="Enable or disable status indicator emissions"
         )
 
     def __init__(self):
         self.type = "pipe"
-        self.id = "n8n_pipe"
-        self.name = "N8N Pipe"
+        self.id = "n8n_pipeline_pipe"
+        self.name = "n8n Pipeline"
         self.valves = self.Valves()
         self.last_emit_time = 0
-        pass
 
     async def emit_status(
         self,
@@ -74,62 +87,123 @@ class Pipe:
             )
             self.last_emit_time = current_time
 
+    def format_response(self, response_data: dict) -> str:
+        """Format the webhook response into a user-friendly message."""
+
+        # If response has 'output' field, use it directly (chat webhook format)
+        if "output" in response_data:
+            return response_data["output"]
+
+        # Handle standard Ack response format
+        if response_data.get("status") == "accepted":
+            project_slug = response_data.get("projectSlug", "unknown")
+            job_id = response_data.get("ackJobId", response_data.get("jobId", ""))
+            workflow = response_data.get("workflow", "unknown")
+            message = response_data.get("message", "")
+
+            result = f"**{workflow}** workflow started for **{project_slug}**"
+            if job_id:
+                result += f"\n\nJob ID: `{job_id}`"
+            if message:
+                result += f"\n\n{message}"
+            return result
+
+        # Handle Business Analysis subworkflow response format
+        if response_data.get("success") and response_data.get("stage"):
+            project_slug = response_data.get("projectSlug", "unknown")
+            job_id = response_data.get("jobId", "")
+            stage = response_data.get("stage", "unknown")
+            brd_path = response_data.get("brdPath", "")
+
+            stage_names = {
+                "business-analysis": "Business Analysis",
+                "architecture": "Architecture",
+                "solution-architecture": "Solution Architecture",
+                "risk-assessment": "Risk Assessment",
+                "test-strategy": "Test Strategy",
+                "project-management": "Project Management",
+                "software-delivery": "Software Delivery",
+            }
+            stage_name = stage_names.get(stage, stage)
+
+            result = f"**{stage_name}** completed for **{project_slug}**"
+            if job_id:
+                result += f"\n\nJob ID: `{job_id}`"
+            if brd_path:
+                result += f"\n\nOutput: `{brd_path}`"
+            return result
+
+        # Fallback: return JSON as formatted string
+        import json
+        return f"```json\n{json.dumps(response_data, indent=2)}\n```"
+
     async def pipe(
         self,
         body: dict,
         __user__: Optional[dict] = None,
         __event_emitter__: Callable[[dict], Awaitable[None]] = None,
         __event_call__: Callable[[dict], Awaitable[dict]] = None,
-    ) -> Optional[dict]:
-        await self.emit_status(
-            __event_emitter__, "info", "/Calling N8N Workflow...", False
-        )
-        chat_id, _ = extract_event_info(__event_emitter__)
+    ) -> Optional[str]:
+
         messages = body.get("messages", [])
 
-        # Verify a message is available
-        if messages:
-            question = messages[-1]["content"]
-            try:
-                # Invoke N8N workflow
-                headers = {
-                    "Authorization": f"Bearer {self.valves.n8n_bearer_token}",
-                    "Content-Type": "application/json",
-                }
-                payload = {"sessionId": f"{chat_id}"}
-                payload[self.valves.input_field] = question
-                response = requests.post(
-                    self.valves.n8n_url, json=payload, headers=headers
-                )
-                if response.status_code == 200:
-                    n8n_response = response.json()[self.valves.response_field]
-                else:
-                    raise Exception(f"Error: {response.status_code} - {response.text}")
-
-                # Set assitant message with chain reply
-                body["messages"].append({"role": "assistant", "content": n8n_response})
-            except Exception as e:
-                await self.emit_status(
-                    __event_emitter__,
-                    "error",
-                    f"Error during sequence execution: {str(e)}",
-                    True,
-                )
-                return {"error": str(e)}
-        # If no message is available alert user
-        else:
+        if not messages:
             await self.emit_status(
                 __event_emitter__,
                 "error",
                 "No messages found in the request body",
                 True,
             )
-            body["messages"].append(
-                {
-                    "role": "assistant",
-                    "content": "No messages found in the request body",
-                }
+            return "No messages found in the request body"
+
+        user_message = messages[-1]["content"]
+        chat_id, _ = extract_event_info(__event_emitter__)
+
+        await self.emit_status(
+            __event_emitter__, "info", "Calling n8n workflow...", False
+        )
+
+        # Build payload
+        payload = {"sessionId": chat_id or "default"}
+        payload[self.valves.input_field] = user_message
+
+        try:
+            headers = {"Content-Type": "application/json"}
+            if self.valves.n8n_bearer_token:
+                headers["Authorization"] = f"Bearer {self.valves.n8n_bearer_token}"
+
+            response = requests.post(
+                self.valves.webhook_url,
+                json=payload,
+                headers=headers,
+                timeout=120
             )
 
-        await self.emit_status(__event_emitter__, "info", "Complete", True)
-        return n8n_response
+            if response.status_code in [200, 202]:
+                response_data = response.json()
+
+                # If a specific response field is configured, extract it
+                if self.valves.response_field and self.valves.response_field in response_data:
+                    result = response_data[self.valves.response_field]
+                else:
+                    # Otherwise format the full response
+                    result = self.format_response(response_data)
+
+                await self.emit_status(__event_emitter__, "info", "Complete", True)
+                return result
+            else:
+                error_msg = f"Webhook error: {response.status_code} - {response.text}"
+                await self.emit_status(__event_emitter__, "error", error_msg, True)
+                return error_msg
+
+        except requests.exceptions.Timeout:
+            await self.emit_status(__event_emitter__, "error", "Request timed out", True)
+            return "The request timed out. The workflow may still be running in the background."
+        except Exception as e:
+            await self.emit_status(
+                __event_emitter__,
+                "error",
+                f"Error: {str(e)}",
+                True,
+            )
+            return f"Error: {str(e)}"

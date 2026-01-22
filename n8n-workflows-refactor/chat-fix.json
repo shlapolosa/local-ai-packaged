@@ -1,0 +1,16 @@
+{
+  "id": "RlBWh7XL9ZXgOJ7e",
+  "operations": [
+    {
+      "type": "updateNode",
+      "nodeId": "llm-extract-params",
+      "updates": {
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "parameters": {
+          "jsCode": "const chatInput = $('Parse Chat Input').first().json.chatInput;\n\nconst systemPrompt = `You are an intent classifier for an architecture pipeline chat interface. Output ONLY valid JSON.\n\nExtract from user message:\n- intent: one of [business-analysis, architecture, solution-architecture, risk-assessment, test-strategy, project-management, software-delivery, status-check, help]\n- projectSlug: extracted project name as lowercase-hyphenated slug, or null if not mentioned\n- requirements: full requirements text (for business-analysis intent only, otherwise null)\n\nReturn ONLY this JSON structure:\n{\"intent\":\"<intent>\",\"projectSlug\":\"<slug-or-null>\",\"requirements\":\"<text-or-null>\"}\n\nIntent Detection Rules:\n- business-analysis: User wants to create a new project, build something, or provides requirements/features for a new system\n- architecture: User mentions architecture, ArchiMate, design patterns, or wants system design for existing project\n- solution-architecture: User mentions solution, API design, data model, or technical specs\n- risk-assessment: User mentions risk, security, compliance, or audit\n- test-strategy: User mentions test, QA, quality, or validation\n- project-management: User mentions PRD, requirements doc, product requirements, or planning\n- software-delivery: User mentions tasks, stories, backlog, sprint, or delivery\n- status-check: User asks about status, progress, or state of a project\n- help: User asks for help, what can you do, or general questions\n\nProject Slug Extraction:\n- If user mentions a specific project name, extract and slugify it\n- If creating new project, generate slug from the main concept (e.g., patient portal -> patient-portal)\n- Use lowercase with hyphens only`;\n\nconst payload = {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    { role: 'system', content: systemPrompt },\n    { role: 'user', content: chatInput }\n  ],\n  stream: false,\n  options: { temperature: 0, seed: 42 }\n};\n\nconst result = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://ollama.socrates-hlapolosa.org/api/chat',\n  headers: { 'Content-Type': 'application/json' },\n  body: payload,\n  json: true\n});\n\nreturn [{ json: result }];"
+        }
+      }
+    }
+  ]
+}

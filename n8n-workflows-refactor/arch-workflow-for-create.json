@@ -1,0 +1,797 @@
+{
+  "name": "Architecture Pipeline",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "projectSlug",
+              "value": "={{ $json.projectSlug }}",
+              "type": "string"
+            },
+            {
+              "name": "inputJobId",
+              "value": "={{ $json.inputJobId || null }}",
+              "type": "string"
+            },
+            {
+              "name": "comments",
+              "value": "={{ $json.comments || null }}",
+              "type": "string"
+            },
+            {
+              "name": "ollamaModel",
+              "value": "llama3.1:8b-instruct-q4_K_M",
+              "type": "string"
+            },
+            {
+              "name": "ollamaTemperature",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "name": "ollamaSeed",
+              "value": 42,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "init-params",
+      "name": "Initialize Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT p.id, p.slug, p.name FROM architecture.projects p WHERE p.slug = $1;",
+        "options": {
+          "queryReplacement": "={{ [ $json.projectSlug ] }}"
+        }
+      },
+      "id": "get-project",
+      "name": "Load Project",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        480,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id FROM architecture.jobs WHERE project_id = $1 AND stage = 'business-analysis' AND status = 'completed' ORDER BY created_at DESC LIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ [ $json.id ] }}"
+        }
+      },
+      "id": "get-ba-job",
+      "name": "Get Latest BA Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        720,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO architecture.jobs (project_id, stage, input_job_id, status, meta) VALUES ($1, 'architecture', $2, 'running', $3::jsonb) RETURNING id, stage, status;",
+        "options": {
+          "queryReplacement": "={{ [ $('Load Project').first().json.id, $json.id || null, JSON.stringify({ comments: $('Initialize Parameters').first().json.comments }) ] }}"
+        }
+      },
+      "id": "create-job",
+      "name": "Create Arch Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const init = $('Initialize Parameters').first().json;\nconst project = $('Load Project').first().json;\nconst job = $json;\nreturn [{ json: { ...init, projectId: project.id, projectSlug: project.slug, projectName: project.name || project.slug, jobId: job.id } }];"
+      },
+      "id": "pass-context",
+      "name": "Pass Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT content FROM architecture.artifacts WHERE project_id = $1 AND type = 'brd' ORDER BY version DESC LIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ [ $json.projectId ] }}"
+        }
+      },
+      "id": "load-brd",
+      "name": "Load BRD",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1440,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Pass Context').first().json;\nconst brd = $json.content || {};\nreturn [{ json: { ...ctx, brd } }];"
+      },
+      "id": "collect-brd",
+      "name": "Collect BRD",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Business Architect. Output JSON matching ArchiMate business layer schema with capabilities, actors, processes, services. No extra keys.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($json.brd).slice(0, 12000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['capabilities','actors','processes','services'], properties: { capabilities: { type: 'array' }, actors: { type: 'array' }, processes: { type: 'array' }, services: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "gen-business",
+      "name": "Generate Business Architecture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1920,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content;\nlet arch; try { arch = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { return [{ json: { valid: false, businessArch: null } }]; }\nconst fnv1a = (s) => { let h = 0x811c9dc5; for (let i = 0; i < (s||'').length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };\nreturn [{ json: { valid: true, businessArch: arch, businessArchHash: fnv1a(JSON.stringify(arch)) } }];"
+      },
+      "id": "val-business",
+      "name": "Validate Business Arch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (SELECT COALESCE(MAX(version), 0) + 1 AS v FROM architecture.artifacts WHERE project_id = $1 AND type = 'business_arch') INSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta) SELECT $1, 'business_arch', next_version.v, $2::jsonb, $3, $4::jsonb FROM next_version RETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Pass Context').first().json.projectId, JSON.stringify($json.businessArch), $json.businessArchHash, JSON.stringify({ jobId: $('Pass Context').first().json.jobId }) ] }}"
+        }
+      },
+      "id": "store-business",
+      "name": "Store Business Arch",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2400,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are an Application Architect. Output JSON with components, interfaces, dataObjects. Map to business services.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($('Collect BRD').first().json.brd).slice(0,8000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($('Validate Business Arch').first().json.businessArch).slice(0,8000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['components','interfaces','dataObjects'], properties: { components: { type: 'array' }, interfaces: { type: 'array' }, dataObjects: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "gen-app",
+      "name": "Generate Application Architecture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2640,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content;\nlet arch; try { arch = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { return [{ json: { valid: false, applicationArch: null } }]; }\nconst fnv1a = (s) => { let h = 0x811c9dc5; for (let i = 0; i < (s||'').length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };\nreturn [{ json: { valid: true, applicationArch: arch, applicationArchHash: fnv1a(JSON.stringify(arch)) } }];"
+      },
+      "id": "val-app",
+      "name": "Validate Application Arch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (SELECT COALESCE(MAX(version), 0) + 1 AS v FROM architecture.artifacts WHERE project_id = $1 AND type = 'application_arch') INSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta) SELECT $1, 'application_arch', next_version.v, $2::jsonb, $3, $4::jsonb FROM next_version RETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Pass Context').first().json.projectId, JSON.stringify($json.applicationArch), $json.applicationArchHash, JSON.stringify({ jobId: $('Pass Context').first().json.jobId }) ] }}"
+        }
+      },
+      "id": "store-app",
+      "name": "Store Application Arch",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3120,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Data Architect. Output JSON with dataEntities, dataFlows, databases. Map to application dataObjects.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($('Collect BRD').first().json.brd).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($('Validate Application Arch').first().json.applicationArch).slice(0,8000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['dataEntities','dataFlows','databases'], properties: { dataEntities: { type: 'array' }, dataFlows: { type: 'array' }, databases: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "gen-data",
+      "name": "Generate Data Architecture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3360,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content;\nlet arch; try { arch = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { return [{ json: { valid: false, dataArch: null } }]; }\nconst fnv1a = (s) => { let h = 0x811c9dc5; for (let i = 0; i < (s||'').length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };\nreturn [{ json: { valid: true, dataArch: arch, dataArchHash: fnv1a(JSON.stringify(arch)) } }];"
+      },
+      "id": "val-data",
+      "name": "Validate Data Arch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3600,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (SELECT COALESCE(MAX(version), 0) + 1 AS v FROM architecture.artifacts WHERE project_id = $1 AND type = 'data_arch') INSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta) SELECT $1, 'data_arch', next_version.v, $2::jsonb, $3, $4::jsonb FROM next_version RETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Pass Context').first().json.projectId, JSON.stringify($json.dataArch), $json.dataArchHash, JSON.stringify({ jobId: $('Pass Context').first().json.jobId }) ] }}"
+        }
+      },
+      "id": "store-data",
+      "name": "Store Data Arch",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3840,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are an Infrastructure Architect. Output JSON with nodes, networks, deployments, artifacts. Map to application components.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($('Collect BRD').first().json.brd).slice(0,5000) + '\\nAPP_ARCH: ' + JSON.stringify($('Validate Application Arch').first().json.applicationArch).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($('Validate Data Arch').first().json.dataArch).slice(0,5000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['nodes','networks','deployments','artifacts'], properties: { nodes: { type: 'array' }, networks: { type: 'array' }, deployments: { type: 'array' }, artifacts: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "gen-infra",
+      "name": "Generate Infrastructure Architecture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4080,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content;\nlet arch; try { arch = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { return [{ json: { valid: false, infraArch: null } }]; }\nconst fnv1a = (s) => { let h = 0x811c9dc5; for (let i = 0; i < (s||'').length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };\nreturn [{ json: { valid: true, infraArch: arch, infraArchHash: fnv1a(JSON.stringify(arch)) } }];"
+      },
+      "id": "val-infra",
+      "name": "Validate Infrastructure Arch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4320,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (SELECT COALESCE(MAX(version), 0) + 1 AS v FROM architecture.artifacts WHERE project_id = $1 AND type = 'infrastructure_arch') INSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta) SELECT $1, 'infrastructure_arch', next_version.v, $2::jsonb, $3, $4::jsonb FROM next_version RETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Pass Context').first().json.projectId, JSON.stringify($json.infraArch), $json.infraArchHash, JSON.stringify({ jobId: $('Pass Context').first().json.jobId }) ] }}"
+        }
+      },
+      "id": "store-infra",
+      "name": "Store Infrastructure Arch",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4560,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Convert all architecture layers to ArchiMate XML\nconst ctx = $('Pass Context').first().json;\nconst biz = $('Validate Business Arch').first().json.businessArch || {};\nconst app = $('Validate Application Arch').first().json.applicationArch || {};\nconst data = $('Validate Data Arch').first().json.dataArch || {};\nconst infra = $('Validate Infrastructure Arch').first().json.infraArch || {};\n\nconst uuid = () => 'id-' + Math.random().toString(36).substr(2, 9);\n\nlet elements = '';\nlet relationships = '';\n\n// Business layer elements\nfor (const cap of (biz.capabilities || [])) elements += `<element xsi:type=\"archimate:Capability\" id=\"${uuid()}\" name=\"${(cap.name||cap).replace(/\"/g,'&quot;')}\"/>\\n`;\nfor (const actor of (biz.actors || [])) elements += `<element xsi:type=\"archimate:BusinessActor\" id=\"${uuid()}\" name=\"${(actor.name||actor).replace(/\"/g,'&quot;')}\"/>\\n`;\nfor (const proc of (biz.processes || [])) elements += `<element xsi:type=\"archimate:BusinessProcess\" id=\"${uuid()}\" name=\"${(proc.name||proc).replace(/\"/g,'&quot;')}\"/>\\n`;\nfor (const svc of (biz.services || [])) elements += `<element xsi:type=\"archimate:BusinessService\" id=\"${uuid()}\" name=\"${(svc.name||svc).replace(/\"/g,'&quot;')}\"/>\\n`;\n\n// Application layer elements\nfor (const comp of (app.components || [])) elements += `<element xsi:type=\"archimate:ApplicationComponent\" id=\"${uuid()}\" name=\"${(comp.name||comp).replace(/\"/g,'&quot;')}\"/>\\n`;\nfor (const iface of (app.interfaces || [])) elements += `<element xsi:type=\"archimate:ApplicationInterface\" id=\"${uuid()}\" name=\"${(iface.name||iface).replace(/\"/g,'&quot;')}\"/>\\n`;\nfor (const obj of (app.dataObjects || [])) elements += `<element xsi:type=\"archimate:DataObject\" id=\"${uuid()}\" name=\"${(obj.name||obj).replace(/\"/g,'&quot;')}\"/>\\n`;\n\n// Data layer elements\nfor (const ent of (data.dataEntities || [])) elements += `<element xsi:type=\"archimate:DataObject\" id=\"${uuid()}\" name=\"${(ent.name||ent).replace(/\"/g,'&quot;')}\"/>\\n`;\nfor (const db of (data.databases || [])) elements += `<element xsi:type=\"archimate:Artifact\" id=\"${uuid()}\" name=\"${(db.name||db).replace(/\"/g,'&quot;')}\"/>\\n`;\n\n// Infrastructure layer elements\nfor (const node of (infra.nodes || [])) elements += `<element xsi:type=\"archimate:Node\" id=\"${uuid()}\" name=\"${(node.name||node).replace(/\"/g,'&quot;')}\"/>\\n`;\nfor (const net of (infra.networks || [])) elements += `<element xsi:type=\"archimate:CommunicationNetwork\" id=\"${uuid()}\" name=\"${(net.name||net).replace(/\"/g,'&quot;')}\"/>\\n`;\nfor (const dep of (infra.deployments || [])) elements += `<element xsi:type=\"archimate:SystemSoftware\" id=\"${uuid()}\" name=\"${(dep.name||dep).replace(/\"/g,'&quot;')}\"/>\\n`;\nfor (const art of (infra.artifacts || [])) elements += `<element xsi:type=\"archimate:Artifact\" id=\"${uuid()}\" name=\"${(art.name||art).replace(/\"/g,'&quot;')}\"/>\\n`;\n\nconst xml = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<archimate:model xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:archimate=\"http://www.archimatetool.com/archimate\" name=\"${ctx.projectName}\" id=\"${uuid()}\">\n  <folder name=\"Business\" type=\"business\">\n${elements}\n  </folder>\n  <folder name=\"Relations\" type=\"relations\">\n${relationships}\n  </folder>\n</archimate:model>`;\n\nconst fnv1a = (s) => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };\n\nreturn [{ json: { ...ctx, archimateXml: xml, archimateXmlHash: fnv1a(xml) } }];"
+      },
+      "id": "convert-archimate",
+      "name": "Convert to ArchiMate XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4800,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (SELECT COALESCE(MAX(version), 0) + 1 AS v FROM architecture.artifacts WHERE project_id = $1 AND type = 'archimate_xml_full') INSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta) SELECT $1, 'archimate_xml_full', next_version.v, $2::jsonb, $3, $4::jsonb FROM next_version RETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $json.projectId, JSON.stringify({ xml: $json.archimateXml }), $json.archimateXmlHash, JSON.stringify({ jobId: $json.jobId }) ] }}"
+        }
+      },
+      "id": "store-xml",
+      "name": "Store ArchiMate XML",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5040,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Convert to ArchiMate XML').first().json;\nconst xml = ctx.archimateXml;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\nlet sh = 'set -e\\nmkdir -p /opt/workspace\\n';\nsh += \"if [ ! -d '\" + repoDir + \"/.git' ]; then git clone '\" + remote + \"' '\" + repoDir + \"'; fi\\n\";\nsh += \"cd '\" + repoDir + \"'\\ngit fetch origin\\n\";\nsh += \"git checkout -B '\" + projectSlug + \"' 'origin/\" + projectSlug + \"' 2>/dev/null || git checkout -B '\" + projectSlug + \"'\\n\";\nsh += \"mkdir -p '\" + projectDir + \"/architecture' '\" + repoDir + \"/org-architecture'\\n\";\n\n// Write project-specific full.archimate\nsh += \"cat > '\" + projectDir + \"/architecture/full.archimate' <<'EOF_\" + jobId + \"'\\n\" + xml + \"\\nEOF_\" + jobId + \"\\n\";\n\n// Write org-level full.archimate (merge would go here in production)\nsh += \"cat > '\" + repoDir + \"/org-architecture/full.archimate' <<'EOF_\" + jobId + \"'\\n\" + xml + \"\\nEOF_\" + jobId + \"\\n\";\n\nsh += \"git add '\" + projectSlug + \"-docs/architecture' 'org-architecture'\\n\";\nsh += \"git commit -m 'Add architecture for \" + projectSlug + \" (job \" + jobId + \")' || true\\n\";\nsh += \"git push -u origin '\" + projectSlug + \"'\\n\";\n\nreturn [{ json: { ...ctx, gitScript: sh } }];"
+      },
+      "id": "build-git-script",
+      "name": "Build Git Script",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5280,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "privateKey",
+        "command": "={{ $json.gitScript }}"
+      },
+      "id": "ssh-commit",
+      "name": "SSH: Commit Architecture",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        5520,
+        304
+      ],
+      "credentials": {
+        "sshPrivateKey": {
+          "id": "SxKNiry9nQQ96pnU",
+          "name": "SSH Private Key account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE architecture.jobs SET status = 'completed', completed_at = now() WHERE id = $1 RETURNING id, status;",
+        "options": {
+          "queryReplacement": "={{ [ $('Pass Context').first().json.jobId ] }}"
+        }
+      },
+      "id": "update-job",
+      "name": "Update Job Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5760,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Pass Context').first().json;\nreturn [{ json: { success: true, jobId: ctx.jobId, projectSlug: ctx.projectSlug, stage: 'architecture', archPath: ctx.projectSlug + '-docs/architecture/full.archimate' } }];"
+      },
+      "id": "return-result",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6000,
+        304
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Initialize Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Parameters": {
+      "main": [
+        [
+          {
+            "node": "Load Project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Project": {
+      "main": [
+        [
+          {
+            "node": "Get Latest BA Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Latest BA Job": {
+      "main": [
+        [
+          {
+            "node": "Create Arch Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Arch Job": {
+      "main": [
+        [
+          {
+            "node": "Pass Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pass Context": {
+      "main": [
+        [
+          {
+            "node": "Load BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load BRD": {
+      "main": [
+        [
+          {
+            "node": "Collect BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect BRD": {
+      "main": [
+        [
+          {
+            "node": "Generate Business Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Business Architecture": {
+      "main": [
+        [
+          {
+            "node": "Validate Business Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Business Arch": {
+      "main": [
+        [
+          {
+            "node": "Store Business Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Business Arch": {
+      "main": [
+        [
+          {
+            "node": "Generate Application Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Application Architecture": {
+      "main": [
+        [
+          {
+            "node": "Validate Application Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Application Arch": {
+      "main": [
+        [
+          {
+            "node": "Store Application Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Application Arch": {
+      "main": [
+        [
+          {
+            "node": "Generate Data Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Data Architecture": {
+      "main": [
+        [
+          {
+            "node": "Validate Data Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Data Arch": {
+      "main": [
+        [
+          {
+            "node": "Store Data Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Data Arch": {
+      "main": [
+        [
+          {
+            "node": "Generate Infrastructure Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Infrastructure Architecture": {
+      "main": [
+        [
+          {
+            "node": "Validate Infrastructure Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Infrastructure Arch": {
+      "main": [
+        [
+          {
+            "node": "Store Infrastructure Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Infrastructure Arch": {
+      "main": [
+        [
+          {
+            "node": "Convert to ArchiMate XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to ArchiMate XML": {
+      "main": [
+        [
+          {
+            "node": "Store ArchiMate XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store ArchiMate XML": {
+      "main": [
+        [
+          {
+            "node": "Build Git Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Git Script": {
+      "main": [
+        [
+          {
+            "node": "SSH: Commit Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH: Commit Architecture": {
+      "main": [
+        [
+          {
+            "node": "Update Job Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Job Status": {
+      "main": [
+        [
+          {
+            "node": "Return Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

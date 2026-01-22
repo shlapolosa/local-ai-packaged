@@ -1,0 +1,845 @@
+{
+  "id": "RlBWh7XL9ZXgOJ7e",
+  "name": "Architecture Pipeline Ack",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "business-analysis",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-ba",
+      "name": "Webhook: Business Analysis",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 100],
+      "webhookId": "ba-webhook-001"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "architecture",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-arch",
+      "name": "Webhook: Architecture",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 250],
+      "webhookId": "arch-webhook-001"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "solution-architecture",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-sol",
+      "name": "Webhook: Solution Architecture",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 400],
+      "webhookId": "sol-webhook-001"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "risk-assessment",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-risk",
+      "name": "Webhook: Risk Assessment",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 550],
+      "webhookId": "risk-webhook-001"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "test-strategy",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-test",
+      "name": "Webhook: Test Strategy",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 700],
+      "webhookId": "test-webhook-001"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "project-management",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-pm",
+      "name": "Webhook: Project Management",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 850],
+      "webhookId": "pm-webhook-001"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "software-delivery",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-sd",
+      "name": "Webhook: Software Delivery",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 1000],
+      "webhookId": "sd-webhook-001"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-chat",
+      "name": "Webhook: Chat",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [240, 1200],
+      "webhookId": "chat-webhook-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse input and determine which webhook triggered this\nconst raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\n\n// Get webhook path from headers or context\nconst webhookPath = $input.first().json.headers?.['x-n8n-webhook-path'] || 'unknown';\n\n// Extract common fields\nconst requirements = body.requirements || body.text || '';\nconst projectSlug = body.projectSlug || null;\nconst inputJobId = body.inputJobId || null;\nconst comments = body.comments || null;\nconst projectName = body.projectName || null;\n\nreturn [{ json: { \n  requirements, \n  projectSlug, \n  projectName,\n  inputJobId, \n  comments,\n  webhookPath,\n  source: 'business-analysis'\n} }];"
+      },
+      "id": "parse-ba",
+      "name": "Parse BA Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\nreturn [{ json: { \n  projectSlug: body.projectSlug,\n  inputJobId: body.inputJobId || null,\n  comments: body.comments || null,\n  source: 'architecture'\n} }];"
+      },
+      "id": "parse-arch",
+      "name": "Parse Arch Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 250]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\nreturn [{ json: { \n  projectSlug: body.projectSlug,\n  inputJobId: body.inputJobId || null,\n  comments: body.comments || null,\n  source: 'solution-architecture'\n} }];"
+      },
+      "id": "parse-sol",
+      "name": "Parse Sol Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\nreturn [{ json: { \n  projectSlug: body.projectSlug,\n  inputJobId: body.inputJobId || null,\n  comments: body.comments || null,\n  source: 'risk-assessment'\n} }];"
+      },
+      "id": "parse-risk",
+      "name": "Parse Risk Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 550]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\nreturn [{ json: { \n  projectSlug: body.projectSlug,\n  inputJobId: body.inputJobId || null,\n  comments: body.comments || null,\n  source: 'test-strategy'\n} }];"
+      },
+      "id": "parse-test",
+      "name": "Parse Test Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\nreturn [{ json: { \n  projectSlug: body.projectSlug,\n  inputJobId: body.inputJobId || null,\n  comments: body.comments || null,\n  source: 'project-management'\n} }];"
+      },
+      "id": "parse-pm",
+      "name": "Parse PM Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 850]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\nreturn [{ json: { \n  projectSlug: body.projectSlug,\n  inputJobId: body.inputJobId || null,\n  source: 'software-delivery'\n} }];"
+      },
+      "id": "parse-sd",
+      "name": "Parse SD Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 1000]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse chat input from Open WebUI pipe\nconst raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\n\nconst sessionId = body.sessionId || null;\nconst chatInput = body.chatInput || body.message || '';\n\nreturn [{ json: { \n  sessionId,\n  chatInput,\n  source: 'chat'\n} }];"
+      },
+      "id": "parse-chat",
+      "name": "Parse Chat Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 1200]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "ollamaUrl",
+              "value": "https://ollama.socrates-hlapolosa.org/api/chat",
+              "type": "string"
+            },
+            {
+              "name": "ollamaModel",
+              "value": "llama3.1:8b-instruct-q4_K_M",
+              "type": "string"
+            },
+            {
+              "name": "ollamaTemperature",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "name": "ollamaSeed",
+              "value": 42,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "run-config-ba",
+      "name": "Run Config (BA)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [720, 100]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "ollamaUrl",
+              "value": "https://ollama.socrates-hlapolosa.org/api/chat",
+              "type": "string"
+            },
+            {
+              "name": "ollamaModel",
+              "value": "llama3.1:8b-instruct-q4_K_M",
+              "type": "string"
+            },
+            {
+              "name": "ollamaTemperature",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "name": "ollamaSeed",
+              "value": 42,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "run-config-chat",
+      "name": "Run Config (Chat)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [720, 1200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"{{ $('Run Config (BA)').first().json.ollamaModel }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classifier for an architecture pipeline. Output ONLY JSON.\\n\\nReturn: {\\\"intent\\\":\\\"create_project|update_project|regenerate_from_stage\\\",\\\"proposedProjectName\\\":string,\\\"startAt\\\":\\\"business_analyst|business_architect\\\",\\\"confidence\\\":number,\\\"notes\\\":string}.\\n\\nRules:\\n- If user provided projectName, use it. Otherwise propose a short name.\\n- If no startAt specified, default to business_analyst.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"requirements={{ $('Parse BA Input').first().json.requirements }}\\nprojectName={{ $('Parse BA Input').first().json.projectName || '' }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": {{ $('Run Config (BA)').first().json.ollamaTemperature }},\n    \"seed\": {{ $('Run Config (BA)').first().json.ollamaSeed }}\n  }\n}",
+        "options": {}
+      },
+      "id": "classify-intent",
+      "name": "Classify Intent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [960, 100],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"{{ $('Run Config (Chat)').first().json.ollamaModel }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classifier for an architecture pipeline chat interface. Output ONLY valid JSON.\\n\\nExtract from user message:\\n- intent: one of [business-analysis, architecture, solution-architecture, risk-assessment, test-strategy, project-management, software-delivery, status-check, help]\\n- projectSlug: extracted project name as lowercase-hyphenated slug, or null if not mentioned\\n- requirements: full requirements text (for business-analysis intent only, otherwise null)\\n\\nReturn ONLY this JSON structure:\\n{\\\"intent\\\":\\\"<intent>\\\",\\\"projectSlug\\\":\\\"<slug-or-null>\\\",\\\"requirements\\\":\\\"<text-or-null>\\\"}\\n\\nIntent Detection Rules:\\n- business-analysis: User wants to create a new project, build something, or provides requirements/features for a new system\\n- architecture: User mentions 'architecture', 'ArchiMate', 'design patterns', or wants system design for existing project\\n- solution-architecture: User mentions 'solution', 'API design', 'data model', or technical specs\\n- risk-assessment: User mentions 'risk', 'security', 'compliance', or 'audit'\\n- test-strategy: User mentions 'test', 'QA', 'quality', or 'validation'\\n- project-management: User mentions 'PRD', 'requirements doc', 'product requirements', or 'planning'\\n- software-delivery: User mentions 'tasks', 'stories', 'backlog', 'sprint', or 'delivery'\\n- status-check: User asks about status, progress, or state of a project\\n- help: User asks for help, what can you do, or general questions\\n\\nProject Slug Extraction:\\n- If user mentions a specific project name, extract and slugify it\\n- If creating new project, generate slug from the main concept (e.g., 'patient portal' -> 'patient-portal')\\n- Use lowercase with hyphens only\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $('Parse Chat Input').first().json.chatInput }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": {{ $('Run Config (Chat)').first().json.ollamaTemperature }},\n    \"seed\": {{ $('Run Config (Chat)').first().json.ollamaSeed }}\n  }\n}",
+        "options": {}
+      },
+      "id": "llm-extract-params",
+      "name": "LLM Extract Params",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [960, 1200],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Parse BA Input').first().json;\nconst classified = $json.message?.content ? JSON.parse($json.message.content) : {};\n\nconst projectName = (input.projectName && input.projectName.trim()) \n  ? input.projectName.trim() \n  : (classified.proposedProjectName || 'architecture-project');\n\nconst slugify = (s) => String(s || '')\n  .toLowerCase()\n  .trim()\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-+|-+$/g, '')\n  .replace(/--+/g, '-');\n\nconst projectSlug = input.projectSlug || slugify(projectName) || 'architecture-project';\n\n// Generate job ID\nconst pad = (n) => String(n).padStart(2, '0');\nconst d = new Date();\nconst ts = d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + '-' + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + pad(d.getUTCSeconds());\n\nconst fnv1a = (str) => {\n  const s = String(str ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst ackJobId = 'job_' + ts + '_' + fnv1a(projectSlug + ':' + input.requirements);\n\nreturn [{\n  json: {\n    requirements: input.requirements,\n    projectName,\n    projectSlug,\n    intent: classified.intent || 'create_project',\n    confidence: classified.confidence ?? null,\n    comments: input.comments,\n    ackJobId,\n    source: 'business-analysis'\n  }\n}];"
+      },
+      "id": "apply-slugify",
+      "name": "Apply Classification + Slugify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatInput = $('Parse Chat Input').first().json;\nlet extracted = {};\n\n// Parse LLM response\ntry {\n  const content = $json.message?.content || '{}';\n  // Clean up potential markdown code blocks\n  const cleaned = content.replace(/```json\\n?|```\\n?/g, '').trim();\n  extracted = JSON.parse(cleaned);\n} catch (e) {\n  // Default to business-analysis if parsing fails\n  extracted = {\n    intent: 'business-analysis',\n    projectSlug: null,\n    requirements: chatInput.chatInput\n  };\n}\n\n// Slugify helper\nconst slugify = (s) => String(s || '')\n  .toLowerCase()\n  .trim()\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-+|-+$/g, '')\n  .replace(/--+/g, '-');\n\n// Generate projectSlug if not provided\nlet projectSlug = extracted.projectSlug;\nif (!projectSlug && extracted.requirements) {\n  // Extract first few words for slug\n  const words = String(extracted.requirements).split(/\\s+/).slice(0, 3).join(' ');\n  projectSlug = slugify(words) || 'chat-project';\n}\nprojectSlug = projectSlug || 'chat-project';\n\n// Generate job ID\nconst pad = (n) => String(n).padStart(2, '0');\nconst d = new Date();\nconst ts = d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + '-' + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + pad(d.getUTCSeconds());\n\nconst fnv1a = (str) => {\n  const s = String(str ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst ackJobId = 'job_' + ts + '_' + fnv1a(projectSlug + ':' + chatInput.chatInput);\n\nreturn [{\n  json: {\n    sessionId: chatInput.sessionId,\n    chatInput: chatInput.chatInput,\n    intent: extracted.intent || 'business-analysis',\n    projectSlug,\n    projectName: projectSlug.replace(/-/g, ' ').replace(/\\b\\w/g, c => c.toUpperCase()),\n    requirements: extracted.requirements || (extracted.intent === 'business-analysis' ? chatInput.chatInput : null),\n    ackJobId,\n    source: 'chat'\n  }\n}];"
+      },
+      "id": "process-chat-llm",
+      "name": "Process Chat LLM Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 1200]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  { "leftValue": "={{ $json.intent }}", "rightValue": "business-analysis", "operator": { "type": "string", "operation": "equals" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "business-analysis"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  { "leftValue": "={{ $json.intent }}", "rightValue": "architecture", "operator": { "type": "string", "operation": "equals" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "architecture"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  { "leftValue": "={{ $json.intent }}", "rightValue": "solution-architecture", "operator": { "type": "string", "operation": "equals" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "solution-architecture"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  { "leftValue": "={{ $json.intent }}", "rightValue": "risk-assessment", "operator": { "type": "string", "operation": "equals" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "risk-assessment"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  { "leftValue": "={{ $json.intent }}", "rightValue": "test-strategy", "operator": { "type": "string", "operation": "equals" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "test-strategy"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  { "leftValue": "={{ $json.intent }}", "rightValue": "project-management", "operator": { "type": "string", "operation": "equals" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "project-management"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  { "leftValue": "={{ $json.intent }}", "rightValue": "software-delivery", "operator": { "type": "string", "operation": "equals" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "software-delivery"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  { "leftValue": "={{ $json.intent }}", "rightValue": "help", "operator": { "type": "string", "operation": "equals" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "help"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "route-chat-intent",
+      "name": "Route by Intent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [1440, 1200]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "nmqyIEwcwVfiIIOu" },
+        "options": { "waitForSubWorkflow": true }
+      },
+      "id": "exec-ba",
+      "name": "Execute: Business Analysis",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [1440, 100]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "nmqyIEwcwVfiIIOu" },
+        "options": { "waitForSubWorkflow": true }
+      },
+      "id": "exec-chat-ba",
+      "name": "Execute: Chat BA",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [1680, 1000]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "R4SsOqGqQIkRwUPT" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-arch",
+      "name": "Execute: Architecture",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [720, 250]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "R4SsOqGqQIkRwUPT" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-chat-arch",
+      "name": "Execute: Chat Architecture",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [1680, 1100]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "smxRuLpxe8181lbw" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-sol",
+      "name": "Execute: Solution Architecture",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [720, 400]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "smxRuLpxe8181lbw" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-chat-sol",
+      "name": "Execute: Chat Solution",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [1680, 1200]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "FUDBTPAjmDnFlg7h" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-risk",
+      "name": "Execute: Risk Assessment",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [720, 550]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "FUDBTPAjmDnFlg7h" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-chat-risk",
+      "name": "Execute: Chat Risk",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [1680, 1300]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "DZdCDfvObweaHen4" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-test",
+      "name": "Execute: Test Strategy",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [720, 700]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "DZdCDfvObweaHen4" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-chat-test",
+      "name": "Execute: Chat Test",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [1680, 1400]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "VvpkyZ9c4dCNv4rd" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-pm",
+      "name": "Execute: Project Management",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [720, 850]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "VvpkyZ9c4dCNv4rd" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-chat-pm",
+      "name": "Execute: Chat PM",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [1680, 1500]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "FlqPvbx2ICZvJiQr" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-sd",
+      "name": "Execute: Software Delivery",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [720, 1000]
+    },
+    {
+      "parameters": {
+        "workflowId": { "__rl": true, "mode": "id", "value": "FlqPvbx2ICZvJiQr" },
+        "options": { "waitForSubWorkflow": false }
+      },
+      "id": "exec-chat-sd",
+      "name": "Execute: Chat SD",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [1680, 1600]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format response for Open WebUI chat pipe\nconst processData = $('Process Chat LLM Response').first().json;\nconst baResult = $json || {};\n\nconst output = `Started Business Analysis for **${processData.projectSlug}** (job: ${processData.ackJobId}).\\n\\nBRD generation is now in progress. You can:\\n- Check status with: \"status ${processData.projectSlug}\"\\n- Continue to architecture: \"generate architecture for ${processData.projectSlug}\"`;\n\nreturn [{ json: { output } }];"
+      },
+      "id": "format-chat-ba",
+      "name": "Format: Chat BA Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1920, 1000]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format response for async workflows\nconst processData = $('Process Chat LLM Response').first().json;\n\nconst workflowNames = {\n  'architecture': 'Architecture',\n  'solution-architecture': 'Solution Architecture',\n  'risk-assessment': 'Risk Assessment',\n  'test-strategy': 'Test Strategy',\n  'project-management': 'Project Management',\n  'software-delivery': 'Software Delivery'\n};\n\nconst workflowName = workflowNames[processData.intent] || processData.intent;\n\nconst output = `Started **${workflowName}** workflow for **${processData.projectSlug}** (job: ${processData.ackJobId}).\\n\\nThis workflow is running in the background. Check status with: \"status ${processData.projectSlug}\"`;\n\nreturn [{ json: { output } }];"
+      },
+      "id": "format-chat-async",
+      "name": "Format: Chat Async Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1920, 1300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Help response for chat\nconst output = `**Architecture Pipeline Chat Interface**\\n\\nI can help you with the following:\\n\\n**Create a new project:**\\n- \"Build me an inventory management system\"\\n- \"I need a patient portal for healthcare\"\\n\\n**Generate specific artifacts (requires existing project):**\\n- \"Generate architecture for patient-portal\"\\n- \"Create solution design for inventory-system\"\\n- \"Run risk assessment for my-project\"\\n- \"Generate test strategy for patient-portal\"\\n- \"Create PRD for inventory-system\"\\n- \"Generate tasks for patient-portal\"\\n\\n**Check status:**\\n- \"What's the status of patient-portal?\"\\n\\nJust describe what you want to build, and I'll start the appropriate workflow!`;\n\nreturn [{ json: { output } }];"
+      },
+      "id": "format-chat-help",
+      "name": "Format: Chat Help Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1680, 1750]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Status check or unknown intent\nconst processData = $('Process Chat LLM Response').first().json;\n\nlet output;\nif (processData.intent === 'status-check') {\n  output = `Status check for **${processData.projectSlug || 'project'}** is not yet implemented.\\n\\nPlease check the n8n workflow executions or database directly for now.`;\n} else {\n  output = `I understood your request but couldn't determine the specific action.\\n\\nDetected intent: ${processData.intent}\\nProject: ${processData.projectSlug || 'not specified'}\\n\\nTry being more specific, or type \"help\" for available commands.`;\n}\n\nreturn [{ json: { output } }];"
+      },
+      "id": "format-chat-fallback",
+      "name": "Format: Chat Fallback Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1680, 1900]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  ackJobId: $json.ackJobId,\n  projectSlug: $json.projectSlug,\n  workflow: 'business-analysis',\n  message: 'Business Analysis workflow triggered'\n} }}",
+        "options": { "responseCode": 202 }
+      },
+      "id": "respond-ba",
+      "name": "Respond: BA Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [1680, 100]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  projectSlug: $json.projectSlug,\n  inputJobId: $json.inputJobId,\n  workflow: 'architecture',\n  message: 'Architecture workflow triggered'\n} }}",
+        "options": { "responseCode": 202 }
+      },
+      "id": "respond-arch",
+      "name": "Respond: Arch Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [960, 250]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  projectSlug: $json.projectSlug,\n  inputJobId: $json.inputJobId,\n  workflow: 'solution-architecture',\n  message: 'Solution Architecture workflow triggered'\n} }}",
+        "options": { "responseCode": 202 }
+      },
+      "id": "respond-sol",
+      "name": "Respond: Sol Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [960, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  projectSlug: $json.projectSlug,\n  inputJobId: $json.inputJobId,\n  workflow: 'risk-assessment',\n  message: 'Risk Assessment workflow triggered'\n} }}",
+        "options": { "responseCode": 202 }
+      },
+      "id": "respond-risk",
+      "name": "Respond: Risk Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [960, 550]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  projectSlug: $json.projectSlug,\n  inputJobId: $json.inputJobId,\n  workflow: 'test-strategy',\n  message: 'Test Strategy workflow triggered'\n} }}",
+        "options": { "responseCode": 202 }
+      },
+      "id": "respond-test",
+      "name": "Respond: Test Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [960, 700]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  projectSlug: $json.projectSlug,\n  inputJobId: $json.inputJobId,\n  workflow: 'project-management',\n  message: 'Project Management workflow triggered'\n} }}",
+        "options": { "responseCode": 202 }
+      },
+      "id": "respond-pm",
+      "name": "Respond: PM Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [960, 850]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  projectSlug: $json.projectSlug,\n  inputJobId: $json.inputJobId,\n  workflow: 'software-delivery',\n  message: 'Software Delivery workflow triggered'\n} }}",
+        "options": { "responseCode": 202 }
+      },
+      "id": "respond-sd",
+      "name": "Respond: SD Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [960, 1000]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-chat",
+      "name": "Respond: Chat",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [2160, 1400]
+    }
+  ],
+  "connections": {
+    "Webhook: Business Analysis": {
+      "main": [[{ "node": "Parse BA Input", "type": "main", "index": 0 }]]
+    },
+    "Webhook: Architecture": {
+      "main": [[{ "node": "Parse Arch Input", "type": "main", "index": 0 }]]
+    },
+    "Webhook: Solution Architecture": {
+      "main": [[{ "node": "Parse Sol Input", "type": "main", "index": 0 }]]
+    },
+    "Webhook: Risk Assessment": {
+      "main": [[{ "node": "Parse Risk Input", "type": "main", "index": 0 }]]
+    },
+    "Webhook: Test Strategy": {
+      "main": [[{ "node": "Parse Test Input", "type": "main", "index": 0 }]]
+    },
+    "Webhook: Project Management": {
+      "main": [[{ "node": "Parse PM Input", "type": "main", "index": 0 }]]
+    },
+    "Webhook: Software Delivery": {
+      "main": [[{ "node": "Parse SD Input", "type": "main", "index": 0 }]]
+    },
+    "Webhook: Chat": {
+      "main": [[{ "node": "Parse Chat Input", "type": "main", "index": 0 }]]
+    },
+    "Parse BA Input": {
+      "main": [[{ "node": "Run Config (BA)", "type": "main", "index": 0 }]]
+    },
+    "Parse Chat Input": {
+      "main": [[{ "node": "Run Config (Chat)", "type": "main", "index": 0 }]]
+    },
+    "Run Config (BA)": {
+      "main": [[{ "node": "Classify Intent", "type": "main", "index": 0 }]]
+    },
+    "Run Config (Chat)": {
+      "main": [[{ "node": "LLM Extract Params", "type": "main", "index": 0 }]]
+    },
+    "Classify Intent": {
+      "main": [[{ "node": "Apply Classification + Slugify", "type": "main", "index": 0 }]]
+    },
+    "LLM Extract Params": {
+      "main": [[{ "node": "Process Chat LLM Response", "type": "main", "index": 0 }]]
+    },
+    "Apply Classification + Slugify": {
+      "main": [[{ "node": "Execute: Business Analysis", "type": "main", "index": 0 }]]
+    },
+    "Process Chat LLM Response": {
+      "main": [[{ "node": "Route by Intent", "type": "main", "index": 0 }]]
+    },
+    "Execute: Business Analysis": {
+      "main": [[{ "node": "Respond: BA Ack", "type": "main", "index": 0 }]]
+    },
+    "Parse Arch Input": {
+      "main": [[{ "node": "Execute: Architecture", "type": "main", "index": 0 }]]
+    },
+    "Execute: Architecture": {
+      "main": [[{ "node": "Respond: Arch Ack", "type": "main", "index": 0 }]]
+    },
+    "Parse Sol Input": {
+      "main": [[{ "node": "Execute: Solution Architecture", "type": "main", "index": 0 }]]
+    },
+    "Execute: Solution Architecture": {
+      "main": [[{ "node": "Respond: Sol Ack", "type": "main", "index": 0 }]]
+    },
+    "Parse Risk Input": {
+      "main": [[{ "node": "Execute: Risk Assessment", "type": "main", "index": 0 }]]
+    },
+    "Execute: Risk Assessment": {
+      "main": [[{ "node": "Respond: Risk Ack", "type": "main", "index": 0 }]]
+    },
+    "Parse Test Input": {
+      "main": [[{ "node": "Execute: Test Strategy", "type": "main", "index": 0 }]]
+    },
+    "Execute: Test Strategy": {
+      "main": [[{ "node": "Respond: Test Ack", "type": "main", "index": 0 }]]
+    },
+    "Parse PM Input": {
+      "main": [[{ "node": "Execute: Project Management", "type": "main", "index": 0 }]]
+    },
+    "Execute: Project Management": {
+      "main": [[{ "node": "Respond: PM Ack", "type": "main", "index": 0 }]]
+    },
+    "Parse SD Input": {
+      "main": [[{ "node": "Execute: Software Delivery", "type": "main", "index": 0 }]]
+    },
+    "Execute: Software Delivery": {
+      "main": [[{ "node": "Respond: SD Ack", "type": "main", "index": 0 }]]
+    },
+    "Route by Intent": {
+      "main": [
+        [{ "node": "Execute: Chat BA", "type": "main", "index": 0 }],
+        [{ "node": "Execute: Chat Architecture", "type": "main", "index": 0 }],
+        [{ "node": "Execute: Chat Solution", "type": "main", "index": 0 }],
+        [{ "node": "Execute: Chat Risk", "type": "main", "index": 0 }],
+        [{ "node": "Execute: Chat Test", "type": "main", "index": 0 }],
+        [{ "node": "Execute: Chat PM", "type": "main", "index": 0 }],
+        [{ "node": "Execute: Chat SD", "type": "main", "index": 0 }],
+        [{ "node": "Format: Chat Help Response", "type": "main", "index": 0 }],
+        [{ "node": "Format: Chat Fallback Response", "type": "main", "index": 0 }]
+      ]
+    },
+    "Execute: Chat BA": {
+      "main": [[{ "node": "Format: Chat BA Response", "type": "main", "index": 0 }]]
+    },
+    "Execute: Chat Architecture": {
+      "main": [[{ "node": "Format: Chat Async Response", "type": "main", "index": 0 }]]
+    },
+    "Execute: Chat Solution": {
+      "main": [[{ "node": "Format: Chat Async Response", "type": "main", "index": 0 }]]
+    },
+    "Execute: Chat Risk": {
+      "main": [[{ "node": "Format: Chat Async Response", "type": "main", "index": 0 }]]
+    },
+    "Execute: Chat Test": {
+      "main": [[{ "node": "Format: Chat Async Response", "type": "main", "index": 0 }]]
+    },
+    "Execute: Chat PM": {
+      "main": [[{ "node": "Format: Chat Async Response", "type": "main", "index": 0 }]]
+    },
+    "Execute: Chat SD": {
+      "main": [[{ "node": "Format: Chat Async Response", "type": "main", "index": 0 }]]
+    },
+    "Format: Chat BA Response": {
+      "main": [[{ "node": "Respond: Chat", "type": "main", "index": 0 }]]
+    },
+    "Format: Chat Async Response": {
+      "main": [[{ "node": "Respond: Chat", "type": "main", "index": 0 }]]
+    },
+    "Format: Chat Help Response": {
+      "main": [[{ "node": "Respond: Chat", "type": "main", "index": 0 }]]
+    },
+    "Format: Chat Fallback Response": {
+      "main": [[{ "node": "Respond: Chat", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  }
+}

@@ -1,0 +1,615 @@
+{
+  "id": "RlBWh7XL9ZXgOJ7e",
+  "name": "Architecture Pipeline Ack",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "business-analysis",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-ba",
+      "name": "Webhook: Business Analysis",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        100
+      ],
+      "webhookId": "ba-webhook-001"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "architecture",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-arch",
+      "name": "Webhook: Architecture",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        250
+      ],
+      "webhookId": "arch-webhook-001"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "quality-compliance",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-qc",
+      "name": "Webhook: Quality Compliance",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        400
+      ],
+      "webhookId": "qc-webhook-001"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "project-management",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-pm",
+      "name": "Webhook: Project Management",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        550
+      ],
+      "webhookId": "pm-webhook-001"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "software-delivery",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-sd",
+      "name": "Webhook: Software Delivery",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        700
+      ],
+      "webhookId": "sd-webhook-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse input and determine which webhook triggered this\nconst raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\n\n// Get webhook path from headers or context\nconst webhookPath = $input.first().json.headers?.['x-n8n-webhook-path'] || 'unknown';\n\n// Extract common fields\nconst requirements = body.requirements || body.text || '';\nconst projectSlug = body.projectSlug || null;\nconst inputJobId = body.inputJobId || null;\nconst comments = body.comments || null;\nconst projectName = body.projectName || null;\n\nreturn [{ json: { \n  requirements, \n  projectSlug, \n  projectName,\n  inputJobId, \n  comments,\n  webhookPath,\n  source: 'business-analysis'\n} }];"
+      },
+      "id": "parse-ba",
+      "name": "Parse BA Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\nreturn [{ json: { \n  projectSlug: body.projectSlug,\n  inputJobId: body.inputJobId || null,\n  comments: body.comments || null,\n  source: 'architecture'\n} }];"
+      },
+      "id": "parse-arch",
+      "name": "Parse Arch Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\nreturn [{ json: { \n  projectSlug: body.projectSlug,\n  inputJobId: body.inputJobId || null,\n  comments: body.comments || null,\n  source: 'quality-compliance'\n} }];"
+      },
+      "id": "parse-qc",
+      "name": "Parse QC Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\nreturn [{ json: { \n  projectSlug: body.projectSlug,\n  inputJobId: body.inputJobId || null,\n  comments: body.comments || null,\n  source: 'project-management'\n} }];"
+      },
+      "id": "parse-pm",
+      "name": "Parse PM Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        550
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst body = (typeof raw === 'string') ? JSON.parse(raw) : raw;\nreturn [{ json: { \n  projectSlug: body.projectSlug,\n  inputJobId: body.inputJobId || null,\n  source: 'software-delivery'\n} }];"
+      },
+      "id": "parse-sd",
+      "name": "Parse SD Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "ollamaUrl",
+              "value": "https://ollama.socrates-hlapolosa.org/api/chat",
+              "type": "string"
+            },
+            {
+              "name": "ollamaModel",
+              "value": "llama3.1:8b-instruct-q4_K_M",
+              "type": "string"
+            },
+            {
+              "name": "ollamaTemperature",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "name": "ollamaSeed",
+              "value": 42,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "run-config-ba",
+      "name": "Run Config (BA)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"{{ $('Run Config (BA)').first().json.ollamaModel }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classifier for an architecture pipeline. Output ONLY JSON.\\n\\nReturn: {\\\"intent\\\":\\\"create_project|update_project|regenerate_from_stage\\\",\\\"proposedProjectName\\\":string,\\\"startAt\\\":\\\"business_analyst|business_architect\\\",\\\"confidence\\\":number,\\\"notes\\\":string}.\\n\\nRules:\\n- If user provided projectName, use it. Otherwise propose a short name.\\n- If no startAt specified, default to business_analyst.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"requirements={{ $('Parse BA Input').first().json.requirements }}\\nprojectName={{ $('Parse BA Input').first().json.projectName || '' }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": {{ $('Run Config (BA)').first().json.ollamaTemperature }},\n    \"seed\": {{ $('Run Config (BA)').first().json.ollamaSeed }}\n  }\n}",
+        "options": {}
+      },
+      "id": "classify-intent",
+      "name": "Classify Intent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        960,
+        100
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Parse BA Input').first().json;\nconst classified = $json.message?.content ? JSON.parse($json.message.content) : {};\n\nconst projectName = (input.projectName && input.projectName.trim()) \n  ? input.projectName.trim() \n  : (classified.proposedProjectName || 'architecture-project');\n\nconst slugify = (s) => String(s || '')\n  .toLowerCase()\n  .trim()\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-+|-+$/g, '')\n  .replace(/--+/g, '-');\n\nconst projectSlug = input.projectSlug || slugify(projectName) || 'architecture-project';\n\n// Generate job ID\nconst pad = (n) => String(n).padStart(2, '0');\nconst d = new Date();\nconst ts = d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + '-' + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + pad(d.getUTCSeconds());\n\nconst fnv1a = (str) => {\n  const s = String(str ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst ackJobId = 'job_' + ts + '_' + fnv1a(projectSlug + ':' + input.requirements);\n\nreturn [{\n  json: {\n    requirements: input.requirements,\n    projectName,\n    projectSlug,\n    intent: classified.intent || 'create_project',\n    confidence: classified.confidence ?? null,\n    comments: input.comments,\n    ackJobId,\n    source: 'business-analysis'\n  }\n}];"
+      },
+      "id": "apply-slugify",
+      "name": "Apply Classification + Slugify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "nmqyIEwcwVfiIIOu"
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "id": "exec-ba",
+      "name": "Execute: Business Analysis",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1440,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "R4SsOqGqQIkRwUPT"
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "id": "exec-arch",
+      "name": "Execute: Architecture",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "r0oYx6nuhRPR70zg"
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "id": "exec-qc",
+      "name": "Execute: Quality Compliance",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "VvpkyZ9c4dCNv4rd"
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "id": "exec-pm",
+      "name": "Execute: Project Management",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        550
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "FlqPvbx2ICZvJiQr"
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "id": "exec-sd",
+      "name": "Execute: Software Delivery",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  ackJobId: $json.ackJobId,\n  projectSlug: $json.projectSlug,\n  workflow: 'business-analysis',\n  message: 'Business Analysis workflow triggered'\n} }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "respond-ba",
+      "name": "Respond: BA Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1680,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  projectSlug: $json.projectSlug,\n  inputJobId: $json.inputJobId,\n  workflow: 'architecture',\n  message: 'Architecture workflow triggered'\n} }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "respond-arch",
+      "name": "Respond: Arch Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        960,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  projectSlug: $json.projectSlug,\n  inputJobId: $json.inputJobId,\n  workflow: 'quality-compliance',\n  message: 'Quality & Compliance workflow triggered'\n} }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "respond-qc",
+      "name": "Respond: QC Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        960,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  projectSlug: $json.projectSlug,\n  inputJobId: $json.inputJobId,\n  workflow: 'project-management',\n  message: 'Project Management workflow triggered'\n} }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "respond-pm",
+      "name": "Respond: PM Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        960,
+        550
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  projectSlug: $json.projectSlug,\n  inputJobId: $json.inputJobId,\n  workflow: 'software-delivery',\n  message: 'Software Delivery workflow triggered'\n} }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "respond-sd",
+      "name": "Respond: SD Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        960,
+        700
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook: Business Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parse BA Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Architecture": {
+      "main": [
+        [
+          {
+            "node": "Parse Arch Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Quality Compliance": {
+      "main": [
+        [
+          {
+            "node": "Parse QC Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Project Management": {
+      "main": [
+        [
+          {
+            "node": "Parse PM Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Software Delivery": {
+      "main": [
+        [
+          {
+            "node": "Parse SD Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse BA Input": {
+      "main": [
+        [
+          {
+            "node": "Run Config (BA)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Config (BA)": {
+      "main": [
+        [
+          {
+            "node": "Classify Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Intent": {
+      "main": [
+        [
+          {
+            "node": "Apply Classification + Slugify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Classification + Slugify": {
+      "main": [
+        [
+          {
+            "node": "Execute: Business Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: Business Analysis": {
+      "main": [
+        [
+          {
+            "node": "Respond: BA Ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Arch Input": {
+      "main": [
+        [
+          {
+            "node": "Execute: Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: Architecture": {
+      "main": [
+        [
+          {
+            "node": "Respond: Arch Ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse QC Input": {
+      "main": [
+        [
+          {
+            "node": "Execute: Quality Compliance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: Quality Compliance": {
+      "main": [
+        [
+          {
+            "node": "Respond: QC Ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse PM Input": {
+      "main": [
+        [
+          {
+            "node": "Execute: Project Management",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: Project Management": {
+      "main": [
+        [
+          {
+            "node": "Respond: PM Ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse SD Input": {
+      "main": [
+        [
+          {
+            "node": "Execute: Software Delivery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: Software Delivery": {
+      "main": [
+        [
+          {
+            "node": "Respond: SD Ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}
