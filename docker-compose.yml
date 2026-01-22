@@ -412,6 +412,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.taskmaster
+      args:
+        HTTP_PROXY: http://proxy.internal.adhie.ae:8080
+        HTTPS_PROXY: http://proxy.internal.adhie.ae:8080
+        NO_PROXY: localhost,127.0.0.1,.internal.adhie.ae
     container_name: taskmaster
     restart: unless-stopped
     volumes:
@@ -446,6 +450,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.taskmaster
+      args:
+        HTTP_PROXY: http://proxy.internal.adhie.ae:8080
+        HTTPS_PROXY: http://proxy.internal.adhie.ae:8080
+        NO_PROXY: localhost,127.0.0.1,.internal.adhie.ae
     container_name: taskmaster
     restart: unless-stopped
     volumes:
@@ -498,6 +506,10 @@ services:
     build:
       context: ./opencode
       dockerfile: Dockerfile
+      args:
+        HTTP_PROXY: http://proxy.internal.adhie.ae:8080
+        HTTPS_PROXY: http://proxy.internal.adhie.ae:8080
+        NO_PROXY: localhost,127.0.0.1,.internal.adhie.ae
     container_name: opencode
     restart: unless-stopped
     volumes:
@@ -522,6 +534,10 @@ services:
     build:
       context: ./opencode
       dockerfile: Dockerfile
+      args:
+        HTTP_PROXY: http://proxy.internal.adhie.ae:8080
+        HTTPS_PROXY: http://proxy.internal.adhie.ae:8080
+        NO_PROXY: localhost,127.0.0.1,.internal.adhie.ae
     container_name: opencode
     restart: unless-stopped
     volumes:
