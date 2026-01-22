@@ -27,7 +27,14 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://opencode.ai/install | bash
 
 # Create symlink to /usr/bin (always in docker exec PATH)
-RUN ln -sf /root/.opencode/bin/opencode /usr/bin/opencode && \
+RUN set -eux; \
+    for p in /root/.opencode/bin/opencode /root/.local/bin/opencode /usr/local/bin/opencode; do \
+      if [ -x "$p" ]; then \
+        ln -sf "$p" /usr/bin/opencode; \
+        break; \
+      fi; \
+    done; \
+    command -v opencode; \
     opencode --version
 
 # Set working directory for the workspace
