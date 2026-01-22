@@ -1,6 +1,6 @@
 #!/bin/bash
 # Deployment script for updating OpenCode agents on NVIDIA GPU server
-# Supports optional APT + environment proxy via CLI flag
+# Proxy-safe version: NO root access required
 
 set -e
 
@@ -8,7 +8,6 @@ set -e
 # Proxy configuration
 # =========================
 PROXY_URL="http://proxy.internal.adhie.ae:8080"
-APT_PROXY_FILE="/etc/apt/apt.conf.d/99company-proxy"
 USE_PROXY=false
 
 # =========================
@@ -34,36 +33,23 @@ echo "╚═══════════════════════�
 echo -e "${NC}"
 
 # =========================
-# Proxy helpers
+# Proxy helpers (NO ROOT)
 # =========================
 enable_proxy() {
-    echo -e "${YELLOW}Enabling proxy: ${PROXY_URL}${NC}"
+    echo -e "${YELLOW}Using proxy via environment only:${NC} ${PROXY_URL}"
 
     export http_proxy="${PROXY_URL}"
     export https_proxy="${PROXY_URL}"
     export HTTP_PROXY="${PROXY_URL}"
     export HTTPS_PROXY="${PROXY_URL}"
 
-    if [ "$(id -u)" -ne 0 ]; then
-        echo -e "${RED}Error: --use-proxy requires root (APT config)${NC}"
-        exit 1
-    fi
-
-    cat <<EOF > "${APT_PROXY_FILE}"
-Acquire::http::Proxy "${PROXY_URL}";
-Acquire::https::Proxy "${PROXY_URL}";
-EOF
-
-    echo -e "${GREEN}APT proxy configured${NC}"
+    # Avoid proxying internal traffic
+    export no_proxy="localhost,127.0.0.1,ollama"
+    export NO_PROXY="localhost,127.0.0.1,ollama"
 }
 
 disable_proxy() {
-    if [ -f "${APT_PROXY_FILE}" ]; then
-        echo -e "${YELLOW}Removing APT proxy configuration${NC}"
-        rm -f "${APT_PROXY_FILE}"
-    fi
-
-    unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
+    unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY no_proxy NO_PROXY
 }
 
 trap disable_proxy EXIT
@@ -99,13 +85,14 @@ else
 fi
 
 # =========================
-# Functions (unchanged logic)
+# Functions
 # =========================
 check_directory() {
     if [ ! -f "docker-compose.yml" ]; then
         echo -e "${RED}Error: docker-compose.yml not found${NC}"
         exit 1
     fi
+
     if [ ! -d "opencode" ]; then
         echo -e "${RED}Error: opencode directory not found${NC}"
         exit 1
@@ -119,41 +106,78 @@ pull_latest() {
 
 show_changes() {
     echo -e "\n${YELLOW}Step 2: Checking agent file changes...${NC}"
-    ls -la opencode/.opencode/agent/*.md 2>/dev/null || true
-    ls -la opencode/opencode.json 2>/dev/null || true
+    ls -la opencode/.opencode/agent/*.md 2>/dev/null || echo "No agent files found"
+    ls -la opencode/opencode.json 2>/dev/null || echo "opencode.json not found"
 }
 
 stop_container() {
-    echo -e "\n${YELLOW}Stopping existing container...${NC}"
+    echo -e "\n${YELLOW}Stopping existing opencode container...${NC}"
     docker stop ${CONTAINER_NAME} 2>/dev/null || true
     docker rm ${CONTAINER_NAME} 2>/dev/null || true
 }
 
+stop_all_containers() {
+    docker stop opencode ollama 2>/dev/null || true
+    docker rm opencode ollama 2>/dev/null || true
+}
+
 clean_opencode_rebuild() {
+    echo -e "\n${YELLOW}Cleaning OpenCode images...${NC}"
     docker compose -p localai -f docker-compose.yml --profile ${PROFILE} down || true
     docker rmi $(docker images | grep opencode | awk '{print $3}') -f 2>/dev/null || true
 }
 
 rebuild_container() {
-    echo -e "\n${YELLOW}Rebuilding container...${NC}"
-    docker compose --profile ${PROFILE} build opencode-gpu --no-cache
+    echo -e "\n${YELLOW}Rebuilding OpenCode container...${NC}"
+
+    BUILD_PROXY_ARGS=""
+    if [ "${USE_PROXY}" = true ]; then
+        BUILD_PROXY_ARGS="--build-arg http_proxy=${PROXY_URL} --build-arg https_proxy=${PROXY_URL}"
+    fi
+
+    docker compose --profile ${PROFILE} build opencode-gpu \
+        --no-cache \
+        ${BUILD_PROXY_ARGS}
+
+    echo -e "${GREEN}Container rebuilt${NC}"
 }
 
 start_containers() {
+    echo -e "\n${YELLOW}Starting containers...${NC}"
     docker compose --profile ${PROFILE} up -d opencode-gpu ollama-gpu
 }
 
 wait_ready() {
-    echo -e "\n${YELLOW}Waiting for Ollama...${NC}"
+    echo -e "\n${YELLOW}Waiting for Ollama to be ready...${NC}"
+
     for i in {1..30}; do
-        docker exec ${CONTAINER_NAME} curl -s http://ollama:11434/api/tags && break
+        if docker exec -i ${CONTAINER_NAME} curl -s http://ollama:11434/api/tags >/dev/null 2>&1; then
+            echo -e "${GREEN}Ollama is ready${NC}"
+            return
+        fi
         sleep 2
+        echo -n "."
     done
+
+    echo -e "${RED}Ollama did not become ready in time${NC}"
+}
+
+verify_agents() {
+    echo -e "\n${YELLOW}Verifying agent configuration...${NC}"
+    docker exec -i ${CONTAINER_NAME} ls -la /root/.config/opencode/.opencode/agent/ || true
 }
 
 quick_test() {
-    echo -e "\n${YELLOW}Running quick test...${NC}"
-    docker exec -i ${CONTAINER_NAME} opencode run --agent "general" "Reply with just: OK"
+    echo -e "\n${YELLOW}Running quick connectivity test...${NC}"
+
+    if timeout 180 docker exec -i ${CONTAINER_NAME} opencode run --agent "general" "Reply with just: OK"; then
+        echo -e "${GREEN}Quick test passed${NC}"
+    else
+        echo -e "${RED}Quick test failed${NC}"
+        echo "Debug:"
+        echo "  docker logs opencode --tail 50"
+        echo "  docker logs ollama --tail 50"
+    fi
 }
 
 # =========================
@@ -172,20 +196,50 @@ main() {
             clean_opencode_rebuild
             rebuild_container
             ;;
+        --rebuild-only)
+            stop_container
+            rebuild_container
+            start_containers
+            wait_ready
+            verify_agents
+            stop_all_containers
+            ;;
         --test-only)
             quick_test
+            ;;
+        --no-test)
+            pull_latest
+            stop_container
+            rebuild_container
+            start_containers
+            wait_ready
+            verify_agents
+            stop_all_containers
+            ;;
+        --keep-running)
+            pull_latest
+            stop_container
+            rebuild_container
+            start_containers
+            wait_ready
+            verify_agents
+            quick_test
+            echo -e "${YELLOW}Containers left running${NC}"
             ;;
         --help|-h)
             echo "Usage: $0 [options] [--use-proxy]"
             echo ""
             echo "Proxy options:"
-            echo "  --use-proxy     Enable APT + env proxy (${PROXY_URL})"
+            echo "  --use-proxy     Enable HTTP proxy (${PROXY_URL})"
             echo "  --no-proxy      Disable proxy (default)"
             echo ""
             echo "Deployment options:"
             echo "  --pull-only"
             echo "  --build-only"
+            echo "  --rebuild-only"
             echo "  --test-only"
+            echo "  --no-test"
+            echo "  --keep-running"
             ;;
         *)
             pull_latest
@@ -193,11 +247,13 @@ main() {
             rebuild_container
             start_containers
             wait_ready
+            verify_agents
             quick_test
+            stop_all_containers
             ;;
     esac
 
-    echo -e "\n${GREEN}Deployment complete${NC}"
+    echo -e "\n${GREEN}Deployment complete!${NC}"
 }
 
 main "$@"
