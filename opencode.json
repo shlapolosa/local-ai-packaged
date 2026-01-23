@@ -9,8 +9,18 @@
 				"LOG_LEVEL": "error",
 				"DISABLE_CONSOLE_OUTPUT": "true",
 				"N8N_API_URL": "https://n8n.socrates-hlapolosa.org",
-				"N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MmQzM2FlYS1kZTdiLTRmM2EtYTVkMC0zZmYwMzg0YjMyMmMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzY2NTU1NDk4LCJleHAiOjE3NjkxNDQ0MDB9.1CCxzMbibreWruoRPpFOKKg05ne1hP3dPHq1WIL3984"
+				"N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MmQzM2FlYS1kZTdiLTRmM2EtYTVkMC0zZmYwMzg0YjMyMmMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzY5MTUzNjQyfQ.n3QYdV4YGfN8wsFVR_DJtt6hs3HSroDKTfyjC3O_75M"
 			},
+			"enabled": true
+		},
+		"chrome-devtools": {
+			"type": "local",
+			"command": ["npx", "-y", "chrome-devtools-mcp@latest"],
+			"enabled": true
+		},
+		"context7": {
+			"type": "local",
+			"command": ["npx", "-y", "@upstash/context7-mcp@latest"],
 			"enabled": true
 		}
 	}
