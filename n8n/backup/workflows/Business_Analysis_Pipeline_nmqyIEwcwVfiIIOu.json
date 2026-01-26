@@ -938,6 +938,135 @@
       "parameters": {
         "jsCode": "// Aggregate research context for BRD generation\n// Handle both branches: from Parse Results (research done) or direct from If (no research needed)\nlet classifyData, parsedData;\n\ntry {\n  // Try to get from research path\n  parsedData = $('Parse Research Results').first()?.json;\n  classifyData = parsedData?.classifyData || $('Classify Nouns (Qdrant)').first().json;\n} catch (e) {\n  // Direct path - no research was done\n  classifyData = $('Classify Nouns (Qdrant)').first().json;\n  parsedData = { internalRules: [], externalResearch: [] };\n}\n\nconst internalRules = parsedData?.internalRules || [];\nconst externalResearch = parsedData?.externalResearch || [];\n\n// Build internal context section\nlet internalContext = '';\nif (internalRules.length > 0) {\n  internalContext = '## Internal Business Rules & System Constraints\\n\\n' +\n    'The following internal systems and rules apply:\\n\\n' +\n    internalRules.map((r, idx) =>\n      `${idx + 1}. ${(r.content || '').slice(0, 600)}\\n   (Relevance: ${Math.round((r.score || 0) * 100)}%)`\n    ).join('\\n\\n');\n}\n\n// Build external context section\nlet externalContext = '';\nif (externalResearch.length > 0) {\n  externalContext = '## External System Integration Research\\n\\n' +\n    'Research findings for external dependencies:\\n\\n' +\n    externalResearch.map((r, idx) =>\n      `${idx + 1}. **${r.title}**\\n   ${r.snippet}\\n   Source: ${r.url}`\n    ).join('\\n\\n');\n}\n\n// Combine and truncate to avoid exceeding context limits\nconst fullContext = [internalContext, externalContext]\n  .filter(Boolean)\n  .join('\\n\\n---\\n\\n')\n  .slice(0, 4000);\n\n// Pass through the original context\nconst passContext = classifyData?.passContext || $('Pass Context').first()?.json || {};\n\nreturn [{\n  json: {\n    ...passContext,\n    researchContext: fullContext,\n    internalNouns: classifyData?.internalNouns || [],\n    externalNouns: classifyData?.externalNouns || [],\n    hasInternalRules: internalRules.length > 0,\n    hasExternalResearch: externalResearch.length > 0,\n    researchSummary: {\n      totalNouns: (classifyData?.internalNouns?.length || 0) + (classifyData?.externalNouns?.length || 0),\n      internalRulesFound: internalRules.length,\n      externalSourcesFound: externalResearch.length\n    }\n  }\n}];"
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "azure-enabled-check",
+              "leftValue": "={{ $env.AZURE_DEVOPS_ORG }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-azure-98173b25",
+      "name": "If: Azure Enabled",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}?api-version=7.1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "id": "get-azure-repo-30565141",
+      "name": "Get Azure Repo Info",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        250
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
+          "name": "Azure DevOps PAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Azure DevOps push payload\nconst ctx = $('Build Git Script').first().json;\nconst repoInfo = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content - try common variable names\nconst artifactContent = ctx.brdMarkdown || ctx.artifactMarkdown || ctx.content || '';\nconst artifactPath = \"/docs/BRD.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// For new branches, use all zeros as oldObjectId\nconst oldObjectId = '0000000000000000000000000000000000000000';\n\n// Build the push payload\nconst changes = [{\n  changeType: 'add',\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString('base64'),\n    contentType: 'base64encoded'\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo\n  }\n}];"
+      },
+      "id": "build-azure-payload-cee22d86",
+      "name": "Build Azure Push Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/pushes?api-version=7.1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.azurePushPayload) }}",
+        "options": {}
+      },
+      "id": "push-azure-99898f3d",
+      "name": "Push to Azure DevOps",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1820,
+        250
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
+          "name": "Azure DevOps PAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "jobId",
+              "field2": "jobId"
+            }
+          ]
+        },
+        "options": {
+          "fuzzyCompare": false
+        }
+      },
+      "id": "merge-results-d44ebf61",
+      "name": "Merge Git Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        2060,
+        125
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "noop-azure-9ff90c1e",
+      "name": "Azure Disabled",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1580,
+        400
+      ]
     }
   ],
   "connections": {
@@ -1144,6 +1273,11 @@
             "node": "SSH: Commit BRD",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "If: Azure Enabled",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -1152,7 +1286,7 @@
       "main": [
         [
           {
-            "node": "Update Job Status",
+            "node": "Merge Git Results",
             "type": "main",
             "index": 0
           }
@@ -1417,6 +1551,79 @@
         [
           {
             "node": "Aggregate Research Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Azure Enabled": {
+      "main": [
+        [
+          {
+            "node": "Get Azure Repo Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Azure Disabled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Azure Repo Info": {
+      "main": [
+        [
+          {
+            "node": "Build Azure Push Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Azure Push Payload": {
+      "main": [
+        [
+          {
+            "node": "Push to Azure DevOps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push to Azure DevOps": {
+      "main": [
+        [
+          {
+            "node": "Merge Git Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Azure Disabled": {
+      "main": [
+        [
+          {
+            "node": "Merge Git Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Git Results": {
+      "main": [
+        [
+          {
+            "node": "Update Job Status",
             "type": "main",
             "index": 0
           }
@@ -2420,6 +2627,135 @@
         "parameters": {
           "jsCode": "// Aggregate research context for BRD generation\n// Handle both branches: from Parse Results (research done) or direct from If (no research needed)\nlet classifyData, parsedData;\n\ntry {\n  // Try to get from research path\n  parsedData = $('Parse Research Results').first()?.json;\n  classifyData = parsedData?.classifyData || $('Classify Nouns (Qdrant)').first().json;\n} catch (e) {\n  // Direct path - no research was done\n  classifyData = $('Classify Nouns (Qdrant)').first().json;\n  parsedData = { internalRules: [], externalResearch: [] };\n}\n\nconst internalRules = parsedData?.internalRules || [];\nconst externalResearch = parsedData?.externalResearch || [];\n\n// Build internal context section\nlet internalContext = '';\nif (internalRules.length > 0) {\n  internalContext = '## Internal Business Rules & System Constraints\\n\\n' +\n    'The following internal systems and rules apply:\\n\\n' +\n    internalRules.map((r, idx) =>\n      `${idx + 1}. ${(r.content || '').slice(0, 600)}\\n   (Relevance: ${Math.round((r.score || 0) * 100)}%)`\n    ).join('\\n\\n');\n}\n\n// Build external context section\nlet externalContext = '';\nif (externalResearch.length > 0) {\n  externalContext = '## External System Integration Research\\n\\n' +\n    'Research findings for external dependencies:\\n\\n' +\n    externalResearch.map((r, idx) =>\n      `${idx + 1}. **${r.title}**\\n   ${r.snippet}\\n   Source: ${r.url}`\n    ).join('\\n\\n');\n}\n\n// Combine and truncate to avoid exceeding context limits\nconst fullContext = [internalContext, externalContext]\n  .filter(Boolean)\n  .join('\\n\\n---\\n\\n')\n  .slice(0, 4000);\n\n// Pass through the original context\nconst passContext = classifyData?.passContext || $('Pass Context').first()?.json || {};\n\nreturn [{\n  json: {\n    ...passContext,\n    researchContext: fullContext,\n    internalNouns: classifyData?.internalNouns || [],\n    externalNouns: classifyData?.externalNouns || [],\n    hasInternalRules: internalRules.length > 0,\n    hasExternalResearch: externalResearch.length > 0,\n    researchSummary: {\n      totalNouns: (classifyData?.internalNouns?.length || 0) + (classifyData?.externalNouns?.length || 0),\n      internalRulesFound: internalRules.length,\n      externalSourcesFound: externalResearch.length\n    }\n  }\n}];"
         }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "azure-enabled-check",
+                "leftValue": "={{ $env.AZURE_DEVOPS_ORG }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-azure-674ea235",
+        "name": "If: Azure Enabled",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1100,
+          250
+        ]
+      },
+      {
+        "parameters": {
+          "method": "GET",
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}?api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "options": {}
+        },
+        "id": "get-azure-repo-031bf531",
+        "name": "Get Azure Repo Info",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1340,
+          250
+        ],
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
+            "name": "Azure DevOps PAT"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Build Azure DevOps push payload\nconst ctx = $('Build Git Script').first().json;\nconst repoInfo = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content - try common variable names\nconst artifactContent = ctx.brdMarkdown || ctx.artifactMarkdown || ctx.content || '';\nconst artifactPath = \"/docs/BRD.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// For new branches, use all zeros as oldObjectId\nconst oldObjectId = '0000000000000000000000000000000000000000';\n\n// Build the push payload\nconst changes = [{\n  changeType: 'add',\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString('base64'),\n    contentType: 'base64encoded'\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo\n  }\n}];"
+        },
+        "id": "build-azure-payload-4e4c4e1c",
+        "name": "Build Azure Push Payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1580,
+          250
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/pushes?api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json.azurePushPayload) }}",
+          "options": {}
+        },
+        "id": "push-azure-ca76912a",
+        "name": "Push to Azure DevOps",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1820,
+          250
+        ],
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
+            "name": "Azure DevOps PAT"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "mergeByFields": {
+            "values": [
+              {
+                "field1": "jobId",
+                "field2": "jobId"
+              }
+            ]
+          },
+          "options": {
+            "fuzzyCompare": false
+          }
+        },
+        "id": "merge-results-b6b26ad0",
+        "name": "Merge Git Results",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          2060,
+          125
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "noop-azure-7f91262f",
+        "name": "Azure Disabled",
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          1580,
+          400
+        ]
       }
     ],
     "connections": {
@@ -2626,6 +2962,11 @@
               "node": "SSH: Commit BRD",
               "type": "main",
               "index": 0
+            },
+            {
+              "node": "If: Azure Enabled",
+              "type": "main",
+              "index": 0
             }
           ]
         ]
@@ -2634,7 +2975,7 @@
         "main": [
           [
             {
-              "node": "Update Job Status",
+              "node": "Merge Git Results",
               "type": "main",
               "index": 0
             }
@@ -2899,6 +3240,79 @@
           [
             {
               "node": "Aggregate Research Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: Azure Enabled": {
+        "main": [
+          [
+            {
+              "node": "Get Azure Repo Info",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Azure Disabled",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Azure Repo Info": {
+        "main": [
+          [
+            {
+              "node": "Build Azure Push Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Azure Push Payload": {
+        "main": [
+          [
+            {
+              "node": "Push to Azure DevOps",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Push to Azure DevOps": {
+        "main": [
+          [
+            {
+              "node": "Merge Git Results",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Azure Disabled": {
+        "main": [
+          [
+            {
+              "node": "Merge Git Results",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge Git Results": {
+        "main": [
+          [
+            {
+              "node": "Update Job Status",
               "type": "main",
               "index": 0
             }

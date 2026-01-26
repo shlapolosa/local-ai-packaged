@@ -852,10 +852,10 @@ The main architecture pipeline processes requirements through multiple AI agents
 | `archimate_xml_business_application` | Business + App layers | PostgreSQL + GitHub |
 | `archimate_xml_business_application_data` | Business + App + Data | PostgreSQL + GitHub |
 | `archimate_xml_business_application_data_infra` | Full ArchiMate model | PostgreSQL + GitHub |
-| `risk_assessment_md` | Risk assessment markdown | PostgreSQL + GitHub |
-| `solution_package` | Solution architecture specs | PostgreSQL + GitHub |
-| `qa_package` | QA strategy and test cases | PostgreSQL + GitHub |
-| `prd_md` | Product Requirements Document | PostgreSQL + GitHub |
+| `risk_assessment_md` | Risk assessment markdown | PostgreSQL + GitHub (+ Azure DevOps) |
+| `solution_package` | Solution architecture specs | PostgreSQL + GitHub (+ Azure DevOps) |
+| `qa_package` | QA strategy and test cases | PostgreSQL + GitHub (+ Azure DevOps) |
+| `prd_md` | Product Requirements Document | PostgreSQL + GitHub (+ Azure DevOps) |
 
 ### GitHub Repository Structure
 
@@ -894,6 +894,33 @@ software-delivery/
         ├── tasks.json              # Taskmaster tasks
         └── stories.json            # Stories with story points
 ```
+
+### Azure DevOps Artifact Mirroring (Optional)
+
+The pipeline workflows can optionally mirror artifacts to Azure DevOps in parallel with GitHub. This enables:
+- Dual storage of all generated artifacts
+- Integration with Azure DevOps boards and pipelines
+- Enterprise compliance with Azure-based infrastructure
+
+**To enable Azure DevOps mirroring:**
+
+1. Configure environment variables in `.env`:
+   ```bash
+   AZURE_DEVOPS_ORG=your-organization
+   AZURE_DEVOPS_PROJECT=your-project
+   AZURE_DEVOPS_REPO=your-repository
+   AZURE_DEVOPS_PAT=your-personal-access-token
+   ```
+
+2. Create HTTP Basic Auth credential in n8n with your PAT
+
+3. See [Azure DevOps Setup Guide](docs/azure-devops-setup.md) for detailed instructions
+
+When configured, artifacts appear in both:
+- GitHub: `github.com/shlapolosa/software-delivery/{projectSlug}`
+- Azure DevOps: `dev.azure.com/{org}/{project}/_git/{repo}/{projectSlug}`
+
+If Azure DevOps is not configured, the workflows continue to push to GitHub only.
 
 ---
 

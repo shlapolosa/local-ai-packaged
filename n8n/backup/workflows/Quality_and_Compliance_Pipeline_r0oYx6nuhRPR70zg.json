@@ -452,6 +452,135 @@
         4560,
         304
       ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "azure-enabled-check",
+              "leftValue": "={{ $env.AZURE_DEVOPS_ORG }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-azure-9be9238f",
+      "name": "If: Azure Enabled",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4080,
+        554
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}?api-version=7.1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "id": "get-azure-repo-fe149f3d",
+      "name": "Get Azure Repo Info",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4320,
+        554
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
+          "name": "Azure DevOps PAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Azure DevOps push payload\nconst ctx = $('Build Git Script').first().json;\nconst repoInfo = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content - try common variable names\nconst artifactContent = ctx.artifactContent || ctx.artifactMarkdown || ctx.content || '';\nconst artifactPath = \"/docs/artifact.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// For new branches, use all zeros as oldObjectId\nconst oldObjectId = '0000000000000000000000000000000000000000';\n\n// Build the push payload\nconst changes = [{\n  changeType: 'add',\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString('base64'),\n    contentType: 'base64encoded'\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo\n  }\n}];"
+      },
+      "id": "build-azure-payload-623a51b5",
+      "name": "Build Azure Push Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4560,
+        554
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/pushes?api-version=7.1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.azurePushPayload) }}",
+        "options": {}
+      },
+      "id": "push-azure-a988439b",
+      "name": "Push to Azure DevOps",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4800,
+        554
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
+          "name": "Azure DevOps PAT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "jobId",
+              "field2": "jobId"
+            }
+          ]
+        },
+        "options": {
+          "fuzzyCompare": false
+        }
+      },
+      "id": "merge-results-8d4c7e38",
+      "name": "Merge Git Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        5040,
+        429
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "noop-azure-5e2e29ff",
+      "name": "Azure Disabled",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        4560,
+        704
+      ]
     }
   ],
   "connections": {
@@ -671,6 +800,11 @@
             "node": "SSH: Commit QC Files",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "If: Azure Enabled",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -679,7 +813,7 @@
       "main": [
         [
           {
-            "node": "Update Job Status",
+            "node": "Merge Git Results",
             "type": "main",
             "index": 0
           }
@@ -691,6 +825,79 @@
         [
           {
             "node": "Return Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Azure Enabled": {
+      "main": [
+        [
+          {
+            "node": "Get Azure Repo Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Azure Disabled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Azure Repo Info": {
+      "main": [
+        [
+          {
+            "node": "Build Azure Push Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Azure Push Payload": {
+      "main": [
+        [
+          {
+            "node": "Push to Azure DevOps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push to Azure DevOps": {
+      "main": [
+        [
+          {
+            "node": "Merge Git Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Azure Disabled": {
+      "main": [
+        [
+          {
+            "node": "Merge Git Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Git Results": {
+      "main": [
+        [
+          {
+            "node": "Update Job Status",
             "type": "main",
             "index": 0
           }
@@ -1208,6 +1415,135 @@
           4560,
           304
         ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "azure-enabled-check",
+                "leftValue": "={{ $env.AZURE_DEVOPS_ORG }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-azure-28214929",
+        "name": "If: Azure Enabled",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          4080,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "method": "GET",
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}?api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "options": {}
+        },
+        "id": "get-azure-repo-a5801c14",
+        "name": "Get Azure Repo Info",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          4320,
+          554
+        ],
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
+            "name": "Azure DevOps PAT"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Build Azure DevOps push payload\nconst ctx = $('Build Git Script').first().json;\nconst repoInfo = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content - try common variable names\nconst artifactContent = ctx.artifactContent || ctx.artifactMarkdown || ctx.content || '';\nconst artifactPath = \"/docs/artifact.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// For new branches, use all zeros as oldObjectId\nconst oldObjectId = '0000000000000000000000000000000000000000';\n\n// Build the push payload\nconst changes = [{\n  changeType: 'add',\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString('base64'),\n    contentType: 'base64encoded'\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo\n  }\n}];"
+        },
+        "id": "build-azure-payload-7b936f4c",
+        "name": "Build Azure Push Payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4560,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/pushes?api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json.azurePushPayload) }}",
+          "options": {}
+        },
+        "id": "push-azure-e70103fe",
+        "name": "Push to Azure DevOps",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          4800,
+          554
+        ],
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
+            "name": "Azure DevOps PAT"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "mergeByFields": {
+            "values": [
+              {
+                "field1": "jobId",
+                "field2": "jobId"
+              }
+            ]
+          },
+          "options": {
+            "fuzzyCompare": false
+          }
+        },
+        "id": "merge-results-123798ca",
+        "name": "Merge Git Results",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          5040,
+          429
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "noop-azure-5865d6dc",
+        "name": "Azure Disabled",
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          4560,
+          704
+        ]
       }
     ],
     "connections": {
@@ -1427,6 +1763,11 @@
               "node": "SSH: Commit QC Files",
               "type": "main",
               "index": 0
+            },
+            {
+              "node": "If: Azure Enabled",
+              "type": "main",
+              "index": 0
             }
           ]
         ]
@@ -1435,7 +1776,7 @@
         "main": [
           [
             {
-              "node": "Update Job Status",
+              "node": "Merge Git Results",
               "type": "main",
               "index": 0
             }
@@ -1447,6 +1788,79 @@
           [
             {
               "node": "Return Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: Azure Enabled": {
+        "main": [
+          [
+            {
+              "node": "Get Azure Repo Info",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Azure Disabled",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Azure Repo Info": {
+        "main": [
+          [
+            {
+              "node": "Build Azure Push Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Azure Push Payload": {
+        "main": [
+          [
+            {
+              "node": "Push to Azure DevOps",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Push to Azure DevOps": {
+        "main": [
+          [
+            {
+              "node": "Merge Git Results",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Azure Disabled": {
+        "main": [
+          [
+            {
+              "node": "Merge Git Results",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge Git Results": {
+        "main": [
+          [
+            {
+              "node": "Update Job Status",
               "type": "main",
               "index": 0
             }
