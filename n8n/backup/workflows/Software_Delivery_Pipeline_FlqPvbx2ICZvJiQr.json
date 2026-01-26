@@ -1,0 +1,1905 @@
+{
+  "updatedAt": "2026-01-23T18:47:49.092Z",
+  "createdAt": "2026-01-21T05:22:06.467Z",
+  "id": "FlqPvbx2ICZvJiQr",
+  "name": "Software Delivery Pipeline",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pipeline/software-delivery",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-entry",
+      "name": "Webhook: Software Delivery",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -608,
+        304
+      ],
+      "webhookId": "9749aae1-fa8b-48fe-a72f-d5620f38f38a"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst chatInput = body.chatInput || body.message || body.requirements || '';\nconst isSystemPrompt = chatInput.includes('[Auto-Tag]') || chatInput.includes('[Follow-Up Questions]') || chatInput.includes('[Title Generation]');\nlet systemPromptType = null;\nif (chatInput.includes('[Auto-Tag]')) systemPromptType = 'auto-tag';\nelse if (chatInput.includes('[Follow-Up Questions]')) systemPromptType = 'follow-up';\nelse if (chatInput.includes('[Title Generation]')) systemPromptType = 'title-gen';\nreturn [{ json: { rawInput: chatInput, projectSlug: body.projectSlug || body.project_slug || null, projectName: body.projectName || body.project_name || null, requirements: body.requirements || null, sessionId: body.sessionId || body.session_id || null, isSystemPrompt, systemPromptType } }];"
+      },
+      "id": "parse-input",
+      "name": "Parse Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "sp-check",
+              "leftValue": "={{ $json.isSystemPrompt }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-system-prompt",
+      "name": "If: System Prompt",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const type = $input.first().json.systemPromptType;\nlet response = {};\nif (type === 'auto-tag') { response = { tags: ['software-delivery', 'architecture'] }; }\nelse if (type === 'follow-up') { response = { questions: ['What specific aspects would you like to explore?'] }; }\nelse if (type === 'title-gen') { response = { title: 'Delivery Manager Assistant' }; }\nreturn [{ json: response }];"
+      },
+      "id": "system-prompt-handler",
+      "name": "System Prompt Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-system-prompt",
+      "name": "Respond: System Prompt",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        112,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'llama3.1:8b-instruct-q4_K_M', messages: [{ role: 'system', content: 'Classify intent. Chat: help, status, list, artifacts, jobs. Execute: build, create, generate. Output: {mode, intent}' }, { role: 'user', content: $json.rawInput }], stream: false, format: { type: 'object', required: ['mode', 'intent'], properties: { mode: { type: 'string', enum: ['chat', 'execute'] }, intent: { type: 'string' } } }, options: { temperature: 0.1 } } }}",
+        "options": {}
+      },
+      "id": "classify-mode",
+      "name": "Classify Mode",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -128,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst parsed = $('Parse Input').first().json;\nlet classification = { mode: 'chat', intent: 'help' };\ntry { const content = response.message?.content; if (content) classification = JSON.parse(content); } catch (e) {}\nreturn [{ json: { ...parsed, mode: classification.mode || 'chat', intent: classification.intent || 'help', extractedProjectSlug: classification.projectSlug || null } }];"
+      },
+      "id": "process-classification",
+      "name": "Process Classification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "mode-check",
+              "leftValue": "={{ $json.mode }}",
+              "rightValue": "chat",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-mode-check",
+      "name": "If: Mode Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nconst intent = input.intent || 'help';\nconst projectSlug = input.projectSlug || input.extractedProjectSlug;\nlet response = { agent: 'Delivery Manager', stage: 'software-delivery', intent: intent, action: 'direct_response', query: null };\nswitch(intent) {\n  case 'help':\n    response.content = '# Software Delivery Pipeline\\\\n\\\\n## Commands\\\\n| Command | Description |\\\\n|---------|-------------|\\\\n| help | Show help |\\\\n| status | Check job status |\\\\n| artifacts | List artifacts |\\\\n| jobs | List recent jobs |\\\\n| list | List projects |';\n    response.message = 'Help';\n    break;\n  case 'status': case 'jobs':\n    response.action = 'query_db';\n    response.query = projectSlug ? `SELECT j.id, p.slug as project, j.stage, j.status, j.created_at, j.completed_at FROM architecture.jobs j JOIN architecture.projects p ON j.project_id = p.id WHERE j.stage = 'software-delivery' AND p.slug = '${projectSlug}' ORDER BY j.created_at DESC LIMIT 10` : `SELECT j.id, p.slug as project, j.stage, j.status, j.created_at, j.completed_at FROM architecture.jobs j JOIN architecture.projects p ON j.project_id = p.id WHERE j.stage = 'software-delivery' ORDER BY j.created_at DESC LIMIT 10`;\n    response.queryType = 'jobs';\n    break;\n  case 'artifacts':\n    response.action = 'query_db';\n    response.query = `SELECT a.id, p.slug as project, a.artifact_type, a.version, a.created_at FROM architecture.artifacts a JOIN architecture.projects p ON a.project_id = p.id WHERE a.artifact_type LIKE 'delivery_%' ORDER BY a.created_at DESC LIMIT 10`;\n    response.queryType = 'artifacts';\n    break;\n  case 'list':\n    response.action = 'query_db';\n    response.query = 'SELECT p.id, p.slug, p.name, p.created_at FROM architecture.projects p ORDER BY p.created_at DESC LIMIT 20';\n    response.queryType = 'projects';\n    break;\n  default:\n    response.content = 'Unknown command. Try help.';\n    response.message = 'Unknown';\n}\nreturn [{ json: response }];"
+      },
+      "id": "chat-handler",
+      "name": "Chat Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "needs-query",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "query_db",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-needs-db-query",
+      "name": "If: Needs DB Query",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.query }}",
+        "options": {}
+      },
+      "id": "execute-chat-query",
+      "name": "Execute Chat Query",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        64
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "avpnXKKamBTlgThS",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatContext = $('Chat Handler').first().json;\nconst queryResults = $input.all().map(i => i.json);\nlet content = '';\nconst queryType = chatContext.queryType;\nif (queryResults.length === 0) { content = 'No results found.'; }\nelse {\n  switch(queryType) {\n    case 'jobs':\n      content = '# Jobs\\\\n\\\\n| ID | Project | Stage | Status | Created | Completed |\\\\n|----|---------|-------|--------|---------|-----------|\\\\n';\n      for (const row of queryResults) { content += `| ${row.id?.substring(0,8)}... | ${row.project} | ${row.stage} | ${row.status} | ${new Date(row.created_at).toLocaleDateString()} | ${row.completed_at ? new Date(row.completed_at).toLocaleDateString() : '-'} |\\\\n`; }\n      break;\n    case 'artifacts':\n      content = '# Artifacts\\\\n\\\\n| ID | Project | Type | Version | Created |\\\\n|----|---------|------|---------|---------|\\\\n';\n      for (const row of queryResults) { content += `| ${row.id?.substring(0,8)}... | ${row.project} | ${row.artifact_type} | ${row.version} | ${new Date(row.created_at).toLocaleDateString()} |\\\\n`; }\n      break;\n    case 'projects':\n      content = '# Projects\\\\n\\\\n| Slug | Name | Created |\\\\n|------|------|---------|\\\\n';\n      for (const row of queryResults) { content += `| ${row.slug} | ${row.name} | ${new Date(row.created_at).toLocaleDateString()} |\\\\n`; }\n      break;\n    default: content = JSON.stringify(queryResults, null, 2);\n  }\n}\nreturn [{ json: { agent: 'Delivery Manager', stage: 'software-delivery', intent: chatContext.intent, success: true, content: content, message: `Found ${queryResults.length} result(s)`, rowCount: queryResults.length } }];"
+      },
+      "id": "format-chat-results",
+      "name": "Format Chat Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-chat",
+      "name": "Respond: Chat",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        992,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'accepted', agent: 'Delivery Manager', stage: 'software-delivery', jobId: $('Create SD Job')?.first()?.json?.id || 'pending', message: 'Pipeline started', projectSlug: $json.projectSlug } }}",
+        "options": {}
+      },
+      "id": "respond-execute-ack",
+      "name": "Respond: Execute Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "projectSlug",
+              "value": "={{ $json.projectSlug }}",
+              "type": "string"
+            },
+            {
+              "name": "inputJobId",
+              "value": "={{ $json.inputJobId || null }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "init-params",
+      "name": "Initialize Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT p.id, p.slug, p.name FROM architecture.projects p WHERE p.slug = $1;",
+        "options": {
+          "queryReplacement": "={{ [ $json.projectSlug ] }}"
+        }
+      },
+      "id": "get-project",
+      "name": "Load Project",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        480,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, stage, status, created_at FROM architecture.jobs WHERE project_id = $1 AND stage = 'project-management' AND status = 'completed' ORDER BY created_at DESC LIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ [ $json.id ] }}"
+        }
+      },
+      "id": "get-pm-job",
+      "name": "Get Latest PM Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        720,
+        304
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO architecture.jobs (project_id, stage, input_job_id, status, meta) VALUES ($1, 'software-delivery', $2, 'running', '{}'::jsonb) RETURNING id, stage, status;",
+        "options": {
+          "queryReplacement": "={{ [ $('Load Project').first().json.id, $json.id || null ] }}"
+        }
+      },
+      "id": "create-job",
+      "name": "Create SD Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        960,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const init = $('Initialize Parameters').first().json;\nconst project = $('Load Project').first().json;\nconst pmJob = $('Get Latest PM Job').first().json;\nconst job = $json;\nreturn [{ json: { projectId: project.id, projectSlug: project.slug, projectName: project.name || project.slug, jobId: job.id, inputJobId: pmJob?.id || null } }];"
+      },
+      "id": "pass-context",
+      "name": "Pass Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT a.type, a.content, a.meta FROM architecture.artifacts a WHERE a.project_id = $1 AND a.type IN ('prd_md', 'brd') ORDER BY a.type, a.version DESC;",
+        "options": {
+          "queryReplacement": "={{ [ $json.projectId ] }}"
+        }
+      },
+      "id": "load-artifacts",
+      "name": "Load PRD/BRD Artifacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1440,
+        304
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Pass Context').first().json;\nconst rows = $input.all().map(i => i.json);\nconst byType = {};\nfor (const r of rows) byType[r.type] = r.content;\n\nconst prdMd = byType.prd_md?.markdown || '';\nconst brd = byType.brd || {};\n\nif (!prdMd) throw new Error('Missing PRD artifact for project ' + ctx.projectSlug);\n\nreturn [{ json: { ...ctx, prdMarkdown: prdMd, brd } }];"
+      },
+      "id": "collect-artifacts",
+      "name": "Collect Artifacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\nlet sh = 'set -e\\n';\nsh += 'mkdir -p /opt/workspace\\n';\nsh += \"if [ ! -d '\" + repoDir + \"/.git' ]; then git clone '\" + remote + \"' '\" + repoDir + \"'; fi\\n\";\nsh += \"cd '\" + repoDir + \"'\\n\";\nsh += \"git remote set-url origin '\" + remote + \"'\\n\";\nsh += 'git fetch origin\\n';\nsh += \"git checkout -B '\" + projectSlug + \"' 'origin/\" + projectSlug + \"' 2>/dev/null || git checkout -B '\" + projectSlug + \"'\\n\";\nsh += \"mkdir -p '\" + projectDir + \"/docs'\\n\";\n\n// Write PRD.md if needed\nsh += \"cat > '\" + projectDir + \"/docs/PRD.md' <<'EOF_\" + jobId + \"'\\n\";\nsh += ctx.prdMarkdown + \"\\nEOF_\" + jobId + \"\\n\";\n\nsh += \"git add '\" + projectSlug + \"-docs/docs/PRD.md'\\n\";\nsh += \"git commit -m 'Update PRD for \" + projectSlug + \" (job \" + jobId + \")' || true\\n\";\nsh += \"git push -u origin '\" + projectSlug + \"'\\n\";\n\nreturn [{ json: { ...ctx, gitScript: sh } }];"
+      },
+      "id": "build-git-script",
+      "name": "Build Git Script",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "privateKey",
+        "command": "={{ $json.gitScript }}"
+      },
+      "id": "ssh-git",
+      "name": "SSH: Write PRD",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        304
+      ],
+      "credentials": {
+        "sshPrivateKey": {
+          "id": "SxKNiry9nQQ96pnU",
+          "name": "SSH Private Key account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Pass Context').first().json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst containerWorkDir = '/tmp/taskmaster-work/' + projectSlug;\n\nlet sh = 'set -e\\n';\n\n// Clone and checkout the repo\nsh += \"if [ ! -d '\" + repoDir + \"/.git' ]; then git clone '\" + remote + \"' '\" + repoDir + \"'; fi\\n\";\nsh += \"cd '\" + repoDir + \"'\\n\";\nsh += \"git remote set-url origin '\" + remote + \"'\\n\";\nsh += 'git fetch origin --prune\\n';\nsh += \"git checkout -B '\" + projectSlug + \"' 'origin/\" + projectSlug + \"' 2>/dev/null || git checkout -B '\" + projectSlug + \"'\\n\";\nsh += \"git pull origin '\" + projectSlug + \"' || true\\n\";\n\n// Verify PRD exists\nsh += \"test -f '\" + projectDir + \"/docs/PRD.md' || { echo 'ERROR: PRD.md not found'; exit 1; }\\n\";\n\n// Create container work directory and copy PRD using docker cp\nsh += \"docker exec taskmaster rm -rf '\" + containerWorkDir + \"' || true\\n\";\nsh += \"docker exec taskmaster mkdir -p '\" + containerWorkDir + \"/docs'\\n\";\nsh += \"docker cp '\" + projectDir + \"/docs/PRD.md' 'taskmaster:\" + containerWorkDir + \"/docs/PRD.md'\\n\";\n\n// Run taskmaster commands inside container\nsh += \"docker exec -w '\" + containerWorkDir + \"' taskmaster task-master init -y || true\\n\";\n\n// Configure taskmaster to use Ollama models - write config to temp file and docker cp\nconst configJson = JSON.stringify({\n  models: {\n    main: { provider: 'ollama', modelId: 'llama3.1:8b-instruct-q4_K_M' },\n    fallback: { provider: 'ollama', modelId: 'llama3.1:8b-instruct-q4_K_M' },\n    research: { provider: 'ollama', modelId: 'llama3.1:8b-instruct-q4_K_M' }\n  },\n  global: { ollamaBaseUrl: 'http://ollama:11434/api' }\n}, null, 2);\nconst configTmpFile = '/tmp/taskmaster-config-' + jobId + '.json';\nsh += \"cat > '\" + configTmpFile + \"' << 'EOFCONFIG'\\n\" + configJson + \"\\nEOFCONFIG\\n\";\nsh += \"docker cp '\" + configTmpFile + \"' 'taskmaster:\" + containerWorkDir + \"/.taskmaster/config.json'\\n\";\nsh += \"rm -f '\" + configTmpFile + \"'\\n\";\n\nsh += \"docker exec -w '\" + containerWorkDir + \"' taskmaster task-master parse-prd --input='docs/PRD.md' --num-tasks=15\\n\";\nsh += \"for i in 1 2 3 4 5; do docker exec -w '\" + containerWorkDir + \"' taskmaster task-master analyze-complexity || true; docker exec -w '\" + containerWorkDir + \"' taskmaster task-master expand --all --force || break; done\\n\";\nsh += \"docker exec -w '\" + containerWorkDir + \"' taskmaster task-master analyze-complexity || true\\n\";\n\n// Copy tasks.json back from container\nsh += \"mkdir -p '\" + projectDir + \"/backlog'\\n\";\nsh += \"docker cp 'taskmaster:\" + containerWorkDir + \"/.taskmaster/tasks/tasks.json' '\" + projectDir + \"/backlog/tasks.json' || { echo 'WARNING: tasks.json not found'; }\\n\";\n\n// Commit and push\nsh += \"cd '\" + repoDir + \"'\\n\";\nsh += \"git add '\" + projectSlug + \"-docs/backlog/' || true\\n\";\nsh += \"git commit -m 'Add taskmaster tasks for \" + projectSlug + \" (job \" + jobId + \")' || true\\n\";\nsh += \"git push origin '\" + projectSlug + \"'\\n\";\n\n// Cleanup container work directory\nsh += \"docker exec taskmaster rm -rf '\" + containerWorkDir + \"' || true\\n\";\n\nreturn [{ json: { ...ctx, taskmasterScript: sh } }];"
+      },
+      "id": "build-taskmaster-script",
+      "name": "Build Taskmaster Script",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "privateKey",
+        "command": "={{ $json.taskmasterScript }}"
+      },
+      "id": "ssh-taskmaster",
+      "name": "SSH: Run Taskmaster",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        2640,
+        304
+      ],
+      "credentials": {
+        "sshPrivateKey": {
+          "id": "SxKNiry9nQQ96pnU",
+          "name": "SSH Private Key account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE architecture.jobs SET status = 'completed', completed_at = now() WHERE id = $1 RETURNING id, status;",
+        "options": {
+          "queryReplacement": "={{ [ $('Pass Context').first().json.jobId ] }}"
+        }
+      },
+      "id": "update-job",
+      "name": "Update Job Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2880,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $('Pass Context').first().json;\nreturn [{ json: { success: true, jobId: ctx.jobId, projectSlug: ctx.projectSlug, stage: 'software-delivery', taskPath: ctx.projectSlug + '-docs/backlog/tasks.json' } }];"
+      },
+      "id": "return-result",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "combinator": "and"
+                },
+                "conditions": [
+                  {
+                    "operator": {
+                      "name": "equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mode }}",
+                    "rightValue": "chat"
+                  }
+                ]
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "combinator": "and"
+                },
+                "conditions": [
+                  {
+                    "operator": {
+                      "name": "equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mode }}",
+                    "rightValue": "execute"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "mode-router",
+      "name": "Mode Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        160,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Software Delivery Chat Handler\nconst agentConfig = {\n  name: 'Software Delivery Engineer',\n  shortName: 'software-delivery',\n  collectionName: 'agent-knowledge-software-delivery',\n  folder: 'agent-docs/software-delivery',\n  helpFile: '/data/shared/knowledge/agent-docs/software-delivery/help.md'\n};\n\nconst input = $input.all()[0].json;\nconst intent = input.intent || 'help';\nconst query = input.query || '';\n\nlet response = {\n  agent: agentConfig.name,\n  intent: intent,\n  success: true\n};\n\nswitch (intent) {\n  case 'help':\n    response.content = `# ${agentConfig.name} Agent Help\\n\\n## Available Commands\\n\\n| Intent | Description |\\n|--------|-------------|\\n| help | Show this help message |\\n| status | Check knowledge base status |\\n| list | List documents in knowledge base |\\n| upload | Upload a document to knowledge base |\\n| reload | Reload all documents in knowledge base |\\n| query | Query the knowledge base |\\n\\n## Knowledge Base\\n- Collection: ${agentConfig.collectionName}\\n- Folder: ${agentConfig.folder}\\n\\n## Delivery Domains\\n- CI/CD Pipeline Design\\n- Deployment Automation\\n- Infrastructure as Code\\n- Task Master Integration\\n`;\n    response.message = `${agentConfig.name} Help`;\n    break;\n    \n  case 'status':\n    response.action = 'query_qdrant_status';\n    response.collection = agentConfig.collectionName;\n    break;\n    \n  case 'list':\n    response.action = 'query_qdrant_list';\n    response.collection = agentConfig.collectionName;\n    break;\n    \n  case 'upload':\n    response.action = 'call_knowledge_loader';\n    response.loaderPayload = {\n      action: 'upload',\n      collection: agentConfig.collectionName,\n      folder: agentConfig.folder,\n      content: input.content || '',\n      filename: input.filename || ''\n    };\n    break;\n    \n  case 'reload':\n    response.action = 'call_knowledge_loader';\n    response.loaderPayload = {\n      action: 'reload',\n      collection: agentConfig.collectionName,\n      folder: agentConfig.folder\n    };\n    break;\n    \n  case 'query':\n    response.action = 'rag_query';\n    response.collection = agentConfig.collectionName;\n    response.query = query;\n    break;\n    \n  default:\n    response.success = false;\n    response.errorMessage = `Unknown intent: ${intent}. Valid intents: help, status, list, upload, reload, query`;\n}\n\nreturn [{ json: response }];"
+      },
+      "id": "chat-handler",
+      "name": "Chat Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        80
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook: Software Delivery": {
+      "main": [
+        [
+          {
+            "node": "Parse Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Input": {
+      "main": [
+        [
+          {
+            "node": "If: System Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: System Prompt": {
+      "main": [
+        [
+          {
+            "node": "System Prompt Handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Classify Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "System Prompt Handler": {
+      "main": [
+        [
+          {
+            "node": "Respond: System Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Mode": {
+      "main": [
+        [
+          {
+            "node": "Process Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Classification": {
+      "main": [
+        [
+          {
+            "node": "If: Mode Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Mode Check": {
+      "main": [
+        [
+          {
+            "node": "Chat Handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Initialize Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Handler": {
+      "main": [
+        [
+          {
+            "node": "If: Needs DB Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Needs DB Query": {
+      "main": [
+        [
+          {
+            "node": "Execute Chat Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Chat Query": {
+      "main": [
+        [
+          {
+            "node": "Format Chat Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Chat Results": {
+      "main": [
+        [
+          {
+            "node": "Respond: Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Parameters": {
+      "main": [
+        [
+          {
+            "node": "Load Project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Project": {
+      "main": [
+        [
+          {
+            "node": "Get Latest PM Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Latest PM Job": {
+      "main": [
+        [
+          {
+            "node": "Create SD Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create SD Job": {
+      "main": [
+        [
+          {
+            "node": "Pass Context",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond: Execute Ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pass Context": {
+      "main": [
+        [
+          {
+            "node": "Load PRD/BRD Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load PRD/BRD Artifacts": {
+      "main": [
+        [
+          {
+            "node": "Collect Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Artifacts": {
+      "main": [
+        [
+          {
+            "node": "Build Git Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Git Script": {
+      "main": [
+        [
+          {
+            "node": "SSH: Write PRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH: Write PRD": {
+      "main": [
+        [
+          {
+            "node": "Build Taskmaster Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Taskmaster Script": {
+      "main": [
+        [
+          {
+            "node": "SSH: Run Taskmaster",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH: Run Taskmaster": {
+      "main": [
+        [
+          {
+            "node": "Update Job Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Job Status": {
+      "main": [
+        [
+          {
+            "node": "Return Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Mode Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mode Router": {
+      "main": [
+        [
+          {
+            "node": "Chat Handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Initialize Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "4e18f94f-85aa-4a4a-9774-c38486e8af99",
+  "activeVersionId": "4e18f94f-85aa-4a4a-9774-c38486e8af99",
+  "versionCounter": 40,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-21T05:22:06.467Z",
+      "createdAt": "2026-01-21T05:22:06.467Z",
+      "role": "workflow:owner",
+      "workflowId": "FlqPvbx2ICZvJiQr",
+      "projectId": "nxaQcUOSSZTVQUEF",
+      "project": {
+        "updatedAt": "2025-12-23T15:34:38.321Z",
+        "createdAt": "2025-12-22T10:30:48.794Z",
+        "id": "nxaQcUOSSZTVQUEF",
+        "name": "socrates hlapolosa <socrates.hlapolosa@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-12-22T10:30:48.794Z",
+            "createdAt": "2025-12-22T10:30:48.794Z",
+            "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
+            "projectId": "nxaQcUOSSZTVQUEF",
+            "user": {
+              "updatedAt": "2026-01-26T05:03:20.891Z",
+              "createdAt": "2025-12-22T10:30:48.161Z",
+              "id": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
+              "email": "socrates.hlapolosa@gmail.com",
+              "firstName": "socrates",
+              "lastName": "hlapolosa",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "dAk1DVxtHm85b9GC",
+                "userActivatedAt": 1766573710016
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-01-26",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-01-23T18:47:58.094Z",
+    "createdAt": "2026-01-23T18:47:49.095Z",
+    "versionId": "4e18f94f-85aa-4a4a-9774-c38486e8af99",
+    "workflowId": "FlqPvbx2ICZvJiQr",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "pipeline/software-delivery",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "webhook-entry",
+        "name": "Webhook: Software Delivery",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -608,
+          304
+        ],
+        "webhookId": "9749aae1-fa8b-48fe-a72f-d5620f38f38a"
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst chatInput = body.chatInput || body.message || body.requirements || '';\nconst isSystemPrompt = chatInput.includes('[Auto-Tag]') || chatInput.includes('[Follow-Up Questions]') || chatInput.includes('[Title Generation]');\nlet systemPromptType = null;\nif (chatInput.includes('[Auto-Tag]')) systemPromptType = 'auto-tag';\nelse if (chatInput.includes('[Follow-Up Questions]')) systemPromptType = 'follow-up';\nelse if (chatInput.includes('[Title Generation]')) systemPromptType = 'title-gen';\nreturn [{ json: { rawInput: chatInput, projectSlug: body.projectSlug || body.project_slug || null, projectName: body.projectName || body.project_name || null, requirements: body.requirements || null, sessionId: body.sessionId || body.session_id || null, isSystemPrompt, systemPromptType } }];"
+        },
+        "id": "parse-input",
+        "name": "Parse Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -448,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "sp-check",
+                "leftValue": "={{ $json.isSystemPrompt }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-system-prompt",
+        "name": "If: System Prompt",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -288,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const type = $input.first().json.systemPromptType;\nlet response = {};\nif (type === 'auto-tag') { response = { tags: ['software-delivery', 'architecture'] }; }\nelse if (type === 'follow-up') { response = { questions: ['What specific aspects would you like to explore?'] }; }\nelse if (type === 'title-gen') { response = { title: 'Delivery Manager Assistant' }; }\nreturn [{ json: response }];"
+        },
+        "id": "system-prompt-handler",
+        "name": "System Prompt Handler",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -96,
+          144
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {}
+        },
+        "id": "respond-system-prompt",
+        "name": "Respond: System Prompt",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          112,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://ollama:11434/api/chat",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { model: 'llama3.1:8b-instruct-q4_K_M', messages: [{ role: 'system', content: 'Classify intent. Chat: help, status, list, artifacts, jobs. Execute: build, create, generate. Output: {mode, intent}' }, { role: 'user', content: $json.rawInput }], stream: false, format: { type: 'object', required: ['mode', 'intent'], properties: { mode: { type: 'string', enum: ['chat', 'execute'] }, intent: { type: 'string' } } }, options: { temperature: 0.1 } } }}",
+          "options": {}
+        },
+        "id": "classify-mode",
+        "name": "Classify Mode",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -128,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst parsed = $('Parse Input').first().json;\nlet classification = { mode: 'chat', intent: 'help' };\ntry { const content = response.message?.content; if (content) classification = JSON.parse(content); } catch (e) {}\nreturn [{ json: { ...parsed, mode: classification.mode || 'chat', intent: classification.intent || 'help', extractedProjectSlug: classification.projectSlug || null } }];"
+        },
+        "id": "process-classification",
+        "name": "Process Classification",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          32,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "mode-check",
+                "leftValue": "={{ $json.mode }}",
+                "rightValue": "chat",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-mode-check",
+        "name": "If: Mode Check",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          192,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\nconst intent = input.intent || 'help';\nconst projectSlug = input.projectSlug || input.extractedProjectSlug;\nlet response = { agent: 'Delivery Manager', stage: 'software-delivery', intent: intent, action: 'direct_response', query: null };\nswitch(intent) {\n  case 'help':\n    response.content = '# Software Delivery Pipeline\\\\n\\\\n## Commands\\\\n| Command | Description |\\\\n|---------|-------------|\\\\n| help | Show help |\\\\n| status | Check job status |\\\\n| artifacts | List artifacts |\\\\n| jobs | List recent jobs |\\\\n| list | List projects |';\n    response.message = 'Help';\n    break;\n  case 'status': case 'jobs':\n    response.action = 'query_db';\n    response.query = projectSlug ? `SELECT j.id, p.slug as project, j.stage, j.status, j.created_at, j.completed_at FROM architecture.jobs j JOIN architecture.projects p ON j.project_id = p.id WHERE j.stage = 'software-delivery' AND p.slug = '${projectSlug}' ORDER BY j.created_at DESC LIMIT 10` : `SELECT j.id, p.slug as project, j.stage, j.status, j.created_at, j.completed_at FROM architecture.jobs j JOIN architecture.projects p ON j.project_id = p.id WHERE j.stage = 'software-delivery' ORDER BY j.created_at DESC LIMIT 10`;\n    response.queryType = 'jobs';\n    break;\n  case 'artifacts':\n    response.action = 'query_db';\n    response.query = `SELECT a.id, p.slug as project, a.artifact_type, a.version, a.created_at FROM architecture.artifacts a JOIN architecture.projects p ON a.project_id = p.id WHERE a.artifact_type LIKE 'delivery_%' ORDER BY a.created_at DESC LIMIT 10`;\n    response.queryType = 'artifacts';\n    break;\n  case 'list':\n    response.action = 'query_db';\n    response.query = 'SELECT p.id, p.slug, p.name, p.created_at FROM architecture.projects p ORDER BY p.created_at DESC LIMIT 20';\n    response.queryType = 'projects';\n    break;\n  default:\n    response.content = 'Unknown command. Try help.';\n    response.message = 'Unknown';\n}\nreturn [{ json: response }];"
+        },
+        "id": "chat-handler",
+        "name": "Chat Handler",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          352,
+          144
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "needs-query",
+                "leftValue": "={{ $json.action }}",
+                "rightValue": "query_db",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-needs-db-query",
+        "name": "If: Needs DB Query",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          512,
+          144
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.query }}",
+          "options": {}
+        },
+        "id": "execute-chat-query",
+        "name": "Execute Chat Query",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          672,
+          64
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "avpnXKKamBTlgThS",
+            "name": "Supabase Postgres"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const chatContext = $('Chat Handler').first().json;\nconst queryResults = $input.all().map(i => i.json);\nlet content = '';\nconst queryType = chatContext.queryType;\nif (queryResults.length === 0) { content = 'No results found.'; }\nelse {\n  switch(queryType) {\n    case 'jobs':\n      content = '# Jobs\\\\n\\\\n| ID | Project | Stage | Status | Created | Completed |\\\\n|----|---------|-------|--------|---------|-----------|\\\\n';\n      for (const row of queryResults) { content += `| ${row.id?.substring(0,8)}... | ${row.project} | ${row.stage} | ${row.status} | ${new Date(row.created_at).toLocaleDateString()} | ${row.completed_at ? new Date(row.completed_at).toLocaleDateString() : '-'} |\\\\n`; }\n      break;\n    case 'artifacts':\n      content = '# Artifacts\\\\n\\\\n| ID | Project | Type | Version | Created |\\\\n|----|---------|------|---------|---------|\\\\n';\n      for (const row of queryResults) { content += `| ${row.id?.substring(0,8)}... | ${row.project} | ${row.artifact_type} | ${row.version} | ${new Date(row.created_at).toLocaleDateString()} |\\\\n`; }\n      break;\n    case 'projects':\n      content = '# Projects\\\\n\\\\n| Slug | Name | Created |\\\\n|------|------|---------|\\\\n';\n      for (const row of queryResults) { content += `| ${row.slug} | ${row.name} | ${new Date(row.created_at).toLocaleDateString()} |\\\\n`; }\n      break;\n    default: content = JSON.stringify(queryResults, null, 2);\n  }\n}\nreturn [{ json: { agent: 'Delivery Manager', stage: 'software-delivery', intent: chatContext.intent, success: true, content: content, message: `Found ${queryResults.length} result(s)`, rowCount: queryResults.length } }];"
+        },
+        "id": "format-chat-results",
+        "name": "Format Chat Results",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          832,
+          64
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {}
+        },
+        "id": "respond-chat",
+        "name": "Respond: Chat",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          992,
+          144
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ { status: 'accepted', agent: 'Delivery Manager', stage: 'software-delivery', jobId: $('Create SD Job')?.first()?.json?.id || 'pending', message: 'Pipeline started', projectSlug: $json.projectSlug } }}",
+          "options": {}
+        },
+        "id": "respond-execute-ack",
+        "name": "Respond: Execute Ack",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          352,
+          464
+        ]
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "id": "trigger",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          0,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "name": "projectSlug",
+                "value": "={{ $json.projectSlug }}",
+                "type": "string"
+              },
+              {
+                "name": "inputJobId",
+                "value": "={{ $json.inputJobId || null }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "init-params",
+        "name": "Initialize Parameters",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          400,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT p.id, p.slug, p.name FROM architecture.projects p WHERE p.slug = $1;",
+          "options": {
+            "queryReplacement": "={{ [ $json.projectSlug ] }}"
+          }
+        },
+        "id": "get-project",
+        "name": "Load Project",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          480,
+          304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT id, stage, status, created_at FROM architecture.jobs WHERE project_id = $1 AND stage = 'project-management' AND status = 'completed' ORDER BY created_at DESC LIMIT 1;",
+          "options": {
+            "queryReplacement": "={{ [ $json.id ] }}"
+          }
+        },
+        "id": "get-pm-job",
+        "name": "Get Latest PM Job",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          720,
+          304
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO architecture.jobs (project_id, stage, input_job_id, status, meta) VALUES ($1, 'software-delivery', $2, 'running', '{}'::jsonb) RETURNING id, stage, status;",
+          "options": {
+            "queryReplacement": "={{ [ $('Load Project').first().json.id, $json.id || null ] }}"
+          }
+        },
+        "id": "create-job",
+        "name": "Create SD Job",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          960,
+          304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const init = $('Initialize Parameters').first().json;\nconst project = $('Load Project').first().json;\nconst pmJob = $('Get Latest PM Job').first().json;\nconst job = $json;\nreturn [{ json: { projectId: project.id, projectSlug: project.slug, projectName: project.name || project.slug, jobId: job.id, inputJobId: pmJob?.id || null } }];"
+        },
+        "id": "pass-context",
+        "name": "Pass Context",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT a.type, a.content, a.meta FROM architecture.artifacts a WHERE a.project_id = $1 AND a.type IN ('prd_md', 'brd') ORDER BY a.type, a.version DESC;",
+          "options": {
+            "queryReplacement": "={{ [ $json.projectId ] }}"
+          }
+        },
+        "id": "load-artifacts",
+        "name": "Load PRD/BRD Artifacts",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1440,
+          304
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const ctx = $('Pass Context').first().json;\nconst rows = $input.all().map(i => i.json);\nconst byType = {};\nfor (const r of rows) byType[r.type] = r.content;\n\nconst prdMd = byType.prd_md?.markdown || '';\nconst brd = byType.brd || {};\n\nif (!prdMd) throw new Error('Missing PRD artifact for project ' + ctx.projectSlug);\n\nreturn [{ json: { ...ctx, prdMarkdown: prdMd, brd } }];"
+        },
+        "id": "collect-artifacts",
+        "name": "Collect Artifacts",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1680,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const ctx = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\nlet sh = 'set -e\\n';\nsh += 'mkdir -p /opt/workspace\\n';\nsh += \"if [ ! -d '\" + repoDir + \"/.git' ]; then git clone '\" + remote + \"' '\" + repoDir + \"'; fi\\n\";\nsh += \"cd '\" + repoDir + \"'\\n\";\nsh += \"git remote set-url origin '\" + remote + \"'\\n\";\nsh += 'git fetch origin\\n';\nsh += \"git checkout -B '\" + projectSlug + \"' 'origin/\" + projectSlug + \"' 2>/dev/null || git checkout -B '\" + projectSlug + \"'\\n\";\nsh += \"mkdir -p '\" + projectDir + \"/docs'\\n\";\n\n// Write PRD.md if needed\nsh += \"cat > '\" + projectDir + \"/docs/PRD.md' <<'EOF_\" + jobId + \"'\\n\";\nsh += ctx.prdMarkdown + \"\\nEOF_\" + jobId + \"\\n\";\n\nsh += \"git add '\" + projectSlug + \"-docs/docs/PRD.md'\\n\";\nsh += \"git commit -m 'Update PRD for \" + projectSlug + \" (job \" + jobId + \")' || true\\n\";\nsh += \"git push -u origin '\" + projectSlug + \"'\\n\";\n\nreturn [{ json: { ...ctx, gitScript: sh } }];"
+        },
+        "id": "build-git-script",
+        "name": "Build Git Script",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1920,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "authentication": "privateKey",
+          "command": "={{ $json.gitScript }}"
+        },
+        "id": "ssh-git",
+        "name": "SSH: Write PRD",
+        "type": "n8n-nodes-base.ssh",
+        "typeVersion": 1,
+        "position": [
+          2160,
+          304
+        ],
+        "credentials": {
+          "sshPrivateKey": {
+            "id": "SxKNiry9nQQ96pnU",
+            "name": "SSH Private Key account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const ctx = $('Pass Context').first().json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst containerWorkDir = '/tmp/taskmaster-work/' + projectSlug;\n\nlet sh = 'set -e\\n';\n\n// Clone and checkout the repo\nsh += \"if [ ! -d '\" + repoDir + \"/.git' ]; then git clone '\" + remote + \"' '\" + repoDir + \"'; fi\\n\";\nsh += \"cd '\" + repoDir + \"'\\n\";\nsh += \"git remote set-url origin '\" + remote + \"'\\n\";\nsh += 'git fetch origin --prune\\n';\nsh += \"git checkout -B '\" + projectSlug + \"' 'origin/\" + projectSlug + \"' 2>/dev/null || git checkout -B '\" + projectSlug + \"'\\n\";\nsh += \"git pull origin '\" + projectSlug + \"' || true\\n\";\n\n// Verify PRD exists\nsh += \"test -f '\" + projectDir + \"/docs/PRD.md' || { echo 'ERROR: PRD.md not found'; exit 1; }\\n\";\n\n// Create container work directory and copy PRD using docker cp\nsh += \"docker exec taskmaster rm -rf '\" + containerWorkDir + \"' || true\\n\";\nsh += \"docker exec taskmaster mkdir -p '\" + containerWorkDir + \"/docs'\\n\";\nsh += \"docker cp '\" + projectDir + \"/docs/PRD.md' 'taskmaster:\" + containerWorkDir + \"/docs/PRD.md'\\n\";\n\n// Run taskmaster commands inside container\nsh += \"docker exec -w '\" + containerWorkDir + \"' taskmaster task-master init -y || true\\n\";\n\n// Configure taskmaster to use Ollama models - write config to temp file and docker cp\nconst configJson = JSON.stringify({\n  models: {\n    main: { provider: 'ollama', modelId: 'llama3.1:8b-instruct-q4_K_M' },\n    fallback: { provider: 'ollama', modelId: 'llama3.1:8b-instruct-q4_K_M' },\n    research: { provider: 'ollama', modelId: 'llama3.1:8b-instruct-q4_K_M' }\n  },\n  global: { ollamaBaseUrl: 'http://ollama:11434/api' }\n}, null, 2);\nconst configTmpFile = '/tmp/taskmaster-config-' + jobId + '.json';\nsh += \"cat > '\" + configTmpFile + \"' << 'EOFCONFIG'\\n\" + configJson + \"\\nEOFCONFIG\\n\";\nsh += \"docker cp '\" + configTmpFile + \"' 'taskmaster:\" + containerWorkDir + \"/.taskmaster/config.json'\\n\";\nsh += \"rm -f '\" + configTmpFile + \"'\\n\";\n\nsh += \"docker exec -w '\" + containerWorkDir + \"' taskmaster task-master parse-prd --input='docs/PRD.md' --num-tasks=15\\n\";\nsh += \"for i in 1 2 3 4 5; do docker exec -w '\" + containerWorkDir + \"' taskmaster task-master analyze-complexity || true; docker exec -w '\" + containerWorkDir + \"' taskmaster task-master expand --all --force || break; done\\n\";\nsh += \"docker exec -w '\" + containerWorkDir + \"' taskmaster task-master analyze-complexity || true\\n\";\n\n// Copy tasks.json back from container\nsh += \"mkdir -p '\" + projectDir + \"/backlog'\\n\";\nsh += \"docker cp 'taskmaster:\" + containerWorkDir + \"/.taskmaster/tasks/tasks.json' '\" + projectDir + \"/backlog/tasks.json' || { echo 'WARNING: tasks.json not found'; }\\n\";\n\n// Commit and push\nsh += \"cd '\" + repoDir + \"'\\n\";\nsh += \"git add '\" + projectSlug + \"-docs/backlog/' || true\\n\";\nsh += \"git commit -m 'Add taskmaster tasks for \" + projectSlug + \" (job \" + jobId + \")' || true\\n\";\nsh += \"git push origin '\" + projectSlug + \"'\\n\";\n\n// Cleanup container work directory\nsh += \"docker exec taskmaster rm -rf '\" + containerWorkDir + \"' || true\\n\";\n\nreturn [{ json: { ...ctx, taskmasterScript: sh } }];"
+        },
+        "id": "build-taskmaster-script",
+        "name": "Build Taskmaster Script",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2400,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "authentication": "privateKey",
+          "command": "={{ $json.taskmasterScript }}"
+        },
+        "id": "ssh-taskmaster",
+        "name": "SSH: Run Taskmaster",
+        "type": "n8n-nodes-base.ssh",
+        "typeVersion": 1,
+        "position": [
+          2640,
+          304
+        ],
+        "credentials": {
+          "sshPrivateKey": {
+            "id": "SxKNiry9nQQ96pnU",
+            "name": "SSH Private Key account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "UPDATE architecture.jobs SET status = 'completed', completed_at = now() WHERE id = $1 RETURNING id, status;",
+          "options": {
+            "queryReplacement": "={{ [ $('Pass Context').first().json.jobId ] }}"
+          }
+        },
+        "id": "update-job",
+        "name": "Update Job Status",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2880,
+          304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const ctx = $('Pass Context').first().json;\nreturn [{ json: { success: true, jobId: ctx.jobId, projectSlug: ctx.projectSlug, stage: 'software-delivery', taskPath: ctx.projectSlug + '-docs/backlog/tasks.json' } }];"
+        },
+        "id": "return-result",
+        "name": "Return Result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3120,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "version": 2,
+                    "combinator": "and"
+                  },
+                  "conditions": [
+                    {
+                      "operator": {
+                        "name": "equals",
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "leftValue": "={{ $json.mode }}",
+                      "rightValue": "chat"
+                    }
+                  ]
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "version": 2,
+                    "combinator": "and"
+                  },
+                  "conditions": [
+                    {
+                      "operator": {
+                        "name": "equals",
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "leftValue": "={{ $json.mode }}",
+                      "rightValue": "execute"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "extra"
+          }
+        },
+        "id": "mode-router",
+        "name": "Mode Router",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [
+          160,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Software Delivery Chat Handler\nconst agentConfig = {\n  name: 'Software Delivery Engineer',\n  shortName: 'software-delivery',\n  collectionName: 'agent-knowledge-software-delivery',\n  folder: 'agent-docs/software-delivery',\n  helpFile: '/data/shared/knowledge/agent-docs/software-delivery/help.md'\n};\n\nconst input = $input.all()[0].json;\nconst intent = input.intent || 'help';\nconst query = input.query || '';\n\nlet response = {\n  agent: agentConfig.name,\n  intent: intent,\n  success: true\n};\n\nswitch (intent) {\n  case 'help':\n    response.content = `# ${agentConfig.name} Agent Help\\n\\n## Available Commands\\n\\n| Intent | Description |\\n|--------|-------------|\\n| help | Show this help message |\\n| status | Check knowledge base status |\\n| list | List documents in knowledge base |\\n| upload | Upload a document to knowledge base |\\n| reload | Reload all documents in knowledge base |\\n| query | Query the knowledge base |\\n\\n## Knowledge Base\\n- Collection: ${agentConfig.collectionName}\\n- Folder: ${agentConfig.folder}\\n\\n## Delivery Domains\\n- CI/CD Pipeline Design\\n- Deployment Automation\\n- Infrastructure as Code\\n- Task Master Integration\\n`;\n    response.message = `${agentConfig.name} Help`;\n    break;\n    \n  case 'status':\n    response.action = 'query_qdrant_status';\n    response.collection = agentConfig.collectionName;\n    break;\n    \n  case 'list':\n    response.action = 'query_qdrant_list';\n    response.collection = agentConfig.collectionName;\n    break;\n    \n  case 'upload':\n    response.action = 'call_knowledge_loader';\n    response.loaderPayload = {\n      action: 'upload',\n      collection: agentConfig.collectionName,\n      folder: agentConfig.folder,\n      content: input.content || '',\n      filename: input.filename || ''\n    };\n    break;\n    \n  case 'reload':\n    response.action = 'call_knowledge_loader';\n    response.loaderPayload = {\n      action: 'reload',\n      collection: agentConfig.collectionName,\n      folder: agentConfig.folder\n    };\n    break;\n    \n  case 'query':\n    response.action = 'rag_query';\n    response.collection = agentConfig.collectionName;\n    response.query = query;\n    break;\n    \n  default:\n    response.success = false;\n    response.errorMessage = `Unknown intent: ${intent}. Valid intents: help, status, list, upload, reload, query`;\n}\n\nreturn [{ json: response }];"
+        },
+        "id": "chat-handler",
+        "name": "Chat Handler",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          400,
+          80
+        ]
+      }
+    ],
+    "connections": {
+      "Webhook: Software Delivery": {
+        "main": [
+          [
+            {
+              "node": "Parse Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Input": {
+        "main": [
+          [
+            {
+              "node": "If: System Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: System Prompt": {
+        "main": [
+          [
+            {
+              "node": "System Prompt Handler",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Classify Mode",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "System Prompt Handler": {
+        "main": [
+          [
+            {
+              "node": "Respond: System Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Classify Mode": {
+        "main": [
+          [
+            {
+              "node": "Process Classification",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Process Classification": {
+        "main": [
+          [
+            {
+              "node": "If: Mode Check",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: Mode Check": {
+        "main": [
+          [
+            {
+              "node": "Chat Handler",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Initialize Parameters",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Chat Handler": {
+        "main": [
+          [
+            {
+              "node": "If: Needs DB Query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: Needs DB Query": {
+        "main": [
+          [
+            {
+              "node": "Execute Chat Query",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond: Chat",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Chat Query": {
+        "main": [
+          [
+            {
+              "node": "Format Chat Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Chat Results": {
+        "main": [
+          [
+            {
+              "node": "Respond: Chat",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Initialize Parameters": {
+        "main": [
+          [
+            {
+              "node": "Load Project",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Project": {
+        "main": [
+          [
+            {
+              "node": "Get Latest PM Job",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Latest PM Job": {
+        "main": [
+          [
+            {
+              "node": "Create SD Job",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create SD Job": {
+        "main": [
+          [
+            {
+              "node": "Pass Context",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Respond: Execute Ack",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Pass Context": {
+        "main": [
+          [
+            {
+              "node": "Load PRD/BRD Artifacts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load PRD/BRD Artifacts": {
+        "main": [
+          [
+            {
+              "node": "Collect Artifacts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Collect Artifacts": {
+        "main": [
+          [
+            {
+              "node": "Build Git Script",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Git Script": {
+        "main": [
+          [
+            {
+              "node": "SSH: Write PRD",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SSH: Write PRD": {
+        "main": [
+          [
+            {
+              "node": "Build Taskmaster Script",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Taskmaster Script": {
+        "main": [
+          [
+            {
+              "node": "SSH: Run Taskmaster",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SSH: Run Taskmaster": {
+        "main": [
+          [
+            {
+              "node": "Update Job Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update Job Status": {
+        "main": [
+          [
+            {
+              "node": "Return Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Mode Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mode Router": {
+        "main": [
+          [
+            {
+              "node": "Chat Handler",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Initialize Parameters",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "socrates hlapolosa",
+    "name": "Version 4e18f94f",
+    "description": "",
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-01-23T18:47:58.090Z",
+        "id": 608,
+        "workflowId": "FlqPvbx2ICZvJiQr",
+        "versionId": "4e18f94f-85aa-4a4a-9774-c38486e8af99",
+        "event": "activated",
+        "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c"
+      }
+    ]
+  }
+}

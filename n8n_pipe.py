@@ -2,10 +2,13 @@
 title: n8n Pipeline Pipe
 author: Cole Medin (original), Enhanced for Architecture Pipeline
 author_url: https://www.youtube.com/@ColeMedin
-version: 0.3.0
+version: 0.4.0
 
 Simple pipe that sends chat messages to an n8n webhook endpoint.
-Create multiple instances with different webhook URLs for different workflows.
+Supports self-contained pipeline workflows with:
+- Chat mode (help, status, artifacts queries)
+- Execute mode (async BRD/artifact generation)
+- System prompt mode (auto-tag, follow-up, title generation)
 """
 
 from typing import Optional, Callable, Awaitable
@@ -40,8 +43,8 @@ class Pipe:
             description="Field name for the user message in the request payload"
         )
         response_field: str = Field(
-            default="output",
-            description="Field name to extract from the response (use empty for full JSON)"
+            default="",
+            description="Field name to extract from the response (leave empty for auto-detection)"
         )
         emit_interval: float = Field(
             default=2.0,
@@ -88,27 +91,65 @@ class Pipe:
             self.last_emit_time = current_time
 
     def format_response(self, response_data: dict) -> str:
-        """Format the webhook response into a user-friendly message."""
+        """Format the webhook response into a user-friendly message.
+        
+        Handles multiple response formats from self-contained pipeline workflows:
+        1. Chat mode: {"content": "...", "agent": "...", "stage": "...", ...}
+        2. Execute ack: {"status": "accepted", "jobId": "...", "projectSlug": "...", ...}
+        3. System prompts: {"tags": [...]}, {"follow_ups": [...]}, {"title": "..."}
+        4. Legacy formats for backward compatibility
+        """
+        import json
 
-        # If response has 'output' field, use it directly (chat webhook format)
+        # 1. Chat mode response - has 'content' field (highest priority)
+        if "content" in response_data:
+            return response_data["content"]
+
+        # 2. System prompt responses (auto-tag, follow-up, title generation)
+        if "tags" in response_data:
+            # Return as JSON for Open WebUI to parse
+            return json.dumps(response_data)
+        
+        if "follow_ups" in response_data:
+            # Return as JSON for Open WebUI to parse
+            return json.dumps(response_data)
+        
+        if "title" in response_data and len(response_data) <= 2:
+            # Title generation response
+            return json.dumps(response_data)
+
+        # 3. Legacy 'output' field format
         if "output" in response_data:
             return response_data["output"]
 
-        # Handle standard Ack response format
-        if response_data.get("status") == "accepted":
+        # 4. Execute mode ack response - async job started
+        if response_data.get("status") in ["accepted", "running"]:
             project_slug = response_data.get("projectSlug", "unknown")
-            job_id = response_data.get("ackJobId", response_data.get("jobId", ""))
-            workflow = response_data.get("workflow", "unknown")
+            project_name = response_data.get("projectName", project_slug)
+            stage = response_data.get("stage", "unknown")
             message = response_data.get("message", "")
+            workflow = response_data.get("workflow")
 
-            result = f"**{workflow}** workflow started for **{project_slug}**"
-            if job_id:
-                result += f"\n\nJob ID: `{job_id}`"
+            stage_names = {
+                "business-analysis": "Business Analysis",
+                "architecture": "Architecture",
+                "solution-architecture": "Solution Architecture",
+                "risk-assessment": "Risk Assessment",
+                "test-strategy": "Test Strategy",
+                "project-management": "Project Management",
+                "software-delivery": "Software Delivery",
+            }
+            stage_name = stage_names.get(stage, workflow or stage)
+
+            result = f"**{stage_name}** started for project **{project_slug}**"
+            if project_name and project_name != project_slug:
+                result += f" ({project_name})"
+            result += f"\n\nUse `projectSlug: {project_slug}` for the next pipeline stage."
             if message:
                 result += f"\n\n{message}"
             return result
 
-        # Handle Business Analysis subworkflow response format
+        # 5. Completion response - job finished successfully
         if response_data.get("success") and response_data.get("stage"):
             project_slug = response_data.get("projectSlug", "unknown")
             job_id = response_data.get("jobId", "")
@@ -133,8 +174,7 @@ class Pipe:
                 result += f"\n\nOutput: `{brd_path}`"
             return result
 
-        # Fallback: return JSON as formatted string
-        import json
+        # 6. Fallback: return JSON as formatted string
         return f"```json\n{json.dumps(response_data, indent=2)}\n```"
 
     async def pipe(

@@ -1,0 +1,387 @@
+{
+  "updatedAt": "2026-01-19T12:57:07.263Z",
+  "createdAt": "2026-01-19T02:01:27.926Z",
+  "id": "7IUOzaD9TUwXP2Qw",
+  "name": "Architecture Artifact Get v2",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "architecture-artifact-v2",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        304
+      ],
+      "webhookId": "65f76377-4410-40fd-9bb6-08cd64f69922"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH p AS (\n  SELECT id\n  FROM architecture.projects\n  WHERE slug = $1\n), a AS (\n  SELECT id, type, version, content, content_hash, meta, created_at\n  FROM architecture.artifacts\n  WHERE (\n      ($1 IS NOT NULL AND project_id = (SELECT id FROM p))\n      OR ($4 IS NOT NULL AND meta->>'jobId' = $4)\n    )\n    AND type = $2\n    AND ( $3::int IS NULL OR version = $3::int )\n  ORDER BY version DESC\n  LIMIT 1\n)\nSELECT * FROM a;",
+        "options": {
+          "queryReplacement": "={{ [ $json.query.projectSlug || null, $json.query.type, ($json.query.version ? Number($json.query.version) : null), ($json.query.jobId || null) ] }}"
+        }
+      },
+      "id": "fetch",
+      "name": "Fetch Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        528,
+        304
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const q = $('Webhook').first().json.query || {};\nconst items = $input.all();\n\n// Single-artifact mode (type provided)\nif (q.type) {\n  const first = items[0] ? items[0].json : null;\n\n  let artifact = first;\n  if (artifact && typeof artifact === 'object') {\n    const keys = Object.keys(artifact);\n    if (keys.length === 1 && keys[0] === 'success') {\n      artifact = null;\n    }\n  }\n\n  const ok = !!(artifact && typeof artifact === 'object' && (artifact.id || artifact.type || artifact.version));\n  return [{ json: { ok, artifact } }];\n}\n\n// List mode (no type): return latest per artifact type\nconst artifacts = items\n  .map(i => i.json)\n  .filter(r => r && typeof r === 'object' && r.type);\n\n// Deterministic ordering for polling\nartifacts.sort((a,b) => String(a.type).localeCompare(String(b.type)));\n\nconst present = new Set(artifacts.map(a => a.type));\n\n// Completion criteria for sequential pipeline incl. security + solution + QA + PRD.\nconst requiredTypes = [\n  'brd',\n  'business_arch',\n  'application_arch',\n  'data_arch',\n  'infrastructure_arch',\n  'archimate_xml_business_application_data_infra',\n  'risk_assessment_md',\n  'solution_arch_md',\n  'test_strategy_md',\n  'test_scenarios_md',\n  'prd_md',\n];\n\nconst missingTypes = requiredTypes.filter(t => !present.has(t));\nconst complete = missingTypes.length === 0;\n\nreturn [{\n  json: {\n    ok: true,\n    artifacts,\n    count: artifacts.length,\n    complete,\n    requiredTypes,\n    missingTypes,\n  }\n}];"
+      },
+      "id": "format",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        304
+      ]
+    },
+    {
+      "id": "mode-router",
+      "name": "Mode Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        304
+      ],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.query.type ? 0 : 1 }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "list",
+      "name": "List Artifacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        528,
+        448
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH p AS (\n  SELECT id\n  FROM architecture.projects\n  WHERE slug = $1\n)\nSELECT DISTINCT ON (a.type)\n  a.id,\n  a.type,\n  a.version,\n  a.content_hash,\n  a.meta,\n  a.created_at\nFROM architecture.artifacts a\nWHERE (\n    ($1 IS NOT NULL AND a.project_id = (SELECT id FROM p))\n    OR ($2 IS NOT NULL AND a.meta->>'jobId' = $2)\n  )\nORDER BY a.type, a.version DESC;",
+        "options": {
+          "queryReplacement": "={{ [ $json.query.projectSlug || null, ($json.query.jobId || null) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3
+    }
+  ],
+  "connections": {
+    "Fetch Artifact": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Mode Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mode Router": {
+      "main": [
+        [
+          {
+            "node": "Fetch Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "List Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Artifacts": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "e6569d28-5afa-4669-a799-51604c615721",
+  "activeVersionId": "e6569d28-5afa-4669-a799-51604c615721",
+  "versionCounter": 60,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-19T02:01:27.926Z",
+      "createdAt": "2026-01-19T02:01:27.926Z",
+      "role": "workflow:owner",
+      "workflowId": "7IUOzaD9TUwXP2Qw",
+      "projectId": "nxaQcUOSSZTVQUEF",
+      "project": {
+        "updatedAt": "2025-12-23T15:34:38.321Z",
+        "createdAt": "2025-12-22T10:30:48.794Z",
+        "id": "nxaQcUOSSZTVQUEF",
+        "name": "socrates hlapolosa <socrates.hlapolosa@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-12-22T10:30:48.794Z",
+            "createdAt": "2025-12-22T10:30:48.794Z",
+            "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
+            "projectId": "nxaQcUOSSZTVQUEF",
+            "user": {
+              "updatedAt": "2026-01-26T05:03:20.891Z",
+              "createdAt": "2025-12-22T10:30:48.161Z",
+              "id": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
+              "email": "socrates.hlapolosa@gmail.com",
+              "firstName": "socrates",
+              "lastName": "hlapolosa",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "dAk1DVxtHm85b9GC",
+                "userActivatedAt": 1766573710016
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-01-26",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-01-19T12:57:07.264Z",
+    "createdAt": "2026-01-19T12:57:07.264Z",
+    "versionId": "e6569d28-5afa-4669-a799-51604c615721",
+    "workflowId": "7IUOzaD9TUwXP2Qw",
+    "nodes": [
+      {
+        "parameters": {
+          "path": "architecture-artifact-v2",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "webhook",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          240,
+          304
+        ],
+        "webhookId": "65f76377-4410-40fd-9bb6-08cd64f69922"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH p AS (\n  SELECT id\n  FROM architecture.projects\n  WHERE slug = $1\n), a AS (\n  SELECT id, type, version, content, content_hash, meta, created_at\n  FROM architecture.artifacts\n  WHERE (\n      ($1 IS NOT NULL AND project_id = (SELECT id FROM p))\n      OR ($4 IS NOT NULL AND meta->>'jobId' = $4)\n    )\n    AND type = $2\n    AND ( $3::int IS NULL OR version = $3::int )\n  ORDER BY version DESC\n  LIMIT 1\n)\nSELECT * FROM a;",
+          "options": {
+            "queryReplacement": "={{ [ $json.query.projectSlug || null, $json.query.type, ($json.query.version ? Number($json.query.version) : null), ($json.query.jobId || null) ] }}"
+          }
+        },
+        "id": "fetch",
+        "name": "Fetch Artifact",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          528,
+          304
+        ],
+        "retryOnFail": true,
+        "maxTries": 3,
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const q = $('Webhook').first().json.query || {};\nconst items = $input.all();\n\n// Single-artifact mode (type provided)\nif (q.type) {\n  const first = items[0] ? items[0].json : null;\n\n  let artifact = first;\n  if (artifact && typeof artifact === 'object') {\n    const keys = Object.keys(artifact);\n    if (keys.length === 1 && keys[0] === 'success') {\n      artifact = null;\n    }\n  }\n\n  const ok = !!(artifact && typeof artifact === 'object' && (artifact.id || artifact.type || artifact.version));\n  return [{ json: { ok, artifact } }];\n}\n\n// List mode (no type): return latest per artifact type\nconst artifacts = items\n  .map(i => i.json)\n  .filter(r => r && typeof r === 'object' && r.type);\n\n// Deterministic ordering for polling\nartifacts.sort((a,b) => String(a.type).localeCompare(String(b.type)));\n\nconst present = new Set(artifacts.map(a => a.type));\n\n// Completion criteria for sequential pipeline incl. security + solution + QA + PRD.\nconst requiredTypes = [\n  'brd',\n  'business_arch',\n  'application_arch',\n  'data_arch',\n  'infrastructure_arch',\n  'archimate_xml_business_application_data_infra',\n  'risk_assessment_md',\n  'solution_arch_md',\n  'test_strategy_md',\n  'test_scenarios_md',\n  'prd_md',\n];\n\nconst missingTypes = requiredTypes.filter(t => !present.has(t));\nconst complete = missingTypes.length === 0;\n\nreturn [{\n  json: {\n    ok: true,\n    artifacts,\n    count: artifacts.length,\n    complete,\n    requiredTypes,\n    missingTypes,\n  }\n}];"
+        },
+        "id": "format",
+        "name": "Format Response",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          768,
+          304
+        ]
+      },
+      {
+        "id": "mode-router",
+        "name": "Mode Router",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          400,
+          304
+        ],
+        "parameters": {
+          "mode": "expression",
+          "numberOutputs": 2,
+          "output": "={{ $json.query.type ? 0 : 1 }}",
+          "options": {}
+        }
+      },
+      {
+        "id": "list",
+        "name": "List Artifacts",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          528,
+          448
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH p AS (\n  SELECT id\n  FROM architecture.projects\n  WHERE slug = $1\n)\nSELECT DISTINCT ON (a.type)\n  a.id,\n  a.type,\n  a.version,\n  a.content_hash,\n  a.meta,\n  a.created_at\nFROM architecture.artifacts a\nWHERE (\n    ($1 IS NOT NULL AND a.project_id = (SELECT id FROM p))\n    OR ($2 IS NOT NULL AND a.meta->>'jobId' = $2)\n  )\nORDER BY a.type, a.version DESC;",
+          "options": {
+            "queryReplacement": "={{ [ $json.query.projectSlug || null, ($json.query.jobId || null) ] }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3
+      }
+    ],
+    "connections": {
+      "Fetch Artifact": {
+        "main": [
+          [
+            {
+              "node": "Format Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Mode Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mode Router": {
+        "main": [
+          [
+            {
+              "node": "Fetch Artifact",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "List Artifacts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "List Artifacts": {
+        "main": [
+          [
+            {
+              "node": "Format Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "socrates hlapolosa",
+    "name": null,
+    "description": null,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-01-19T12:57:07.299Z",
+        "id": 364,
+        "workflowId": "7IUOzaD9TUwXP2Qw",
+        "versionId": "e6569d28-5afa-4669-a799-51604c615721",
+        "event": "activated",
+        "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c"
+      }
+    ]
+  }
+}

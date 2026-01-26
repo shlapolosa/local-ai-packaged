@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Maps knowledge folders to Qdrant collections and agent consumers",
   "embedding_model": "nomic-embed-text",
   "collections": [
@@ -74,6 +74,69 @@
       "consumers": ["qa-architect", "testing-agent"],
       "chunk_size": 1000,
       "chunk_overlap": 200
+    },
+    {
+      "folder": "agent-docs/business-analyst",
+      "collection_name": "agent-knowledge-business-analyst",
+      "description": "Business Analyst agent capabilities, BRD patterns, requirements gathering",
+      "file_types": [".md", ".txt", ".json"],
+      "consumers": ["business-analysis-pipeline"],
+      "chunk_size": 1000,
+      "chunk_overlap": 200
+    },
+    {
+      "folder": "agent-docs/architect",
+      "collection_name": "agent-knowledge-architect",
+      "description": "Architect agent capabilities, TOGAF patterns, ArchiMate guides",
+      "file_types": [".md", ".txt", ".json"],
+      "consumers": ["architecture-pipeline"],
+      "chunk_size": 1000,
+      "chunk_overlap": 200
+    },
+    {
+      "folder": "agent-docs/solution-architect",
+      "collection_name": "agent-knowledge-solution-architect",
+      "description": "Solution Architect agent capabilities, API design, integration patterns",
+      "file_types": [".md", ".txt", ".json"],
+      "consumers": ["solution-architecture-pipeline"],
+      "chunk_size": 1000,
+      "chunk_overlap": 200
+    },
+    {
+      "folder": "agent-docs/risk-assessor",
+      "collection_name": "agent-knowledge-risk-assessor",
+      "description": "Risk Assessor agent capabilities, risk frameworks, threat modeling",
+      "file_types": [".md", ".txt", ".json"],
+      "consumers": ["risk-assessment-pipeline"],
+      "chunk_size": 1000,
+      "chunk_overlap": 200
+    },
+    {
+      "folder": "agent-docs/test-strategist",
+      "collection_name": "agent-knowledge-test-strategist",
+      "description": "Test Strategist agent capabilities, test strategies, TDD/BDD patterns",
+      "file_types": [".md", ".txt", ".json"],
+      "consumers": ["test-strategy-pipeline"],
+      "chunk_size": 1000,
+      "chunk_overlap": 200
+    },
+    {
+      "folder": "agent-docs/project-manager",
+      "collection_name": "agent-knowledge-project-manager",
+      "description": "Project Manager agent capabilities, PRD templates, Agile frameworks",
+      "file_types": [".md", ".txt", ".json"],
+      "consumers": ["project-management-pipeline"],
+      "chunk_size": 1000,
+      "chunk_overlap": 200
+    },
+    {
+      "folder": "agent-docs/software-delivery",
+      "collection_name": "agent-knowledge-software-delivery",
+      "description": "Software Delivery agent capabilities, CI/CD patterns, Taskmaster usage",
+      "file_types": [".md", ".txt", ".json"],
+      "consumers": ["software-delivery-pipeline"],
+      "chunk_size": 1000,
+      "chunk_overlap": 200
     }
   ],
   "agent_collection_mapping": {
@@ -87,5 +150,49 @@
     "qa-architect": ["testing-standards", "guardrails-principles"],
     "risk-analyst": ["compliance-requirements", "guardrails-principles"],
     "testing-agent": ["testing-standards"]
+  },
+  "pipeline_agent_mapping": {
+    "business-analysis-pipeline": {
+      "short_name": "ba",
+      "collection": "agent-knowledge-business-analyst",
+      "display_name": "Business Analyst",
+      "aliases": ["ba", "business-analyst", "business analyst", "brd"]
+    },
+    "architecture-pipeline": {
+      "short_name": "architect",
+      "collection": "agent-knowledge-architect",
+      "display_name": "Architect",
+      "aliases": ["architect", "arch", "architecture", "togaf"]
+    },
+    "solution-architecture-pipeline": {
+      "short_name": "solution",
+      "collection": "agent-knowledge-solution-architect",
+      "display_name": "Solution Architect",
+      "aliases": ["solution", "solution-architect", "sol", "api"]
+    },
+    "risk-assessment-pipeline": {
+      "short_name": "risk",
+      "collection": "agent-knowledge-risk-assessor",
+      "display_name": "Risk Assessor",
+      "aliases": ["risk", "risk-assessment", "risk assessor"]
+    },
+    "test-strategy-pipeline": {
+      "short_name": "test",
+      "collection": "agent-knowledge-test-strategist",
+      "display_name": "Test Strategist",
+      "aliases": ["test", "test-strategy", "qa", "quality"]
+    },
+    "project-management-pipeline": {
+      "short_name": "pm",
+      "collection": "agent-knowledge-project-manager",
+      "display_name": "Project Manager",
+      "aliases": ["pm", "project-manager", "prd", "planning"]
+    },
+    "software-delivery-pipeline": {
+      "short_name": "sd",
+      "collection": "agent-knowledge-software-delivery",
+      "display_name": "Software Delivery",
+      "aliases": ["sd", "software-delivery", "delivery", "tasks", "taskmaster"]
+    }
   }
 }
