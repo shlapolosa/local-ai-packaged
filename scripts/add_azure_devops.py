@@ -133,25 +133,29 @@ def create_azure_nodes(
     nodes.append(if_azure_node)
 
     # 2. Get Azure Repo Info node (HTTP Request)
+    # Use header auth with PAT from environment variable
+    # Azure DevOps Basic Auth format: Base64 encode ":PAT" (empty username)
     get_repo_node = {
         "parameters": {
             "method": "GET",
-            "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}?api-version=7.1",
-            "authentication": "genericCredentialType",
-            "genericAuthType": "httpBasicAuth",
+            "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ encodeURIComponent($env.AZURE_DEVOPS_PROJECT) }}/_apis/git/repositories/{{ encodeURIComponent($env.AZURE_DEVOPS_REPO) }}?api-version=7.1",
+            "authentication": "none",
+            "sendHeaders": True,
+            "headerParameters": {
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "value": "=Basic {{ Buffer.from(':' + $env.AZURE_DEVOPS_PAT).toString('base64') }}"
+                    }
+                ]
+            },
             "options": {}
         },
         "id": f"get-azure-repo-{generate_uuid()}",
         "name": "Get Azure Repo Info",
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
-        "position": [x_base + 240, base_position[1] + y_offset],
-        "credentials": {
-            "httpBasicAuth": {
-                "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
-                "name": "Azure DevOps PAT"
-            }
-        }
+        "position": [x_base + 240, base_position[1] + y_offset]
     }
     nodes.append(get_repo_node)
 

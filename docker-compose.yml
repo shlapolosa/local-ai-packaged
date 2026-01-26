@@ -30,6 +30,11 @@ x-n8n: &service-n8n
     - N8N_USER_MANAGEMENT_JWT_SECRET
     - WEBHOOK_URL=${N8N_HOSTNAME:+https://}${N8N_HOSTNAME:-http://localhost:5678}
     - N8N_RESTRICT_FILE_ACCESS_TO=/home/node/.n8n-files;/data/shared
+    # Azure DevOps integration
+    - AZURE_DEVOPS_ORG=${AZURE_DEVOPS_ORG:-}
+    - AZURE_DEVOPS_PROJECT=${AZURE_DEVOPS_PROJECT:-}
+    - AZURE_DEVOPS_REPO=${AZURE_DEVOPS_REPO:-}
+    - AZURE_DEVOPS_PAT=${AZURE_DEVOPS_PAT:-}
 
 x-ollama: &service-ollama
   image: ollama/ollama:latest
