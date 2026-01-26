@@ -189,7 +189,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Business Architect. Output JSON matching ArchiMate business layer schema with capabilities, actors, processes, services. No extra keys.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($json.brd).slice(0, 12000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['capabilities','actors','processes','services'], properties: { capabilities: { type: 'array' }, actors: { type: 'array' }, processes: { type: 'array' }, services: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -246,7 +246,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are an Application Architect. Output JSON with components, interfaces, dataObjects. Map to business services.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($('Collect BRD').first().json.brd).slice(0,8000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($('Validate Business Arch').first().json.businessArch).slice(0,8000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['components','interfaces','dataObjects'], properties: { components: { type: 'array' }, interfaces: { type: 'array' }, dataObjects: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -303,7 +303,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Data Architect. Output JSON with dataEntities, dataFlows, databases. Map to application dataObjects.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($('Collect BRD').first().json.brd).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($('Validate Application Arch').first().json.applicationArch).slice(0,8000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['dataEntities','dataFlows','databases'], properties: { dataEntities: { type: 'array' }, dataFlows: { type: 'array' }, databases: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -360,7 +360,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are an Infrastructure Architect. Output JSON with nodes, networks, deployments, artifacts. Map to application components.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($('Collect BRD').first().json.brd).slice(0,5000) + '\\nAPP_ARCH: ' + JSON.stringify($('Validate Application Arch').first().json.applicationArch).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($('Validate Data Arch').first().json.dataArch).slice(0,5000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['nodes','networks','deployments','artifacts'], properties: { nodes: { type: 'array' }, networks: { type: 'array' }, deployments: { type: 'array' }, artifacts: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -835,7 +835,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a classifier for an Architecture pipeline. Analyze the user input and determine the mode and intent.\\n\\nMODE RULES:\\n- mode=chat: For queries, help requests, status checks. Keywords: help, status, list, artifacts, jobs, what, how, show, get, query, ?\\n- mode=execute: For creating/building/generating architecture. Keywords: build, create, generate, make, develop, design a, implement\\n\\nIf input is a single word like \"help\", \"list\", \"jobs\", \"status\" - it is ALWAYS mode=chat.\\nIf input asks a question or requests information - it is mode=chat.\\nOnly use mode=execute when user explicitly wants to CREATE or BUILD something new.\\n\\nChat intents: help, status, artifacts, jobs, list\\nExecute intents: create, build, generate\\n\\nOutput JSON only.'\n    },\n    { role: 'user', content: $json.rawInput || $json.requirements }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    required: ['mode', 'intent'],\n    properties: {\n      mode: { type: 'string', enum: ['chat', 'execute'] },\n      intent: { type: 'string' },\n      projectSlug: { type: 'string' },\n      requirements: { type: 'string' }\n    }\n  },\n  options: { temperature: 0.1 }\n} }}",
@@ -1532,7 +1532,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Business Architect. Output JSON matching ArchiMate business layer schema with capabilities, actors, processes, services. No extra keys.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($json.brd).slice(0, 12000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['capabilities','actors','processes','services'], properties: { capabilities: { type: 'array' }, actors: { type: 'array' }, processes: { type: 'array' }, services: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -1589,7 +1589,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are an Application Architect. Output JSON with components, interfaces, dataObjects. Map to business services.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($('Collect BRD').first().json.brd).slice(0,8000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($('Validate Business Arch').first().json.businessArch).slice(0,8000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['components','interfaces','dataObjects'], properties: { components: { type: 'array' }, interfaces: { type: 'array' }, dataObjects: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -1646,7 +1646,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Data Architect. Output JSON with dataEntities, dataFlows, databases. Map to application dataObjects.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($('Collect BRD').first().json.brd).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($('Validate Application Arch').first().json.applicationArch).slice(0,8000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['dataEntities','dataFlows','databases'], properties: { dataEntities: { type: 'array' }, dataFlows: { type: 'array' }, databases: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -1703,7 +1703,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are an Infrastructure Architect. Output JSON with nodes, networks, deployments, artifacts. Map to application components.' },\n    { role: 'user', content: 'BRD: ' + JSON.stringify($('Collect BRD').first().json.brd).slice(0,5000) + '\\nAPP_ARCH: ' + JSON.stringify($('Validate Application Arch').first().json.applicationArch).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($('Validate Data Arch').first().json.dataArch).slice(0,5000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['nodes','networks','deployments','artifacts'], properties: { nodes: { type: 'array' }, networks: { type: 'array' }, deployments: { type: 'array' }, artifacts: { type: 'array' }, relationships: { type: 'array' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -2178,7 +2178,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a classifier for an Architecture pipeline. Analyze the user input and determine the mode and intent.\\n\\nMODE RULES:\\n- mode=chat: For queries, help requests, status checks. Keywords: help, status, list, artifacts, jobs, what, how, show, get, query, ?\\n- mode=execute: For creating/building/generating architecture. Keywords: build, create, generate, make, develop, design a, implement\\n\\nIf input is a single word like \"help\", \"list\", \"jobs\", \"status\" - it is ALWAYS mode=chat.\\nIf input asks a question or requests information - it is mode=chat.\\nOnly use mode=execute when user explicitly wants to CREATE or BUILD something new.\\n\\nChat intents: help, status, artifacts, jobs, list\\nExecute intents: create, build, generate\\n\\nOutput JSON only.'\n    },\n    { role: 'user', content: $json.rawInput || $json.requirements }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    required: ['mode', 'intent'],\n    properties: {\n      mode: { type: 'string', enum: ['chat', 'execute'] },\n      intent: { type: 'string' },\n      projectSlug: { type: 'string' },\n      requirements: { type: 'string' }\n    }\n  },\n  options: { temperature: 0.1 }\n} }}",

@@ -455,7 +455,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a QA Architect. Output JSON with testStrategyMarkdown (starts with \"# Test Strategy:\") and testScenariosMarkdown (starts with \"# Test Scenarios:\"). No code fences. Include: testing approach, test types (unit, integration, e2e, performance, security), environments, tools, acceptance criteria, and detailed test scenarios with steps and expected results.' },\n    { role: 'user', content: 'PROJECT: ' + $json.projectName + '\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,4000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,4000) + '\\nSOLUTION_ARCH: ' + ($json.artifacts.solution_arch_md?.markdown || '').slice(0,5000) + '\\nOPENAPI: ' + ($json.artifacts.openapi_yaml?.yaml || '').slice(0,3000) + '\\nRISK_ASSESSMENT: ' + ($json.artifacts.risk_assessment_md?.markdown || '').slice(0,4000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['testStrategyMarkdown','testScenariosMarkdown'], properties: { testStrategyMarkdown: { type: 'string' }, testScenariosMarkdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -1507,7 +1507,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a QA Architect. Output JSON with testStrategyMarkdown (starts with \"# Test Strategy:\") and testScenariosMarkdown (starts with \"# Test Scenarios:\"). No code fences. Include: testing approach, test types (unit, integration, e2e, performance, security), environments, tools, acceptance criteria, and detailed test scenarios with steps and expected results.' },\n    { role: 'user', content: 'PROJECT: ' + $json.projectName + '\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,4000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,4000) + '\\nSOLUTION_ARCH: ' + ($json.artifacts.solution_arch_md?.markdown || '').slice(0,5000) + '\\nOPENAPI: ' + ($json.artifacts.openapi_yaml?.yaml || '').slice(0,3000) + '\\nRISK_ASSESSMENT: ' + ($json.artifacts.risk_assessment_md?.markdown || '').slice(0,4000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['testStrategyMarkdown','testScenariosMarkdown'], properties: { testStrategyMarkdown: { type: 'string' }, testScenariosMarkdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",

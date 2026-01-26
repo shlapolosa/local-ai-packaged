@@ -154,7 +154,7 @@
           "assignments": [
             {
               "name": "ollamaUrl",
-              "value": "https://ollama.socrates-hlapolosa.org/api/chat",
+              "value": "http://ollama:11434/api/chat",
               "type": "string"
             },
             {
@@ -210,7 +210,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"model\": \"{{ $('Run Config').first().json.ollamaModel }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classifier for an architecture pipeline. Output ONLY JSON.\\n\\nReturn: {\\\\\"intent\\\\\":\\\\\"create_project|update_project|regenerate_from_stage\\\\\",\\\\\"proposedProjectName\\\\\":string,\\\\\"startAt\\\\\":\\\\\"business_analyst|business_architect\\\\\",\\\\\"confidence\\\\\":number,\\\\\"notes\\\\\":string}.\\n\\nRules:\\n- If user provided startAt, use it.\\n- If no startAt, default to business_analyst unless the user clearly requests business architecture only.\\n- If projectName not provided, propose a short name.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"text={{ $('Initialize Parameters').first().json.text }}\\nprojectName={{ $('Initialize Parameters').first().json.projectName }}\\nstartAt={{ $('Initialize Parameters').first().json.startAt }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": {{ $('Run Config').first().json.ollamaTemperature }},\n    \"seed\": {{ $('Run Config').first().json.ollamaSeed }}\n  }\n}",
@@ -327,7 +327,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Business Analyst. Output ONLY JSON that matches the schema. No markdown.' },\n    { role: 'user', content: $('Apply Classification + Slugify').first().json.text }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['type','title','version','executiveSummary','problemStatement','businessObjectives','stakeholders','scope','constraints','assumptions','successCriteria'],\n    properties: {\n      type: { const: 'brd' },\n      title: { type: 'string' },\n      version: { type: 'string' },\n      executiveSummary: { type: 'string' },\n      problemStatement: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['currentState','painPoints','impact'],\n        properties: {\n          currentState: { type: 'string' },\n          painPoints: { type: 'array', items: { type: 'string' } },\n          impact: { type: 'string' }\n        }\n      },\n      businessObjectives: { type: 'array' },\n      stakeholders: { type: 'array' },\n      scope: { type: 'object' },\n      constraints: { type: 'array' },\n      assumptions: { type: 'array' },\n      successCriteria: { type: 'array' }\n    }\n  },\n  options: {\n    temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
@@ -422,7 +422,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
@@ -458,7 +458,7 @@
       "parameters": {
         "jsonBody": "={{ {\n  model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are a Business Architect.',\n        'Generate an architecture model as JSON with elements and relationships.',\n        'Coverage: represent each key BRD scope item as at least one element.',\n        'Output ONLY JSON. Relationships must reference existing element ids.',\n        'Use stable kebab-case ids.'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'PROJECT: ' + $('Apply Classification + Slugify').first().json.text,\n        'BRD_EXEC_SUMMARY: ' + String((($('Validate BRD').first().json.brd || {}).executiveSummary) || '').slice(0, 800),\n        'BRD_SCOPE_KEYS: ' + JSON.stringify(Object.keys((($('Validate BRD').first().json.brd || {}).scope || {}))),\n        'CAPABILITY_PREVIEWS: ' + JSON.stringify((($('Build Capability Context').first().json.capabilityCandidates || [])).slice(0, 10).map((c, idx) => ({ idx, id: c.id, preview: (c.text || '').slice(0, 120) })))\n      ].join('\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','elements','relationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { type: 'string' },\n      elements: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['id','type','name'],\n          properties: {\n            id: { type: 'string' },\n            type: { type: 'string' },\n            name: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      relationships: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['type','source','target'],\n          properties: {\n            type: { type: 'string' },\n            source: { type: 'string' },\n            target: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      }\n    }\n  },\n  options: {\n    temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json"
@@ -724,7 +724,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
@@ -826,7 +826,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
@@ -1009,7 +1009,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
@@ -1074,7 +1074,7 @@
         512
       ],
       "parameters": {
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "method": "POST",
         "sendBody": true,
         "specifyBody": "json",
@@ -1229,7 +1229,7 @@
         512
       ],
       "parameters": {
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "method": "POST",
         "sendBody": true,
         "contentType": "json",
@@ -1378,7 +1378,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
@@ -1445,7 +1445,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
@@ -1519,7 +1519,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
@@ -1607,7 +1607,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
@@ -1686,7 +1686,7 @@
         512
       ],
       "parameters": {
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "method": "POST",
         "sendBody": true,
         "specifyBody": "json",
@@ -1764,7 +1764,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
@@ -1830,7 +1830,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
@@ -1918,7 +1918,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
@@ -3278,7 +3278,7 @@
             "assignments": [
               {
                 "name": "ollamaUrl",
-                "value": "https://ollama.socrates-hlapolosa.org/api/chat",
+                "value": "http://ollama:11434/api/chat",
                 "type": "string"
               },
               {
@@ -3334,7 +3334,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={\n  \"model\": \"{{ $('Run Config').first().json.ollamaModel }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classifier for an architecture pipeline. Output ONLY JSON.\\n\\nReturn: {\\\\\"intent\\\\\":\\\\\"create_project|update_project|regenerate_from_stage\\\\\",\\\\\"proposedProjectName\\\\\":string,\\\\\"startAt\\\\\":\\\\\"business_analyst|business_architect\\\\\",\\\\\"confidence\\\\\":number,\\\\\"notes\\\\\":string}.\\n\\nRules:\\n- If user provided startAt, use it.\\n- If no startAt, default to business_analyst unless the user clearly requests business architecture only.\\n- If projectName not provided, propose a short name.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"text={{ $('Initialize Parameters').first().json.text }}\\nprojectName={{ $('Initialize Parameters').first().json.projectName }}\\nstartAt={{ $('Initialize Parameters').first().json.startAt }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": {{ $('Run Config').first().json.ollamaTemperature }},\n    \"seed\": {{ $('Run Config').first().json.ollamaSeed }}\n  }\n}",
@@ -3451,7 +3451,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ {\n  model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Business Analyst. Output ONLY JSON that matches the schema. No markdown.' },\n    { role: 'user', content: $('Apply Classification + Slugify').first().json.text }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['type','title','version','executiveSummary','problemStatement','businessObjectives','stakeholders','scope','constraints','assumptions','successCriteria'],\n    properties: {\n      type: { const: 'brd' },\n      title: { type: 'string' },\n      version: { type: 'string' },\n      executiveSummary: { type: 'string' },\n      problemStatement: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['currentState','painPoints','impact'],\n        properties: {\n          currentState: { type: 'string' },\n          painPoints: { type: 'array', items: { type: 'string' } },\n          impact: { type: 'string' }\n        }\n      },\n      businessObjectives: { type: 'array' },\n      stakeholders: { type: 'array' },\n      scope: { type: 'object' },\n      constraints: { type: 'array' },\n      assumptions: { type: 'array' },\n      successCriteria: { type: 'array' }\n    }\n  },\n  options: {\n    temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
@@ -3546,7 +3546,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json",
@@ -3582,7 +3582,7 @@
         "parameters": {
           "jsonBody": "={{ {\n  model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are a Business Architect.',\n        'Generate an architecture model as JSON with elements and relationships.',\n        'Coverage: represent each key BRD scope item as at least one element.',\n        'Output ONLY JSON. Relationships must reference existing element ids.',\n        'Use stable kebab-case ids.'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'PROJECT: ' + $('Apply Classification + Slugify').first().json.text,\n        'BRD_EXEC_SUMMARY: ' + String((($('Validate BRD').first().json.brd || {}).executiveSummary) || '').slice(0, 800),\n        'BRD_SCOPE_KEYS: ' + JSON.stringify(Object.keys((($('Validate BRD').first().json.brd || {}).scope || {}))),\n        'CAPABILITY_PREVIEWS: ' + JSON.stringify((($('Build Capability Context').first().json.capabilityCandidates || [])).slice(0, 10).map((c, idx) => ({ idx, id: c.id, preview: (c.text || '').slice(0, 120) })))\n      ].join('\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','elements','relationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { type: 'string' },\n      elements: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['id','type','name'],\n          properties: {\n            id: { type: 'string' },\n            type: { type: 'string' },\n            name: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      relationships: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['type','source','target'],\n          properties: {\n            type: { type: 'string' },\n            source: { type: 'string' },\n            target: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      }\n    }\n  },\n  options: {\n    temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json"
@@ -3848,7 +3848,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json",
@@ -3950,7 +3950,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json",
@@ -4133,7 +4133,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json",
@@ -4198,7 +4198,7 @@
           512
         ],
         "parameters": {
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "method": "POST",
           "sendBody": true,
           "specifyBody": "json",
@@ -4353,7 +4353,7 @@
           512
         ],
         "parameters": {
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "method": "POST",
           "sendBody": true,
           "contentType": "json",
@@ -4502,7 +4502,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json",
@@ -4569,7 +4569,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json",
@@ -4643,7 +4643,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json",
@@ -4731,7 +4731,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json",
@@ -4810,7 +4810,7 @@
           512
         ],
         "parameters": {
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "method": "POST",
           "sendBody": true,
           "specifyBody": "json",
@@ -4888,7 +4888,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json",
@@ -4954,7 +4954,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json",
@@ -5042,7 +5042,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "contentType": "json",
           "specifyBody": "json",

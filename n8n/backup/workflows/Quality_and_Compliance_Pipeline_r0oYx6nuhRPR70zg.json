@@ -190,7 +190,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Security Architect producing a risk assessment. Output JSON {\"markdown\": \"...\"} only. Markdown must start with \"# Risk Assessment:\" - no code fences.' },\n    { role: 'user', content: 'PROJECT: ' + $json.projectName + '\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,6000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($json.artifacts.business_arch || {}).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($json.artifacts.data_arch || {}).slice(0,4000) + '\\nINFRA_ARCH: ' + JSON.stringify($json.artifacts.infrastructure_arch || {}).slice(0,4000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['markdown'], properties: { markdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -247,7 +247,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Solution Architect producing integration artifacts. Output JSON with: integrationStyle (rest_only|events_only|hybrid), solutionMarkdown (starts with \"# Solution Architecture:\"), openapiYaml, sqlSchemaSql. No code fences anywhere.' },\n    { role: 'user', content: 'PROJECT: ' + $('Collect Artifacts').first().json.projectName + '\\nBRD: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.brd || {}).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.application_arch || {}).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.data_arch || {}).slice(0,4000) + '\\nRISK_MD: ' + $('Validate Risk').first().json.riskMarkdown.slice(0,4000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['integrationStyle','solutionMarkdown','openapiYaml','sqlSchemaSql'], properties: { integrationStyle: { type: 'string' }, solutionMarkdown: { type: 'string' }, openapiYaml: { type: ['string','null'] }, sqlSchemaSql: { type: ['string','null'] }, asyncapiYaml: { type: ['string','null'] }, cloudEventsMarkdown: { type: ['string','null'] }, avroSchemasJson: { type: ['object','null'] } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -317,7 +317,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a QA Architect. Output JSON with testStrategyMarkdown (starts with \"# Test Strategy:\") and testScenariosMarkdown (starts with \"# Test Scenarios:\"). No code fences.' },\n    { role: 'user', content: 'PROJECT: ' + $('Collect Artifacts').first().json.projectName + '\\nBRD: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.brd || {}).slice(0,5000) + '\\nAPP_ARCH: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.application_arch || {}).slice(0,5000) + '\\nSOLUTION_MD: ' + $('Validate Solution').first().json.solutionMarkdown.slice(0,5000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['testStrategyMarkdown','testScenariosMarkdown'], properties: { testStrategyMarkdown: { type: 'string' }, testScenariosMarkdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -946,7 +946,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Security Architect producing a risk assessment. Output JSON {\"markdown\": \"...\"} only. Markdown must start with \"# Risk Assessment:\" - no code fences.' },\n    { role: 'user', content: 'PROJECT: ' + $json.projectName + '\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,6000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($json.artifacts.business_arch || {}).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($json.artifacts.data_arch || {}).slice(0,4000) + '\\nINFRA_ARCH: ' + JSON.stringify($json.artifacts.infrastructure_arch || {}).slice(0,4000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['markdown'], properties: { markdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -1003,7 +1003,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Solution Architect producing integration artifacts. Output JSON with: integrationStyle (rest_only|events_only|hybrid), solutionMarkdown (starts with \"# Solution Architecture:\"), openapiYaml, sqlSchemaSql. No code fences anywhere.' },\n    { role: 'user', content: 'PROJECT: ' + $('Collect Artifacts').first().json.projectName + '\\nBRD: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.brd || {}).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.application_arch || {}).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.data_arch || {}).slice(0,4000) + '\\nRISK_MD: ' + $('Validate Risk').first().json.riskMarkdown.slice(0,4000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['integrationStyle','solutionMarkdown','openapiYaml','sqlSchemaSql'], properties: { integrationStyle: { type: 'string' }, solutionMarkdown: { type: 'string' }, openapiYaml: { type: ['string','null'] }, sqlSchemaSql: { type: ['string','null'] }, asyncapiYaml: { type: ['string','null'] }, cloudEventsMarkdown: { type: ['string','null'] }, avroSchemasJson: { type: ['object','null'] } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -1073,7 +1073,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a QA Architect. Output JSON with testStrategyMarkdown (starts with \"# Test Strategy:\") and testScenariosMarkdown (starts with \"# Test Scenarios:\"). No code fences.' },\n    { role: 'user', content: 'PROJECT: ' + $('Collect Artifacts').first().json.projectName + '\\nBRD: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.brd || {}).slice(0,5000) + '\\nAPP_ARCH: ' + JSON.stringify($('Collect Artifacts').first().json.artifacts.application_arch || {}).slice(0,5000) + '\\nSOLUTION_MD: ' + $('Validate Solution').first().json.solutionMarkdown.slice(0,5000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['testStrategyMarkdown','testScenariosMarkdown'], properties: { testStrategyMarkdown: { type: 'string' }, testScenariosMarkdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",

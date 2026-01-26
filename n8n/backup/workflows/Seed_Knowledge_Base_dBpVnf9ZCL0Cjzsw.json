@@ -70,7 +70,7 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/embeddings",
+        "url": "http://ollama:11434/api/embeddings",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ { model: 'nomic-embed-text', prompt: $json.content } }}",
@@ -318,7 +318,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/embeddings",
+          "url": "http://ollama:11434/api/embeddings",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ { model: 'nomic-embed-text', prompt: $json.content } }}",

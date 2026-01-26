@@ -455,7 +455,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+        "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Security Architect producing a risk assessment. Output JSON {\"markdown\": \"...\"} only. Markdown must start with \"# Risk Assessment:\" - no code fences. Cover: security risks, data privacy, compliance requirements, technical risks, and mitigation strategies.' },\n    { role: 'user', content: 'PROJECT: ' + $json.projectName + '\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,5000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($json.artifacts.business_arch || {}).slice(0,4000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,4000) + '\\nSOLUTION_ARCH: ' + ($json.artifacts.solution_arch_md?.markdown || '').slice(0,5000) + '\\nOPENAPI: ' + ($json.artifacts.openapi_yaml?.yaml || '').slice(0,3000) + '\\nASYNCAPI: ' + ($json.artifacts.asyncapi_yaml?.yaml || '').slice(0,3000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['markdown'], properties: { markdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
@@ -1483,7 +1483,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "https://ollama.socrates-hlapolosa.org/api/chat",
+          "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Security Architect producing a risk assessment. Output JSON {\"markdown\": \"...\"} only. Markdown must start with \"# Risk Assessment:\" - no code fences. Cover: security risks, data privacy, compliance requirements, technical risks, and mitigation strategies.' },\n    { role: 'user', content: 'PROJECT: ' + $json.projectName + '\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,5000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($json.artifacts.business_arch || {}).slice(0,4000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,4000) + '\\nSOLUTION_ARCH: ' + ($json.artifacts.solution_arch_md?.markdown || '').slice(0,5000) + '\\nOPENAPI: ' + ($json.artifacts.openapi_yaml?.yaml || '').slice(0,3000) + '\\nASYNCAPI: ' + ($json.artifacts.asyncapi_yaml?.yaml || '').slice(0,3000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['markdown'], properties: { markdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
