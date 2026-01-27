@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-24T06:12:30.353Z",
+  "updatedAt": "2026-01-27T10:31:22.638Z",
   "createdAt": "2026-01-21T05:11:11.934Z",
   "id": "nmqyIEwcwVfiIIOu",
   "name": "Business Analysis Pipeline",
@@ -253,7 +253,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1100,
+        1104,
         0
       ],
       "alwaysOutputData": true,
@@ -273,7 +273,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1100,
+        1104,
         0
       ],
       "alwaysOutputData": true
@@ -287,7 +287,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1100,
+        1104,
         0
       ]
     },
@@ -320,7 +320,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1100,
+        1104,
         0
       ]
     },
@@ -349,7 +349,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1100,
+        1104,
         0
       ]
     },
@@ -367,7 +367,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        1100,
+        1104,
         0
       ],
       "retryOnFail": true
@@ -392,7 +392,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1100,
+        1104,
         0
       ]
     },
@@ -405,7 +405,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1100,
+        1104,
         0
       ]
     },
@@ -422,7 +422,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1100,
+        1104,
         0
       ],
       "credentials": {
@@ -441,7 +441,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1100,
+        1104,
         0
       ]
     },
@@ -454,7 +454,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1100,
+        1104,
         0
       ]
     },
@@ -468,7 +468,7 @@
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
       "position": [
-        1100,
+        1104,
         0
       ],
       "credentials": {
@@ -491,7 +491,7 @@
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        1100,
+        1104,
         0
       ],
       "credentials": {
@@ -510,7 +510,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1100,
+        1104,
         0
       ]
     },
@@ -519,9 +519,7 @@
         "httpMethod": "POST",
         "path": "pipeline/business-analysis",
         "responseMode": "responseNode",
-        "options": {
-          "onError": "continueRegularOutput"
-        }
+        "options": {}
       },
       "id": "webhook-entry",
       "name": "Webhook: Business Analysis",
@@ -641,14 +639,6 @@
       ]
     },
     {
-      "id": "if-system-prompt",
-      "name": "If: System Prompt",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -300,
-        304
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -671,45 +661,45 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "if-system-prompt",
+      "name": "If: System Prompt",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -304,
+        304
+      ]
     },
     {
+      "parameters": {
+        "jsCode": "// Handle Open WebUI system prompts (auto-tag, follow-up, title-gen)\nconst input = $json;\nconst promptType = input.systemPromptType;\n\nlet response = {};\n\nswitch (promptType) {\n  case 'auto-tag':\n    // Return generic business analysis tags\n    response = { tags: ['Business', 'Analysis', 'Requirements'] };\n    break;\n  case 'follow-up':\n    // Return relevant follow-up questions\n    response = { follow_ups: [\n      'What is the current project status?',\n      'Can you show me the latest BRD artifacts?',\n      'What are the recent jobs for this pipeline?'\n    ] };\n    break;\n  case 'title-gen':\n    // Return a simple title\n    response = { title: 'Business Analysis Session' };\n    break;\n  default:\n    response = { message: 'Unknown system prompt type' };\n}\n\nreturn [{ json: response }];"
+      },
       "id": "system-prompt-handler",
       "name": "System Prompt Handler",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -100,
+        -96,
         80
-      ],
-      "parameters": {
-        "jsCode": "// Handle Open WebUI system prompts (auto-tag, follow-up, title-gen)\nconst input = $json;\nconst promptType = input.systemPromptType;\n\nlet response = {};\n\nswitch (promptType) {\n  case 'auto-tag':\n    // Return generic business analysis tags\n    response = { tags: ['Business', 'Analysis', 'Requirements'] };\n    break;\n  case 'follow-up':\n    // Return relevant follow-up questions\n    response = { follow_ups: [\n      'What is the current project status?',\n      'Can you show me the latest BRD artifacts?',\n      'What are the recent jobs for this pipeline?'\n    ] };\n    break;\n  case 'title-gen':\n    // Return a simple title\n    response = { title: 'Business Analysis Session' };\n    break;\n  default:\n    response = { message: 'Unknown system prompt type' };\n}\n\nreturn [{ json: response }];"
-      }
+      ]
     },
     {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
       "id": "respond-system-prompt",
       "name": "Respond: System Prompt",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        100,
+        112,
         80
-      ],
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ $json }}",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "if-needs-db-query",
-      "name": "If: Needs DB Query",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        430,
-        -48
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -732,52 +722,52 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "if-needs-db-query",
+      "name": "If: Needs DB Query",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        -48
+      ]
     },
     {
-      "id": "execute-chat-query",
-      "name": "Execute Chat Query",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        620,
-        -120
-      ],
       "parameters": {
         "operation": "executeQuery",
         "query": "={{ $json.sql }}",
         "options": {}
       },
+      "id": "execute-chat-query",
+      "name": "Execute Chat Query",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        624,
+        -128
+      ],
+      "alwaysOutputData": true,
       "credentials": {
         "postgres": {
           "id": "M5eIfNwtZu8y3dOp",
           "name": "Postgres account"
         }
-      },
-      "alwaysOutputData": true
+      }
     },
     {
+      "parameters": {
+        "jsCode": "// Format DB query results for chat response\nconst chatHandler = $('Chat Handler').first().json;\nconst queryType = chatHandler.queryType;\nconst rows = $input.all().map(i => i.json);\n\nlet content = '';\nlet message = '';\n\nif (rows.length === 0) {\n  content = 'No results found.';\n  message = 'Empty result set';\n} else {\n  switch (queryType) {\n    case 'projects':\n      content = '# Projects\\n\\n| Slug | Name | BRDs | Jobs | Updated |\\n|------|------|------|------|---------|\\n';\n      for (const row of rows) {\n        const updated = row.updated_at ? new Date(row.updated_at).toLocaleDateString() : 'N/A';\n        content += `| ${row.slug} | ${row.name || 'N/A'} | ${row.brd_count || 0} | ${row.job_count || 0} | ${updated} |\\n`;\n      }\n      message = `Found ${rows.length} project(s)`;\n      break;\n      \n    case 'status':\n    case 'jobs':\n      content = '# Jobs\\n\\n| ID | Project | Stage | Status | Created | Completed |\\n|----|---------|-------|--------|---------|-----------|\\n';\n      for (const row of rows) {\n        const created = row.created_at ? new Date(row.created_at).toLocaleDateString() : 'N/A';\n        const completed = row.completed_at ? new Date(row.completed_at).toLocaleDateString() : '-';\n        const shortId = (row.id || '').substring(0, 8);\n        content += `| ${shortId}... | ${row.slug || 'N/A'} | ${row.stage} | ${row.status} | ${created} | ${completed} |\\n`;\n      }\n      message = `Found ${rows.length} job(s)`;\n      break;\n      \n    case 'artifacts':\n      content = '# Artifacts\\n\\n| ID | Project | Type | Version | Created |\\n|----|---------|------|---------|---------|\\n';\n      for (const row of rows) {\n        const created = row.created_at ? new Date(row.created_at).toLocaleDateString() : 'N/A';\n        const shortId = (row.id || '').substring(0, 8);\n        content += `| ${shortId}... | ${row.slug || 'N/A'} | ${row.type} | v${row.version} | ${created} |\\n`;\n      }\n      message = `Found ${rows.length} artifact(s)`;\n      break;\n      \n    default:\n      content = '```json\\n' + JSON.stringify(rows, null, 2) + '\\n```';\n      message = `Query returned ${rows.length} row(s)`;\n  }\n}\n\nreturn [{ json: {\n  agent: chatHandler.agent,\n  stage: chatHandler.stage,\n  intent: chatHandler.intent,\n  success: true,\n  content: content,\n  message: message,\n  rowCount: rows.length\n} }];"
+      },
       "id": "format-chat-results",
       "name": "Format Chat Results",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        810,
-        -120
-      ],
-      "parameters": {
-        "jsCode": "// Format DB query results for chat response\nconst chatHandler = $('Chat Handler').first().json;\nconst queryType = chatHandler.queryType;\nconst rows = $input.all().map(i => i.json);\n\nlet content = '';\nlet message = '';\n\nif (rows.length === 0) {\n  content = 'No results found.';\n  message = 'Empty result set';\n} else {\n  switch (queryType) {\n    case 'projects':\n      content = '# Projects\\n\\n| Slug | Name | BRDs | Jobs | Updated |\\n|------|------|------|------|---------|\\n';\n      for (const row of rows) {\n        const updated = row.updated_at ? new Date(row.updated_at).toLocaleDateString() : 'N/A';\n        content += `| ${row.slug} | ${row.name || 'N/A'} | ${row.brd_count || 0} | ${row.job_count || 0} | ${updated} |\\n`;\n      }\n      message = `Found ${rows.length} project(s)`;\n      break;\n      \n    case 'status':\n    case 'jobs':\n      content = '# Jobs\\n\\n| ID | Project | Stage | Status | Created | Completed |\\n|----|---------|-------|--------|---------|-----------|\\n';\n      for (const row of rows) {\n        const created = row.created_at ? new Date(row.created_at).toLocaleDateString() : 'N/A';\n        const completed = row.completed_at ? new Date(row.completed_at).toLocaleDateString() : '-';\n        const shortId = (row.id || '').substring(0, 8);\n        content += `| ${shortId}... | ${row.slug || 'N/A'} | ${row.stage} | ${row.status} | ${created} | ${completed} |\\n`;\n      }\n      message = `Found ${rows.length} job(s)`;\n      break;\n      \n    case 'artifacts':\n      content = '# Artifacts\\n\\n| ID | Project | Type | Version | Created |\\n|----|---------|------|---------|---------|\\n';\n      for (const row of rows) {\n        const created = row.created_at ? new Date(row.created_at).toLocaleDateString() : 'N/A';\n        const shortId = (row.id || '').substring(0, 8);\n        content += `| ${shortId}... | ${row.slug || 'N/A'} | ${row.type} | v${row.version} | ${created} |\\n`;\n      }\n      message = `Found ${rows.length} artifact(s)`;\n      break;\n      \n    default:\n      content = '```json\\n' + JSON.stringify(rows, null, 2) + '\\n```';\n      message = `Query returned ${rows.length} row(s)`;\n  }\n}\n\nreturn [{ json: {\n  agent: chatHandler.agent,\n  stage: chatHandler.stage,\n  intent: chatHandler.intent,\n  success: true,\n  content: content,\n  message: message,\n  rowCount: rows.length\n} }];"
-      }
+        816,
+        -128
+      ]
     },
     {
-      "id": "research-extract-nouns",
-      "name": "Extract Nouns (LLM)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1352,
-        304
-      ],
       "parameters": {
         "method": "POST",
         "url": "http://ollama:11434/api/chat",
@@ -785,9 +775,20 @@
         "specifyBody": "json",
         "jsonBody": "={{ {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    {\n      role: 'system',\n      content: 'Extract all significant nouns from the requirements text. Focus on: system names, services, technologies, integrations, compliance standards, and business domains. Return ONLY a JSON array of nouns, lowercase, deduplicated. Example: [\"stripe\", \"oauth\", \"gdpr\", \"payment\"]'\n    },\n    {\n      role: 'user',\n      content: $('Pass Context').first().json.requirements || ''\n    }\n  ],\n  stream: false,\n  format: { type: 'array', items: { type: 'string' } },\n  options: { temperature: 0.1 }\n} }}",
         "options": {}
-      }
+      },
+      "id": "research-extract-nouns",
+      "name": "Extract Nouns (LLM)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        304
+      ]
     },
     {
+      "parameters": {
+        "jsCode": "// Parse LLM response and filter nouns\nconst response = $input.first().json;\nconst requirements = $('Pass Context').first().json.requirements || '';\nlet nouns = [];\n\ntry {\n  const content = response.message?.content || '[]';\n  const parsed = JSON.parse(content);\n  nouns = Array.isArray(parsed) ? parsed : (parsed.nouns || []);\n} catch (e) {\n  // Fallback: extract array from text\n  const match = (response.message?.content || '').match(/\\[([^\\]]+)\\]/);\n  if (match) {\n    nouns = match[1].split(',').map(s => s.trim().replace(/['\"]/g, '').toLowerCase());\n  }\n}\n\n// Filter short words and deduplicate\nnouns = [...new Set(nouns.filter(n => n && n.length > 2))];\n\nreturn [{\n  json: {\n    requirements,\n    extractedNouns: nouns,\n    nounCount: nouns.length,\n    passContext: $('Pass Context').first().json\n  }\n}];"
+      },
       "id": "research-process-nouns",
       "name": "Process Nouns",
       "type": "n8n-nodes-base.code",
@@ -795,33 +796,22 @@
       "position": [
         1552,
         304
-      ],
-      "parameters": {
-        "jsCode": "// Parse LLM response and filter nouns\nconst response = $input.first().json;\nconst requirements = $('Pass Context').first().json.requirements || '';\nlet nouns = [];\n\ntry {\n  const content = response.message?.content || '[]';\n  const parsed = JSON.parse(content);\n  nouns = Array.isArray(parsed) ? parsed : (parsed.nouns || []);\n} catch (e) {\n  // Fallback: extract array from text\n  const match = (response.message?.content || '').match(/\\[([^\\]]+)\\]/);\n  if (match) {\n    nouns = match[1].split(',').map(s => s.trim().replace(/['\"]/g, '').toLowerCase());\n  }\n}\n\n// Filter short words and deduplicate\nnouns = [...new Set(nouns.filter(n => n && n.length > 2))];\n\nreturn [{\n  json: {\n    requirements,\n    extractedNouns: nouns,\n    nounCount: nouns.length,\n    passContext: $('Pass Context').first().json\n  }\n}];"
-      }
+      ]
     },
     {
+      "parameters": {
+        "jsCode": "// Classify nouns as internal vs external via Qdrant\nconst nouns = $input.first().json.extractedNouns || [];\nconst passContext = $input.first().json.passContext;\n\nif (nouns.length === 0) {\n  return [{\n    json: {\n      internalNouns: [],\n      externalNouns: [],\n      researchNeeded: false,\n      searchQuery: '',\n      embedding: null,\n      qdrantHitCount: 0,\n      passContext\n    }\n  }];\n}\n\n// Create combined search query\nconst combinedQuery = nouns.join(' ');\n\n// Get embedding for combined query using this.helpers.httpRequest\nlet embedding = null;\ntry {\n  const embeddingResponse = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'http://ollama:11434/api/embeddings',\n    body: {\n      model: 'nomic-embed-text',\n      prompt: combinedQuery\n    },\n    json: true\n  });\n  embedding = embeddingResponse.embedding;\n} catch (e) {\n  // Embedding failed - treat all as external\n  return [{\n    json: {\n      internalNouns: [],\n      externalNouns: nouns,\n      researchNeeded: nouns.length > 0,\n      searchQuery: nouns.slice(0, 5).join(' '),\n      embedding: null,\n      qdrantHitCount: 0,\n      error: 'Embedding generation failed: ' + e.message,\n      passContext\n    }\n  }];\n}\n\n// Query Qdrant for internal knowledge\nlet qdrantResults = [];\ntry {\n  const qdrantResponse = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'http://qdrant:6333/collections/agent-knowledge-business-analyst/points/search',\n    body: {\n      vector: embedding,\n      limit: 10,\n      with_payload: true,\n      score_threshold: 0.65\n    },\n    json: true\n  });\n  qdrantResults = qdrantResponse.result || [];\n} catch (e) {\n  // Qdrant query failed (maybe collection doesn't exist) - treat all as external\n  qdrantResults = [];\n}\n\n// Extract internal concepts from Qdrant hits\nconst internalConcepts = new Set();\nqdrantResults.forEach(hit => {\n  const scope = hit.payload?.metadata?.scope || {};\n  (scope.internalSystems || []).forEach(s => internalConcepts.add(s.toLowerCase()));\n  (scope.internalCapabilities || []).forEach(c => internalConcepts.add(c.toLowerCase()));\n  (scope.supportedIntegrations || []).forEach(i => internalConcepts.add(i.toLowerCase()));\n\n  // Check content for direct mentions\n  const content = (hit.payload?.content || '').toLowerCase();\n  nouns.forEach(noun => {\n    if (content.includes(noun.toLowerCase())) {\n      internalConcepts.add(noun.toLowerCase());\n    }\n  });\n});\n\n// Classify nouns\nconst internalNouns = nouns.filter(n => internalConcepts.has(n.toLowerCase()));\nconst externalNouns = nouns.filter(n => !internalConcepts.has(n.toLowerCase()));\n\nreturn [{\n  json: {\n    internalNouns,\n    externalNouns,\n    researchNeeded: externalNouns.length > 0,\n    searchQuery: externalNouns.slice(0, 5).join(' '),\n    embedding,\n    qdrantHitCount: qdrantResults.length,\n    classificationDetails: {\n      totalNouns: nouns.length,\n      internalCount: internalNouns.length,\n      externalCount: externalNouns.length\n    },\n    passContext\n  }\n}];"
+      },
       "id": "research-classify-nouns",
       "name": "Classify Nouns (Qdrant)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1752,
+        1760,
         304
-      ],
-      "parameters": {
-        "jsCode": "// Classify nouns as internal vs external via Qdrant\nconst nouns = $input.first().json.extractedNouns || [];\nconst passContext = $input.first().json.passContext;\n\nif (nouns.length === 0) {\n  return [{\n    json: {\n      internalNouns: [],\n      externalNouns: [],\n      researchNeeded: false,\n      searchQuery: '',\n      embedding: null,\n      qdrantHitCount: 0,\n      passContext\n    }\n  }];\n}\n\n// Create combined search query\nconst combinedQuery = nouns.join(' ');\n\n// Get embedding for combined query using this.helpers.httpRequest\nlet embedding = null;\ntry {\n  const embeddingResponse = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'http://ollama:11434/api/embeddings',\n    body: {\n      model: 'nomic-embed-text',\n      prompt: combinedQuery\n    },\n    json: true\n  });\n  embedding = embeddingResponse.embedding;\n} catch (e) {\n  // Embedding failed - treat all as external\n  return [{\n    json: {\n      internalNouns: [],\n      externalNouns: nouns,\n      researchNeeded: nouns.length > 0,\n      searchQuery: nouns.slice(0, 5).join(' '),\n      embedding: null,\n      qdrantHitCount: 0,\n      error: 'Embedding generation failed: ' + e.message,\n      passContext\n    }\n  }];\n}\n\n// Query Qdrant for internal knowledge\nlet qdrantResults = [];\ntry {\n  const qdrantResponse = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'http://qdrant:6333/collections/agent-knowledge-business-analyst/points/search',\n    body: {\n      vector: embedding,\n      limit: 10,\n      with_payload: true,\n      score_threshold: 0.65\n    },\n    json: true\n  });\n  qdrantResults = qdrantResponse.result || [];\n} catch (e) {\n  // Qdrant query failed (maybe collection doesn't exist) - treat all as external\n  qdrantResults = [];\n}\n\n// Extract internal concepts from Qdrant hits\nconst internalConcepts = new Set();\nqdrantResults.forEach(hit => {\n  const scope = hit.payload?.metadata?.scope || {};\n  (scope.internalSystems || []).forEach(s => internalConcepts.add(s.toLowerCase()));\n  (scope.internalCapabilities || []).forEach(c => internalConcepts.add(c.toLowerCase()));\n  (scope.supportedIntegrations || []).forEach(i => internalConcepts.add(i.toLowerCase()));\n\n  // Check content for direct mentions\n  const content = (hit.payload?.content || '').toLowerCase();\n  nouns.forEach(noun => {\n    if (content.includes(noun.toLowerCase())) {\n      internalConcepts.add(noun.toLowerCase());\n    }\n  });\n});\n\n// Classify nouns\nconst internalNouns = nouns.filter(n => internalConcepts.has(n.toLowerCase()));\nconst externalNouns = nouns.filter(n => !internalConcepts.has(n.toLowerCase()));\n\nreturn [{\n  json: {\n    internalNouns,\n    externalNouns,\n    researchNeeded: externalNouns.length > 0,\n    searchQuery: externalNouns.slice(0, 5).join(' '),\n    embedding,\n    qdrantHitCount: qdrantResults.length,\n    classificationDetails: {\n      totalNouns: nouns.length,\n      internalCount: internalNouns.length,\n      externalCount: externalNouns.length\n    },\n    passContext\n  }\n}];"
-      }
+      ]
     },
     {
-      "id": "research-if-external",
-      "name": "If: External Nouns Exist",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1952,
-        304
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -844,17 +834,17 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "research-if-external",
+      "name": "If: External Nouns Exist",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1952,
+        304
+      ]
     },
     {
-      "id": "research-query-internal",
-      "name": "Query Internal Rules",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2152,
-        164
-      ],
       "parameters": {
         "method": "POST",
         "url": "http://qdrant:6333/collections/agent-knowledge-business-analyst/points/search",
@@ -868,19 +858,18 @@
             }
           }
         }
-      }
-    },
-    {
-      "id": "research-searxng",
-      "name": "SearXNG Research",
+      },
+      "id": "research-query-internal",
+      "name": "Query Internal Rules",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2152,
-        444
-      ],
+        2160,
+        176
+      ]
+    },
+    {
       "parameters": {
-        "method": "GET",
         "url": "http://searxng:8080/search",
         "sendQuery": true,
         "queryParameters": {
@@ -904,16 +893,27 @@
           ]
         },
         "options": {
-          "timeout": 10000,
           "response": {
             "response": {
               "neverError": true
             }
-          }
+          },
+          "timeout": 10000
         }
-      }
+      },
+      "id": "research-searxng",
+      "name": "SearXNG Research",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        448
+      ]
     },
     {
+      "parameters": {
+        "jsCode": "// Parse and format research results - handle missing upstream nodes gracefully\nlet classifyData = {};\nlet internalRulesRaw = [];\nlet externalSearchRaw = [];\n\n// Safely get data from Classify Nouns (Qdrant)\ntry {\n  classifyData = $('Classify Nouns (Qdrant)').first()?.json || {};\n} catch (e) {\n  classifyData = {};\n}\n\n// Safely get data from Query Internal Rules\ntry {\n  internalRulesRaw = $('Query Internal Rules').first()?.json?.result || [];\n} catch (e) {\n  internalRulesRaw = [];\n}\n\n// Safely get data from SearXNG Research\ntry {\n  externalSearchRaw = $('SearXNG Research').first()?.json?.results || [];\n} catch (e) {\n  externalSearchRaw = [];\n}\n\n// Format internal rules (high confidence only)\nconst internalRules = (Array.isArray(internalRulesRaw) ? internalRulesRaw : [])\n  .filter(r => r.score >= 0.7)\n  .map(r => ({\n    content: r.payload?.content || '',\n    scope: r.payload?.metadata?.scope || {},\n    score: r.score\n  }));\n\n// Format external research (top 3 results)\nconst externalResearch = (Array.isArray(externalSearchRaw) ? externalSearchRaw : [])\n  .slice(0, 3)\n  .map(r => ({\n    title: r.title || '',\n    snippet: (r.content || r.snippet || '').slice(0, 500),\n    url: r.url || ''\n  }))\n  .filter(r => r.title);\n\nreturn [{\n  json: {\n    internalRules,\n    externalResearch,\n    internalCount: internalRules.length,\n    externalCount: externalResearch.length,\n    classifyData\n  }\n}];"
+      },
       "id": "research-parse-results",
       "name": "Parse Research Results",
       "type": "n8n-nodes-base.code",
@@ -921,32 +921,29 @@
       "position": [
         2352,
         304
-      ],
-      "parameters": {
-        "jsCode": "// Parse and format research results - handle missing upstream nodes gracefully\nlet classifyData = {};\nlet internalRulesRaw = [];\nlet externalSearchRaw = [];\n\n// Safely get data from Classify Nouns (Qdrant)\ntry {\n  classifyData = $('Classify Nouns (Qdrant)').first()?.json || {};\n} catch (e) {\n  classifyData = {};\n}\n\n// Safely get data from Query Internal Rules\ntry {\n  internalRulesRaw = $('Query Internal Rules').first()?.json?.result || [];\n} catch (e) {\n  internalRulesRaw = [];\n}\n\n// Safely get data from SearXNG Research\ntry {\n  externalSearchRaw = $('SearXNG Research').first()?.json?.results || [];\n} catch (e) {\n  externalSearchRaw = [];\n}\n\n// Format internal rules (high confidence only)\nconst internalRules = (Array.isArray(internalRulesRaw) ? internalRulesRaw : [])\n  .filter(r => r.score >= 0.7)\n  .map(r => ({\n    content: r.payload?.content || '',\n    scope: r.payload?.metadata?.scope || {},\n    score: r.score\n  }));\n\n// Format external research (top 3 results)\nconst externalResearch = (Array.isArray(externalSearchRaw) ? externalSearchRaw : [])\n  .slice(0, 3)\n  .map(r => ({\n    title: r.title || '',\n    snippet: (r.content || r.snippet || '').slice(0, 500),\n    url: r.url || ''\n  }))\n  .filter(r => r.title);\n\nreturn [{\n  json: {\n    internalRules,\n    externalResearch,\n    internalCount: internalRules.length,\n    externalCount: externalResearch.length,\n    classifyData\n  }\n}];"
-      }
+      ]
     },
     {
+      "parameters": {
+        "jsCode": "// Aggregate research context for BRD generation\n// Handle both branches: from Parse Results (research done) or direct from If (no research needed)\nlet classifyData, parsedData;\n\ntry {\n  // Try to get from research path\n  parsedData = $('Parse Research Results').first()?.json;\n  classifyData = parsedData?.classifyData || $('Classify Nouns (Qdrant)').first().json;\n} catch (e) {\n  // Direct path - no research was done\n  classifyData = $('Classify Nouns (Qdrant)').first().json;\n  parsedData = { internalRules: [], externalResearch: [] };\n}\n\nconst internalRules = parsedData?.internalRules || [];\nconst externalResearch = parsedData?.externalResearch || [];\n\n// Build internal context section\nlet internalContext = '';\nif (internalRules.length > 0) {\n  internalContext = '## Internal Business Rules & System Constraints\\n\\n' +\n    'The following internal systems and rules apply:\\n\\n' +\n    internalRules.map((r, idx) =>\n      `${idx + 1}. ${(r.content || '').slice(0, 600)}\\n   (Relevance: ${Math.round((r.score || 0) * 100)}%)`\n    ).join('\\n\\n');\n}\n\n// Build external context section\nlet externalContext = '';\nif (externalResearch.length > 0) {\n  externalContext = '## External System Integration Research\\n\\n' +\n    'Research findings for external dependencies:\\n\\n' +\n    externalResearch.map((r, idx) =>\n      `${idx + 1}. **${r.title}**\\n   ${r.snippet}\\n   Source: ${r.url}`\n    ).join('\\n\\n');\n}\n\n// Combine and truncate to avoid exceeding context limits\nconst fullContext = [internalContext, externalContext]\n  .filter(Boolean)\n  .join('\\n\\n---\\n\\n')\n  .slice(0, 4000);\n\n// Pass through the original context\nconst passContext = classifyData?.passContext || $('Pass Context').first()?.json || {};\n\nreturn [{\n  json: {\n    ...passContext,\n    researchContext: fullContext,\n    internalNouns: classifyData?.internalNouns || [],\n    externalNouns: classifyData?.externalNouns || [],\n    hasInternalRules: internalRules.length > 0,\n    hasExternalResearch: externalResearch.length > 0,\n    researchSummary: {\n      totalNouns: (classifyData?.internalNouns?.length || 0) + (classifyData?.externalNouns?.length || 0),\n      internalRulesFound: internalRules.length,\n      externalSourcesFound: externalResearch.length\n    }\n  }\n}];"
+      },
       "id": "research-aggregate",
       "name": "Aggregate Research Context",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2552,
+        2560,
         304
-      ],
-      "parameters": {
-        "jsCode": "// Aggregate research context for BRD generation\n// Handle both branches: from Parse Results (research done) or direct from If (no research needed)\nlet classifyData, parsedData;\n\ntry {\n  // Try to get from research path\n  parsedData = $('Parse Research Results').first()?.json;\n  classifyData = parsedData?.classifyData || $('Classify Nouns (Qdrant)').first().json;\n} catch (e) {\n  // Direct path - no research was done\n  classifyData = $('Classify Nouns (Qdrant)').first().json;\n  parsedData = { internalRules: [], externalResearch: [] };\n}\n\nconst internalRules = parsedData?.internalRules || [];\nconst externalResearch = parsedData?.externalResearch || [];\n\n// Build internal context section\nlet internalContext = '';\nif (internalRules.length > 0) {\n  internalContext = '## Internal Business Rules & System Constraints\\n\\n' +\n    'The following internal systems and rules apply:\\n\\n' +\n    internalRules.map((r, idx) =>\n      `${idx + 1}. ${(r.content || '').slice(0, 600)}\\n   (Relevance: ${Math.round((r.score || 0) * 100)}%)`\n    ).join('\\n\\n');\n}\n\n// Build external context section\nlet externalContext = '';\nif (externalResearch.length > 0) {\n  externalContext = '## External System Integration Research\\n\\n' +\n    'Research findings for external dependencies:\\n\\n' +\n    externalResearch.map((r, idx) =>\n      `${idx + 1}. **${r.title}**\\n   ${r.snippet}\\n   Source: ${r.url}`\n    ).join('\\n\\n');\n}\n\n// Combine and truncate to avoid exceeding context limits\nconst fullContext = [internalContext, externalContext]\n  .filter(Boolean)\n  .join('\\n\\n---\\n\\n')\n  .slice(0, 4000);\n\n// Pass through the original context\nconst passContext = classifyData?.passContext || $('Pass Context').first()?.json || {};\n\nreturn [{\n  json: {\n    ...passContext,\n    researchContext: fullContext,\n    internalNouns: classifyData?.internalNouns || [],\n    externalNouns: classifyData?.externalNouns || [],\n    hasInternalRules: internalRules.length > 0,\n    hasExternalResearch: externalResearch.length > 0,\n    researchSummary: {\n      totalNouns: (classifyData?.internalNouns?.length || 0) + (classifyData?.externalNouns?.length || 0),\n      internalRulesFound: internalRules.length,\n      externalSourcesFound: externalResearch.length\n    }\n  }\n}];"
-      }
+      ]
     },
     {
       "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": true,
+            "version": 2,
             "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
+            "caseSensitive": true,
+            "typeValidation": "loose"
           },
           "conditions": [
             {
@@ -968,13 +965,12 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1100,
-        250
+        1104,
+        256
       ]
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}?api-version=7.1",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
@@ -985,27 +981,27 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1340,
-        250
+        1344,
+        144
       ],
       "credentials": {
         "httpBasicAuth": {
-          "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
-          "name": "Azure DevOps PAT"
+          "id": "kck9Sr0DATIIbF3R",
+          "name": "Unnamed credential"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Build Azure DevOps push payload\nconst ctx = $('Build Git Script').first().json;\nconst repoInfo = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content - try common variable names\nconst artifactContent = ctx.brdMarkdown || ctx.artifactMarkdown || ctx.content || '';\nconst artifactPath = \"/docs/BRD.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// For new branches, use all zeros as oldObjectId\nconst oldObjectId = '0000000000000000000000000000000000000000';\n\n// Build the push payload\nconst changes = [{\n  changeType: 'add',\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString('base64'),\n    contentType: 'base64encoded'\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo\n  }\n}];"
+        "jsCode": "// Build Azure DevOps push payload\nconst ctx = $(\"Build Git Script\").first().json;\nconst repoInfo = $(\"Get Azure Repo Info\").first().json;\nconst branchCheck = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content\nconst artifactContent = ctx.brdMarkdown || ctx.artifactMarkdown || ctx.content || \"\";\nconst artifactPath = \"/docs/BRD.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// Check if branch exists and get its current commit SHA\nlet oldObjectId = \"0000000000000000000000000000000000000000\";\nlet changeType = \"add\";\n\nif (branchCheck.value && branchCheck.value.length > 0) {\n  // Branch exists - use current commit SHA for update\n  oldObjectId = branchCheck.value[0].objectId;\n  changeType = \"edit\"; // Update existing file\n}\n\n// Build the push payload\nconst changes = [{\n  changeType: changeType,\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString(\"base64\"),\n    contentType: \"base64encoded\"\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo,\n    branchExists: branchCheck.value && branchCheck.value.length > 0\n  }\n}];"
       },
       "id": "build-azure-payload-cee22d86",
       "name": "Build Azure Push Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1580,
-        250
+        1584,
+        256
       ]
     },
     {
@@ -1024,38 +1020,28 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1820,
-        250
+        1824,
+        256
       ],
       "credentials": {
         "httpBasicAuth": {
-          "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
-          "name": "Azure DevOps PAT"
+          "id": "kck9Sr0DATIIbF3R",
+          "name": "Unnamed credential"
         }
       }
     },
     {
       "parameters": {
-        "mode": "combine",
-        "mergeByFields": {
-          "values": [
-            {
-              "field1": "jobId",
-              "field2": "jobId"
-            }
-          ]
-        },
-        "options": {
-          "fuzzyCompare": false
-        }
+        "mode": "append",
+        "options": {}
       },
       "id": "merge-results-d44ebf61",
       "name": "Merge Git Results",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
       "position": [
-        2060,
-        125
+        2064,
+        128
       ]
     },
     {
@@ -1065,9 +1051,38 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1580,
+        1584,
         400
       ]
+    },
+    {
+      "id": "d876bf55-46fe-4b8a-843b-5f539afcc8ef",
+      "name": "Check Azure Branch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1464,
+        144
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/refs?filter=heads/{{ $(\"Build Git Script\").first().json.projectSlug }}&api-version=7.1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "kck9Sr0DATIIbF3R",
+          "name": "Unnamed credential"
+        }
+      }
     }
   ],
   "connections": {
@@ -1576,17 +1591,6 @@
         ]
       ]
     },
-    "Get Azure Repo Info": {
-      "main": [
-        [
-          {
-            "node": "Build Azure Push Payload",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Build Azure Push Payload": {
       "main": [
         [
@@ -1630,6 +1634,28 @@
           }
         ]
       ]
+    },
+    "Get Azure Repo Info": {
+      "main": [
+        [
+          {
+            "node": "Check Azure Branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Azure Branch": {
+      "main": [
+        [
+          {
+            "node": "Build Azure Push Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -1641,6 +1667,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
+  "versionId": "62431be1-de31-426a-9869-7c8011f5e0c3",
+  "activeVersionId": "62431be1-de31-426a-9869-7c8011f5e0c3",
+  "versionCounter": 147,
   "triggerCount": 1,
   "shared": [
     {
@@ -1664,7 +1693,7 @@
             "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
             "projectId": "nxaQcUOSSZTVQUEF",
             "user": {
-              "updatedAt": "2026-01-26T05:03:20.891Z",
+              "updatedAt": "2026-01-27T09:40:50.835Z",
               "createdAt": "2025-12-22T10:30:48.161Z",
               "id": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
               "email": "socrates.hlapolosa@gmail.com",
@@ -1679,7 +1708,7 @@
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2026-01-26",
+              "lastActiveAt": "2026-01-27",
               "isPending": false
             }
           }
@@ -1687,5 +1716,1676 @@
       }
     }
   ],
-  "tags": []
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-01-27T10:31:22.641Z",
+    "createdAt": "2026-01-27T10:31:22.641Z",
+    "versionId": "62431be1-de31-426a-9869-7c8011f5e0c3",
+    "workflowId": "nmqyIEwcwVfiIIOu",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "id": "trigger",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          0,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "id": "chat-mode",
+                      "leftValue": "={{ $json.mode }}",
+                      "rightValue": "chat",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Chat"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "id": "execute-mode",
+                      "leftValue": "={{ $json.mode }}",
+                      "rightValue": "execute",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Execute"
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "extra"
+          }
+        },
+        "id": "mode-router",
+        "name": "Mode Router",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          192,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Business Analyst Chat Handler - Pipeline Specific\nconst input = $input.all()[0].json;\nconst intent = input.intent || 'help';\nconst projectSlug = input.projectSlug || null;\nconst query = input.query || input.rawInput || '';\n\nconst STAGE = 'business-analysis';\nconst ARTIFACT_TYPE = 'brd';\n\nlet response = {\n  agent: 'Business Analyst',\n  stage: STAGE,\n  intent: intent,\n  success: true\n};\n\nswitch (intent) {\n  case 'help':\n    response.content = `# Business Analyst Pipeline\\n\\n## Available Commands\\n\\n| Command | Description |\\n|---------|-------------|\\n| help | Show this help message |\\n| status [project] | Check job status for a project |\\n| artifacts [project] | List BRD artifacts for a project |\\n| jobs | List recent jobs for this pipeline |\\n| list | List all projects |\\n\\n## Execute Mode\\n\\nTo generate a BRD, send a request like:\\n\\`\\`\\`\\nBuild me a task management API with CRUD operations\\n\\`\\`\\`\\n\\nOr with explicit parameters:\\n\\`\\`\\`json\\n{\\n  \"requirements\": \"Your requirements...\",\\n  \"projectSlug\": \"my-project\",\\n  \"projectName\": \"My Project\"\\n}\\n\\`\\`\\``;\n    response.message = 'Business Analyst Help';\n    break;\n    \n  case 'status':\n    response.action = 'query_db';\n    response.queryType = 'status';\n    response.sql = projectSlug \n      ? `SELECT j.id, j.stage, j.status, j.created_at, j.completed_at, p.slug, p.name FROM architecture.jobs j JOIN architecture.projects p ON j.project_id = p.id WHERE j.stage = '${STAGE}' AND p.slug = '${projectSlug}' ORDER BY j.created_at DESC LIMIT 5`\n      : `SELECT j.id, j.stage, j.status, j.created_at, j.completed_at, p.slug, p.name FROM architecture.jobs j JOIN architecture.projects p ON j.project_id = p.id WHERE j.stage = '${STAGE}' ORDER BY j.created_at DESC LIMIT 10`;\n    break;\n    \n  case 'artifacts':\n    response.action = 'query_db';\n    response.queryType = 'artifacts';\n    response.sql = projectSlug\n      ? `SELECT a.id, a.type, a.version, a.created_at, p.slug, p.name FROM architecture.artifacts a JOIN architecture.projects p ON a.project_id = p.id WHERE a.type = '${ARTIFACT_TYPE}' AND p.slug = '${projectSlug}' ORDER BY a.version DESC LIMIT 10`\n      : `SELECT a.id, a.type, a.version, a.created_at, p.slug, p.name FROM architecture.artifacts a JOIN architecture.projects p ON a.project_id = p.id WHERE a.type = '${ARTIFACT_TYPE}' ORDER BY a.created_at DESC LIMIT 10`;\n    break;\n    \n  case 'jobs':\n    response.action = 'query_db';\n    response.queryType = 'jobs';\n    response.sql = `SELECT j.id, j.stage, j.status, j.created_at, j.completed_at, p.slug, p.name FROM architecture.jobs j JOIN architecture.projects p ON j.project_id = p.id WHERE j.stage = '${STAGE}' ORDER BY j.created_at DESC LIMIT 20`;\n    break;\n    \n  case 'list':\n    response.action = 'query_db';\n    response.queryType = 'projects';\n    response.sql = `SELECT p.id, p.slug, p.name, p.created_at, p.updated_at, (SELECT COUNT(*) FROM architecture.artifacts a WHERE a.project_id = p.id AND a.type = '${ARTIFACT_TYPE}') as brd_count, (SELECT COUNT(*) FROM architecture.jobs j WHERE j.project_id = p.id AND j.stage = '${STAGE}') as job_count FROM architecture.projects p ORDER BY p.updated_at DESC LIMIT 20`;\n    break;\n    \n  default:\n    response.success = false;\n    response.message = `Unknown intent: ${intent}`;\n    response.content = 'Try \"help\" to see available commands.';\n}\n\nreturn [{ json: response }];"
+        },
+        "id": "chat-handler",
+        "name": "Chat Handler",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          336,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "name": "requirements",
+                "value": "={{ $json.requirements || '' }}",
+                "type": "string"
+              },
+              {
+                "name": "projectName",
+                "value": "={{ $json.projectName || 'architecture-project' }}",
+                "type": "string"
+              },
+              {
+                "name": "projectSlug",
+                "value": "={{ $json.projectSlug || 'architecture-project' }}",
+                "type": "string"
+              },
+              {
+                "name": "comments",
+                "value": "={{ $json.comments || null }}",
+                "type": "string"
+              },
+              {
+                "name": "ackJobId",
+                "value": "={{ $json.ackJobId || null }}",
+                "type": "string"
+              },
+              {
+                "name": "ollamaUrl",
+                "value": "http://ollama:11434/api/chat",
+                "type": "string"
+              },
+              {
+                "name": "ollamaModel",
+                "value": "llama3.1:8b-instruct-q4_K_M",
+                "type": "string"
+              },
+              {
+                "name": "ollamaTemperature",
+                "value": 0,
+                "type": "number"
+              },
+              {
+                "name": "ollamaSeed",
+                "value": 42,
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "init-params",
+        "name": "Initialize Parameters",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          432,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "CREATE SCHEMA IF NOT EXISTS architecture;\n\nCREATE TABLE IF NOT EXISTS architecture.projects (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  slug text UNIQUE NOT NULL,\n  name text,\n  created_at timestamptz DEFAULT now(),\n  updated_at timestamptz DEFAULT now()\n);\n\nCREATE TABLE IF NOT EXISTS architecture.artifacts (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  project_id uuid NOT NULL REFERENCES architecture.projects(id),\n  type text NOT NULL,\n  version int NOT NULL,\n  content jsonb NOT NULL,\n  content_hash text NOT NULL,\n  meta jsonb NOT NULL DEFAULT '{}'::jsonb,\n  created_at timestamptz DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS artifacts_project_type_version_idx ON architecture.artifacts(project_id, type, version DESC);\n\nCREATE TABLE IF NOT EXISTS architecture.jobs (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  project_id uuid REFERENCES architecture.projects(id),\n  stage varchar(50) NOT NULL,\n  input_job_id uuid REFERENCES architecture.jobs(id),\n  status varchar(20) DEFAULT 'running',\n  created_at timestamptz DEFAULT now(),\n  completed_at timestamptz,\n  meta jsonb DEFAULT '{}'::jsonb\n);\n\nCREATE INDEX IF NOT EXISTS jobs_project_stage_idx ON architecture.jobs(project_id, stage, created_at DESC);",
+          "options": {}
+        },
+        "id": "ensure-schema",
+        "name": "Ensure DB Schema",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          640,
+          128
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO architecture.projects (slug, name, updated_at)\nVALUES ($1, $2, now())\nON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, updated_at = now()\nRETURNING id, slug, name;",
+          "options": {
+            "queryReplacement": "={{ [ $json.projectSlug, $json.projectName ] }}"
+          }
+        },
+        "id": "upsert-project",
+        "name": "Upsert Project",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          672,
+          304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO architecture.jobs (project_id, stage, status, meta)\nVALUES ($1, 'business-analysis', 'running', $2::jsonb)\nRETURNING id, stage, status, created_at;",
+          "options": {
+            "queryReplacement": "={{ [ $json.id, JSON.stringify({ ackJobId: $('Initialize Parameters').first().json.ackJobId, comments: $('Initialize Parameters').first().json.comments }) ] }}"
+          }
+        },
+        "id": "create-job",
+        "name": "Create BA Job",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          912,
+          304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Carry forward context for downstream nodes\nconst init = $('Initialize Parameters').first().json;\nconst project = $('Upsert Project').first().json;\nconst job = $json;\nreturn [{ json: { ...init, projectId: project.id, projectSlug: project.slug, projectName: project.name, jobId: job.id, jobStage: job.stage } }];"
+        },
+        "id": "pass-context",
+        "name": "Pass Context",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1152,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT content, version, content_hash, created_at\nFROM architecture.artifacts\nWHERE project_id = $1 AND type = 'brd'\nORDER BY version DESC\nLIMIT 1;",
+          "options": {
+            "queryReplacement": "={{ [ $json.projectId ] }}"
+          }
+        },
+        "id": "load-brd",
+        "name": "Load Latest BRD",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1104,
+          0
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Normalize rows from Postgres\nconst items = $input.all();\nif (!items.length) return [{ json: { rows: [] } }];\nconst rows = items.map(i => i.json);\nreturn [{ json: { rows } }];"
+        },
+        "id": "normalize-brd",
+        "name": "Normalize BRD Rows",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1104,
+          0
+        ],
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "jsCode": "// Determine if we have an existing BRD\nconst rows = Array.isArray($json.rows) ? $json.rows : [];\nconst first = rows[0] || null;\nconst brd = first && typeof first.content === 'object' ? first.content : null;\nconst hasBrd = !!(brd && brd.type === 'brd' && brd.title && brd.executiveSummary);\n\nreturn hasBrd\n  ? [{ json: { hasBrd: true, brdFromDb: brd } }]\n  : [{ json: { hasBrd: false } }];"
+        },
+        "id": "determine-brd-flow",
+        "name": "Determine BRD Flow",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1104,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "condition-hasBrd",
+                "leftValue": "={{ $json.hasBrd }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "brd-router",
+        "name": "BRD Source Router",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1104,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "brdSource",
+                "name": "brdSource",
+                "type": "string",
+                "value": "db"
+              },
+              {
+                "id": "message",
+                "name": "message",
+                "type": "object",
+                "value": "={{ { content: JSON.stringify($('Determine BRD Flow').first().json.brdFromDb) } }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "use-existing-brd",
+        "name": "Use Existing BRD",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1104,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://ollama:11434/api/chat",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a Business Analyst. Output ONLY JSON that matches the schema. No markdown.\\n\\n' + ($('Aggregate Research Context').first().json.researchContext ? $('Aggregate Research Context').first().json.researchContext + '\\n\\n---\\n\\n' : '') + 'CONTEXT USAGE INSTRUCTIONS:\\n- Internal Business Rules (if provided above) are AUTHORITATIVE - follow them precisely\\n- External Integration Research (if provided) should inform requirements but not override internal constraints\\n- Clearly distinguish in your BRD between:\\n  * Internal capabilities (systems we own/build)\\n  * External integrations (third-party services we consume)\\n  * Compliance requirements (standards we must follow)\\n\\nWhen writing requirements:\\n- Use specific constraints from internal business rules for acceptance criteria\\n- Reference external research to ensure realistic integration patterns\\n- Flag any conflicts between internal rules and external best practices\\n- Include integration complexity assessments for external dependencies'\n    },\n    { role: 'user', content: $('Initialize Parameters').first().json.requirements }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['type','title','version','executiveSummary','problemStatement','businessObjectives','stakeholders','scope','constraints','assumptions','successCriteria'],\n    properties: {\n      type: { const: 'brd' },\n      title: { type: 'string' },\n      version: { type: 'string' },\n      executiveSummary: { type: 'string' },\n      problemStatement: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['currentState','painPoints','impact'],\n        properties: {\n          currentState: { type: 'string' },\n          painPoints: { type: 'array', items: { type: 'string' } },\n          impact: { type: 'string' }\n        }\n      },\n      businessObjectives: { type: 'array' },\n      stakeholders: { type: 'array' },\n      scope: { type: 'object' },\n      constraints: { type: 'array' },\n      assumptions: { type: 'array' },\n      successCriteria: { type: 'array' }\n    }\n  },\n  options: {\n    temperature: $('Initialize Parameters').first().json.ollamaTemperature,\n    seed: $('Initialize Parameters').first().json.ollamaSeed\n  }\n} }}",
+          "options": {}
+        },
+        "id": "generate-brd",
+        "name": "Generate BRD",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1104,
+          0
+        ],
+        "retryOnFail": true
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "brdSource",
+                "name": "brdSource",
+                "type": "string",
+                "value": "generated"
+              }
+            ]
+          },
+          "includeOtherFields": true,
+          "options": {}
+        },
+        "id": "mark-brd-generated",
+        "name": "Mark BRD Generated",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1104,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Validate BRD structure\nconst raw = $json.message?.content;\nlet brd;\ntry {\n  brd = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { ...$json, valid: false, errors: ['BRD JSON parse failed: ' + e.message], brd: null } }];\n}\n\nconst errors = [];\nif (brd?.type !== 'brd') errors.push('type must be brd');\nif (!brd?.title) errors.push('title is required');\nif (!brd?.executiveSummary) errors.push('executiveSummary is required');\nif (!brd?.problemStatement) errors.push('problemStatement is required');\nif (!Array.isArray(brd?.businessObjectives)) errors.push('businessObjectives must be array');\nif (!Array.isArray(brd?.stakeholders)) errors.push('stakeholders must be array');\nif (!brd?.scope) errors.push('scope is required');\n\nconst fnv1a = (input) => {\n  const str = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst brdHash = fnv1a(JSON.stringify(brd));\n\nreturn [{ json: { ...$json, valid, errors, brd, brdHash } }];"
+        },
+        "id": "validate-brd",
+        "name": "Validate BRD",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1104,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'brd'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'brd', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+          "options": {
+            "queryReplacement": "={{ [ $('Pass Context').first().json.projectId, JSON.stringify($json.brd), $json.brdHash, JSON.stringify({ jobId: $('Pass Context').first().json.jobId, model: $('Initialize Parameters').first().json.ollamaModel }) ] }}"
+          }
+        },
+        "id": "store-brd",
+        "name": "Store BRD Artifact",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1104,
+          0
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Build BRD.md content from validated BRD\nconst ctx = $('Pass Context').first().json;\nconst brd = $('Validate BRD').first().json.brd;\n\nconst fmt = (item, field) => {\n  if (typeof item === 'string') return item;\n  if (item && typeof item === 'object') {\n    if (field && item[field]) return item[field];\n    if (item.description) return item.description;\n    if (item.name) return item.name;\n    return JSON.stringify(item);\n  }\n  return String(item);\n};\n\nconst fmtObjective = (o) => {\n  if (typeof o === 'string') return o;\n  const desc = o.description || '';\n  const metric = o.metric ? ` (Metric: ${o.metric})` : '';\n  const date = o.targetDate ? ` [Target: ${o.targetDate}]` : '';\n  return `${desc}${metric}${date}`;\n};\n\nconst fmtStakeholder = (s) => {\n  if (typeof s === 'string') return s;\n  const name = s.name || 'Unknown';\n  const desc = s.description ? `: ${s.description}` : '';\n  const reqs = Array.isArray(s.requirements) && s.requirements.length > 0 ? `\\n  - Requirements: ${s.requirements.join(', ')}` : '';\n  return `**${name}**${desc}${reqs}`;\n};\n\nconst fmtConstraint = (c) => {\n  if (typeof c === 'string') return c;\n  const desc = c.description || '';\n  const impact = c.impact ? ` (Impact: ${c.impact})` : '';\n  return `${desc}${impact}`;\n};\n\nconst fmtAssumption = (a) => {\n  if (typeof a === 'string') return a;\n  const desc = a.description || '';\n  const rationale = a.rationale ? ` (Rationale: ${a.rationale})` : '';\n  return `${desc}${rationale}`;\n};\n\nconst fmtCriteria = (s) => {\n  if (typeof s === 'string') return s;\n  const desc = s.description || '';\n  const date = s.targetDate ? ` [Target: ${s.targetDate}]` : '';\n  return `${desc}${date}`;\n};\n\nconst md = [\n  `# Business Requirements Document: ${ctx.projectName}`,\n  '',\n  `## Executive Summary`,\n  '',\n  brd?.executiveSummary || '',\n  '',\n  '## Problem Statement',\n  '',\n  `### Current State`,\n  brd?.problemStatement?.currentState || '',\n  '',\n  '### Pain Points',\n  ...(Array.isArray(brd?.problemStatement?.painPoints) ? brd.problemStatement.painPoints.map(p => `- ${p}`) : ['- N/A']),\n  '',\n  `### Impact`,\n  brd?.problemStatement?.impact || '',\n  '',\n  '## Business Objectives',\n  ...(Array.isArray(brd?.businessObjectives) ? brd.businessObjectives.map(o => `- ${fmtObjective(o)}`) : ['- N/A']),\n  '',\n  '## Success Metrics (KPIs)',\n  ...(Array.isArray(brd?.successCriteria) ? brd.successCriteria.map(s => `- ${fmtCriteria(s)}`) : ['- N/A']),\n  '',\n  '## Stakeholders',\n  ...(Array.isArray(brd?.stakeholders) ? brd.stakeholders.map(s => `- ${fmtStakeholder(s)}`) : ['- N/A']),\n  '',\n  '## Constraints & Assumptions',\n  '### Constraints',\n  ...(Array.isArray(brd?.constraints) ? brd.constraints.map(c => `- ${fmtConstraint(c)}`) : ['- N/A']),\n  '',\n  '### Assumptions',\n  ...(Array.isArray(brd?.assumptions) ? brd.assumptions.map(a => `- ${fmtAssumption(a)}`) : ['- N/A']),\n  '',\n  '## Scope',\n  '',\n  '### In Scope',\n  ...(Array.isArray(brd?.scope?.inclusions) ? brd.scope.inclusions.map(f => `- ${f}`) : (brd?.scope?.inScope ? [brd.scope.inScope] : ['- N/A'])),\n  '',\n  '### Out of Scope',\n  ...(Array.isArray(brd?.scope?.exclusions) ? brd.scope.exclusions.map(f => `- ${f}`) : (Array.isArray(brd?.scope?.outOfScope) ? brd.scope.outOfScope.map(f => `- ${f}`) : ['- N/A'])),\n].join('\\n');\n\nreturn [{ json: { ...ctx, brdMarkdown: md, brd } }];"
+        },
+        "id": "render-brd-md",
+        "name": "Render BRD.md",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1104,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Build git script for BRD.md commit\nconst ctx = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\nlet sh = '';\nsh += 'set -e\\n';\nsh += 'mkdir -p /opt/workspace\\n';\nsh += \"if [ ! -d '\" + repoDir + \"/.git' ]; then git clone '\" + remote + \"' '\" + repoDir + \"'; fi\\n\";\nsh += \"cd '\" + repoDir + \"'\\n\";\nsh += \"git remote set-url origin '\" + remote + \"'\\n\";\nsh += 'git fetch origin\\n';\nsh += \"git checkout -B '\" + projectSlug + \"' 'origin/\" + projectSlug + \"' 2>/dev/null || git checkout -B '\" + projectSlug + \"'\\n\";\nsh += \"mkdir -p '\" + projectDir + \"/docs'\\n\";\n\nsh += \"cat > '\" + projectDir + \"/docs/BRD.md' <<'EOF_\" + jobId + \"'\\n\";\nsh += ctx.brdMarkdown + \"\\nEOF_\" + jobId + \"\\n\";\n\nsh += \"git add '\" + projectSlug + \"-docs/docs/BRD.md'\\n\";\nsh += \"git commit -m 'Add BRD for \" + projectSlug + \" (job \" + jobId + \")' || true\\n\";\nsh += \"git push -u origin '\" + projectSlug + \"'\\n\";\n\nreturn [{ json: { ...ctx, gitScript: sh } }];"
+        },
+        "id": "build-git-script",
+        "name": "Build Git Script",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1104,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "authentication": "privateKey",
+          "command": "={{ $json.gitScript }}"
+        },
+        "id": "ssh-commit",
+        "name": "SSH: Commit BRD",
+        "type": "n8n-nodes-base.ssh",
+        "typeVersion": 1,
+        "position": [
+          1104,
+          0
+        ],
+        "credentials": {
+          "sshPrivateKey": {
+            "id": "SxKNiry9nQQ96pnU",
+            "name": "SSH Private Key account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "UPDATE architecture.jobs SET status = 'completed', completed_at = now() WHERE id = $1 RETURNING id, status, completed_at;",
+          "options": {
+            "queryReplacement": "={{ [ $('Pass Context').first().json.jobId ] }}"
+          }
+        },
+        "id": "update-job-status",
+        "name": "Update Job Status",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1104,
+          0
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Return result to caller\nconst ctx = $('Pass Context').first().json;\nreturn [{ json: {\n  success: true,\n  jobId: ctx.jobId,\n  projectSlug: ctx.projectSlug,\n  stage: 'business-analysis',\n  brdPath: ctx.projectSlug + '-docs/docs/BRD.md'\n} }];"
+        },
+        "id": "return-result",
+        "name": "Return Result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1104,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "pipeline/business-analysis",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "webhook-entry",
+        "name": "Webhook: Business Analysis",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -608,
+          304
+        ],
+        "webhookId": "53a806fa-0474-4242-b29c-3d1cec40f4cb"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Parse and normalize incoming request\n// Detect Open WebUI system prompts (auto-tagging, follow-ups, title generation)\nconst input = $json.body || $json;\nconst chatInput = input.chatInput || input.message || input.query || '';\nconst requirements = input.requirements || '';\n\n// Detect Open WebUI system prompts\nconst isAutoTag = chatInput.includes('### Task:') && chatInput.includes('Generate 1-3 broad tags');\nconst isFollowUp = chatInput.includes('### Task:') && chatInput.includes('Suggest 3-5 relevant follow-up');\nconst isTitleGen = chatInput.includes('### Task:') && chatInput.includes('Generate a concise');\nconst isSystemPrompt = isAutoTag || isFollowUp || isTitleGen;\n\n// Also check requirements field for system prompts\nconst reqIsAutoTag = requirements.includes('### Task:') && requirements.includes('Generate 1-3 broad tags');\nconst reqIsFollowUp = requirements.includes('### Task:') && requirements.includes('Suggest 3-5 relevant follow-up');\nconst reqIsTitleGen = requirements.includes('### Task:') && requirements.includes('Generate a concise');\nconst reqIsSystemPrompt = reqIsAutoTag || reqIsFollowUp || reqIsTitleGen;\n\n// Determine system prompt type\nlet systemPromptType = null;\nif (isAutoTag || reqIsAutoTag) systemPromptType = 'auto-tag';\nelse if (isFollowUp || reqIsFollowUp) systemPromptType = 'follow-up';\nelse if (isTitleGen || reqIsTitleGen) systemPromptType = 'title-gen';\n\nreturn [{ json: {\n  rawInput: chatInput,\n  projectSlug: input.projectSlug || null,\n  projectName: input.projectName || null,\n  requirements: input.requirements || null,\n  sessionId: input.sessionId || null,\n  isSystemPrompt: isSystemPrompt || reqIsSystemPrompt,\n  systemPromptType: systemPromptType\n} }];"
+        },
+        "id": "parse-input",
+        "name": "Parse Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -400,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://ollama:11434/api/chat",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a classifier for a Business Analysis pipeline. Analyze the user input and determine the mode and intent.\\n\\nMODE RULES:\\n- mode=chat: For queries, help requests, status checks. Keywords: help, status, list, artifacts, jobs, what, how, show, get, query, ?\\n- mode=execute: For creating/building/generating BRD documents. Keywords: build, create, generate, make, develop, design a, implement\\n\\nIf input is a single word like \"help\", \"list\", \"jobs\", \"status\" - it is ALWAYS mode=chat.\\nIf input asks a question or requests information - it is mode=chat.\\nOnly use mode=execute when user explicitly wants to CREATE or BUILD something new.\\n\\nChat intents: help, status, artifacts, jobs, list\\nExecute intents: create, build, generate\\n\\nOutput JSON only.'\n    },\n    { role: 'user', content: $json.rawInput || $json.requirements }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    required: ['mode', 'intent'],\n    properties: {\n      mode: { type: 'string', enum: ['chat', 'execute'] },\n      intent: { type: 'string' },\n      projectSlug: { type: 'string' },\n      requirements: { type: 'string' }\n    }\n  },\n  options: { temperature: 0.1 }\n} }}",
+          "options": {}
+        },
+        "id": "classify-mode",
+        "name": "Classify Mode",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -208,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Process LLM classification response\nconst parseInput = $('Parse Input').first().json;\nconst llmResponse = $json.message?.content || '{}';\n\nlet classified;\ntry {\n  classified = typeof llmResponse === 'string' ? JSON.parse(llmResponse) : llmResponse;\n} catch (e) {\n  classified = { mode: 'chat', intent: 'help' };\n}\n\nconst mode = classified.mode || 'chat';\nconst intent = classified.intent || 'help';\n\nconst projectSlug = parseInput.projectSlug || classified.projectSlug || null;\nconst requirements = parseInput.requirements || classified.requirements || parseInput.rawInput;\nconst projectName = parseInput.projectName || projectSlug || 'new-project';\n\nreturn [{ json: {\n  mode,\n  intent,\n  projectSlug,\n  projectName,\n  requirements,\n  rawInput: parseInput.rawInput,\n  sessionId: parseInput.sessionId\n} }];"
+        },
+        "id": "process-classification",
+        "name": "Process Classification",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          0,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.mode }}",
+                "rightValue": "chat",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                },
+                "id": "condition-1769179635806-1aiiok195"
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-mode-check",
+        "name": "If: Mode Check",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          208,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {}
+        },
+        "id": "respond-chat",
+        "name": "Respond: Chat",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          592,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ { status: 'accepted', message: 'BRD generation started for project: ' + $('Upsert Project').first().json.slug, stage: 'business-analysis', projectSlug: $('Upsert Project').first().json.slug, projectName: $('Upsert Project').first().json.name } }}",
+          "options": {}
+        },
+        "id": "respond-execute-ack",
+        "name": "Respond: Execute Ack",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          1024,
+          128
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.isSystemPrompt }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                },
+                "id": "condition-1769185448096-8ukb8pn3z"
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-system-prompt",
+        "name": "If: System Prompt",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -304,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Handle Open WebUI system prompts (auto-tag, follow-up, title-gen)\nconst input = $json;\nconst promptType = input.systemPromptType;\n\nlet response = {};\n\nswitch (promptType) {\n  case 'auto-tag':\n    // Return generic business analysis tags\n    response = { tags: ['Business', 'Analysis', 'Requirements'] };\n    break;\n  case 'follow-up':\n    // Return relevant follow-up questions\n    response = { follow_ups: [\n      'What is the current project status?',\n      'Can you show me the latest BRD artifacts?',\n      'What are the recent jobs for this pipeline?'\n    ] };\n    break;\n  case 'title-gen':\n    // Return a simple title\n    response = { title: 'Business Analysis Session' };\n    break;\n  default:\n    response = { message: 'Unknown system prompt type' };\n}\n\nreturn [{ json: response }];"
+        },
+        "id": "system-prompt-handler",
+        "name": "System Prompt Handler",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -96,
+          80
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {}
+        },
+        "id": "respond-system-prompt",
+        "name": "Respond: System Prompt",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          112,
+          80
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.action }}",
+                "rightValue": "query_db",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                },
+                "id": "condition-1769187388116-7uh0bwmrb"
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-needs-db-query",
+        "name": "If: Needs DB Query",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          432,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.sql }}",
+          "options": {}
+        },
+        "id": "execute-chat-query",
+        "name": "Execute Chat Query",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          624,
+          -128
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Format DB query results for chat response\nconst chatHandler = $('Chat Handler').first().json;\nconst queryType = chatHandler.queryType;\nconst rows = $input.all().map(i => i.json);\n\nlet content = '';\nlet message = '';\n\nif (rows.length === 0) {\n  content = 'No results found.';\n  message = 'Empty result set';\n} else {\n  switch (queryType) {\n    case 'projects':\n      content = '# Projects\\n\\n| Slug | Name | BRDs | Jobs | Updated |\\n|------|------|------|------|---------|\\n';\n      for (const row of rows) {\n        const updated = row.updated_at ? new Date(row.updated_at).toLocaleDateString() : 'N/A';\n        content += `| ${row.slug} | ${row.name || 'N/A'} | ${row.brd_count || 0} | ${row.job_count || 0} | ${updated} |\\n`;\n      }\n      message = `Found ${rows.length} project(s)`;\n      break;\n      \n    case 'status':\n    case 'jobs':\n      content = '# Jobs\\n\\n| ID | Project | Stage | Status | Created | Completed |\\n|----|---------|-------|--------|---------|-----------|\\n';\n      for (const row of rows) {\n        const created = row.created_at ? new Date(row.created_at).toLocaleDateString() : 'N/A';\n        const completed = row.completed_at ? new Date(row.completed_at).toLocaleDateString() : '-';\n        const shortId = (row.id || '').substring(0, 8);\n        content += `| ${shortId}... | ${row.slug || 'N/A'} | ${row.stage} | ${row.status} | ${created} | ${completed} |\\n`;\n      }\n      message = `Found ${rows.length} job(s)`;\n      break;\n      \n    case 'artifacts':\n      content = '# Artifacts\\n\\n| ID | Project | Type | Version | Created |\\n|----|---------|------|---------|---------|\\n';\n      for (const row of rows) {\n        const created = row.created_at ? new Date(row.created_at).toLocaleDateString() : 'N/A';\n        const shortId = (row.id || '').substring(0, 8);\n        content += `| ${shortId}... | ${row.slug || 'N/A'} | ${row.type} | v${row.version} | ${created} |\\n`;\n      }\n      message = `Found ${rows.length} artifact(s)`;\n      break;\n      \n    default:\n      content = '```json\\n' + JSON.stringify(rows, null, 2) + '\\n```';\n      message = `Query returned ${rows.length} row(s)`;\n  }\n}\n\nreturn [{ json: {\n  agent: chatHandler.agent,\n  stage: chatHandler.stage,\n  intent: chatHandler.intent,\n  success: true,\n  content: content,\n  message: message,\n  rowCount: rows.length\n} }];"
+        },
+        "id": "format-chat-results",
+        "name": "Format Chat Results",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          816,
+          -128
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://ollama:11434/api/chat",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    {\n      role: 'system',\n      content: 'Extract all significant nouns from the requirements text. Focus on: system names, services, technologies, integrations, compliance standards, and business domains. Return ONLY a JSON array of nouns, lowercase, deduplicated. Example: [\"stripe\", \"oauth\", \"gdpr\", \"payment\"]'\n    },\n    {\n      role: 'user',\n      content: $('Pass Context').first().json.requirements || ''\n    }\n  ],\n  stream: false,\n  format: { type: 'array', items: { type: 'string' } },\n  options: { temperature: 0.1 }\n} }}",
+          "options": {}
+        },
+        "id": "research-extract-nouns",
+        "name": "Extract Nouns (LLM)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1360,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Parse LLM response and filter nouns\nconst response = $input.first().json;\nconst requirements = $('Pass Context').first().json.requirements || '';\nlet nouns = [];\n\ntry {\n  const content = response.message?.content || '[]';\n  const parsed = JSON.parse(content);\n  nouns = Array.isArray(parsed) ? parsed : (parsed.nouns || []);\n} catch (e) {\n  // Fallback: extract array from text\n  const match = (response.message?.content || '').match(/\\[([^\\]]+)\\]/);\n  if (match) {\n    nouns = match[1].split(',').map(s => s.trim().replace(/['\"]/g, '').toLowerCase());\n  }\n}\n\n// Filter short words and deduplicate\nnouns = [...new Set(nouns.filter(n => n && n.length > 2))];\n\nreturn [{\n  json: {\n    requirements,\n    extractedNouns: nouns,\n    nounCount: nouns.length,\n    passContext: $('Pass Context').first().json\n  }\n}];"
+        },
+        "id": "research-process-nouns",
+        "name": "Process Nouns",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1552,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Classify nouns as internal vs external via Qdrant\nconst nouns = $input.first().json.extractedNouns || [];\nconst passContext = $input.first().json.passContext;\n\nif (nouns.length === 0) {\n  return [{\n    json: {\n      internalNouns: [],\n      externalNouns: [],\n      researchNeeded: false,\n      searchQuery: '',\n      embedding: null,\n      qdrantHitCount: 0,\n      passContext\n    }\n  }];\n}\n\n// Create combined search query\nconst combinedQuery = nouns.join(' ');\n\n// Get embedding for combined query using this.helpers.httpRequest\nlet embedding = null;\ntry {\n  const embeddingResponse = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'http://ollama:11434/api/embeddings',\n    body: {\n      model: 'nomic-embed-text',\n      prompt: combinedQuery\n    },\n    json: true\n  });\n  embedding = embeddingResponse.embedding;\n} catch (e) {\n  // Embedding failed - treat all as external\n  return [{\n    json: {\n      internalNouns: [],\n      externalNouns: nouns,\n      researchNeeded: nouns.length > 0,\n      searchQuery: nouns.slice(0, 5).join(' '),\n      embedding: null,\n      qdrantHitCount: 0,\n      error: 'Embedding generation failed: ' + e.message,\n      passContext\n    }\n  }];\n}\n\n// Query Qdrant for internal knowledge\nlet qdrantResults = [];\ntry {\n  const qdrantResponse = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'http://qdrant:6333/collections/agent-knowledge-business-analyst/points/search',\n    body: {\n      vector: embedding,\n      limit: 10,\n      with_payload: true,\n      score_threshold: 0.65\n    },\n    json: true\n  });\n  qdrantResults = qdrantResponse.result || [];\n} catch (e) {\n  // Qdrant query failed (maybe collection doesn't exist) - treat all as external\n  qdrantResults = [];\n}\n\n// Extract internal concepts from Qdrant hits\nconst internalConcepts = new Set();\nqdrantResults.forEach(hit => {\n  const scope = hit.payload?.metadata?.scope || {};\n  (scope.internalSystems || []).forEach(s => internalConcepts.add(s.toLowerCase()));\n  (scope.internalCapabilities || []).forEach(c => internalConcepts.add(c.toLowerCase()));\n  (scope.supportedIntegrations || []).forEach(i => internalConcepts.add(i.toLowerCase()));\n\n  // Check content for direct mentions\n  const content = (hit.payload?.content || '').toLowerCase();\n  nouns.forEach(noun => {\n    if (content.includes(noun.toLowerCase())) {\n      internalConcepts.add(noun.toLowerCase());\n    }\n  });\n});\n\n// Classify nouns\nconst internalNouns = nouns.filter(n => internalConcepts.has(n.toLowerCase()));\nconst externalNouns = nouns.filter(n => !internalConcepts.has(n.toLowerCase()));\n\nreturn [{\n  json: {\n    internalNouns,\n    externalNouns,\n    researchNeeded: externalNouns.length > 0,\n    searchQuery: externalNouns.slice(0, 5).join(' '),\n    embedding,\n    qdrantHitCount: qdrantResults.length,\n    classificationDetails: {\n      totalNouns: nouns.length,\n      internalCount: internalNouns.length,\n      externalCount: externalNouns.length\n    },\n    passContext\n  }\n}];"
+        },
+        "id": "research-classify-nouns",
+        "name": "Classify Nouns (Qdrant)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1760,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "research-needed",
+                "leftValue": "={{ $json.researchNeeded }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "research-if-external",
+        "name": "If: External Nouns Exist",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1952,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://qdrant:6333/collections/agent-knowledge-business-analyst/points/search",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ {\n  vector: $('Classify Nouns (Qdrant)').first().json.embedding,\n  limit: 5,\n  with_payload: true,\n  score_threshold: 0.7\n} }}",
+          "options": {
+            "response": {
+              "response": {
+                "neverError": true
+              }
+            }
+          }
+        },
+        "id": "research-query-internal",
+        "name": "Query Internal Rules",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          2160,
+          176
+        ]
+      },
+      {
+        "parameters": {
+          "url": "http://searxng:8080/search",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "q",
+                "value": "={{ $('Classify Nouns (Qdrant)').first().json.searchQuery + ' software integration best practices' }}"
+              },
+              {
+                "name": "format",
+                "value": "json"
+              },
+              {
+                "name": "categories",
+                "value": "general"
+              },
+              {
+                "name": "language",
+                "value": "en"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "neverError": true
+              }
+            },
+            "timeout": 10000
+          }
+        },
+        "id": "research-searxng",
+        "name": "SearXNG Research",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          2160,
+          448
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Parse and format research results - handle missing upstream nodes gracefully\nlet classifyData = {};\nlet internalRulesRaw = [];\nlet externalSearchRaw = [];\n\n// Safely get data from Classify Nouns (Qdrant)\ntry {\n  classifyData = $('Classify Nouns (Qdrant)').first()?.json || {};\n} catch (e) {\n  classifyData = {};\n}\n\n// Safely get data from Query Internal Rules\ntry {\n  internalRulesRaw = $('Query Internal Rules').first()?.json?.result || [];\n} catch (e) {\n  internalRulesRaw = [];\n}\n\n// Safely get data from SearXNG Research\ntry {\n  externalSearchRaw = $('SearXNG Research').first()?.json?.results || [];\n} catch (e) {\n  externalSearchRaw = [];\n}\n\n// Format internal rules (high confidence only)\nconst internalRules = (Array.isArray(internalRulesRaw) ? internalRulesRaw : [])\n  .filter(r => r.score >= 0.7)\n  .map(r => ({\n    content: r.payload?.content || '',\n    scope: r.payload?.metadata?.scope || {},\n    score: r.score\n  }));\n\n// Format external research (top 3 results)\nconst externalResearch = (Array.isArray(externalSearchRaw) ? externalSearchRaw : [])\n  .slice(0, 3)\n  .map(r => ({\n    title: r.title || '',\n    snippet: (r.content || r.snippet || '').slice(0, 500),\n    url: r.url || ''\n  }))\n  .filter(r => r.title);\n\nreturn [{\n  json: {\n    internalRules,\n    externalResearch,\n    internalCount: internalRules.length,\n    externalCount: externalResearch.length,\n    classifyData\n  }\n}];"
+        },
+        "id": "research-parse-results",
+        "name": "Parse Research Results",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2352,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Aggregate research context for BRD generation\n// Handle both branches: from Parse Results (research done) or direct from If (no research needed)\nlet classifyData, parsedData;\n\ntry {\n  // Try to get from research path\n  parsedData = $('Parse Research Results').first()?.json;\n  classifyData = parsedData?.classifyData || $('Classify Nouns (Qdrant)').first().json;\n} catch (e) {\n  // Direct path - no research was done\n  classifyData = $('Classify Nouns (Qdrant)').first().json;\n  parsedData = { internalRules: [], externalResearch: [] };\n}\n\nconst internalRules = parsedData?.internalRules || [];\nconst externalResearch = parsedData?.externalResearch || [];\n\n// Build internal context section\nlet internalContext = '';\nif (internalRules.length > 0) {\n  internalContext = '## Internal Business Rules & System Constraints\\n\\n' +\n    'The following internal systems and rules apply:\\n\\n' +\n    internalRules.map((r, idx) =>\n      `${idx + 1}. ${(r.content || '').slice(0, 600)}\\n   (Relevance: ${Math.round((r.score || 0) * 100)}%)`\n    ).join('\\n\\n');\n}\n\n// Build external context section\nlet externalContext = '';\nif (externalResearch.length > 0) {\n  externalContext = '## External System Integration Research\\n\\n' +\n    'Research findings for external dependencies:\\n\\n' +\n    externalResearch.map((r, idx) =>\n      `${idx + 1}. **${r.title}**\\n   ${r.snippet}\\n   Source: ${r.url}`\n    ).join('\\n\\n');\n}\n\n// Combine and truncate to avoid exceeding context limits\nconst fullContext = [internalContext, externalContext]\n  .filter(Boolean)\n  .join('\\n\\n---\\n\\n')\n  .slice(0, 4000);\n\n// Pass through the original context\nconst passContext = classifyData?.passContext || $('Pass Context').first()?.json || {};\n\nreturn [{\n  json: {\n    ...passContext,\n    researchContext: fullContext,\n    internalNouns: classifyData?.internalNouns || [],\n    externalNouns: classifyData?.externalNouns || [],\n    hasInternalRules: internalRules.length > 0,\n    hasExternalResearch: externalResearch.length > 0,\n    researchSummary: {\n      totalNouns: (classifyData?.internalNouns?.length || 0) + (classifyData?.externalNouns?.length || 0),\n      internalRulesFound: internalRules.length,\n      externalSourcesFound: externalResearch.length\n    }\n  }\n}];"
+        },
+        "id": "research-aggregate",
+        "name": "Aggregate Research Context",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2560,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "azure-enabled-check",
+                "leftValue": "={{ $env.AZURE_DEVOPS_ORG }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-azure-98173b25",
+        "name": "If: Azure Enabled",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1104,
+          256
+        ]
+      },
+      {
+        "parameters": {
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}?api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "options": {}
+        },
+        "id": "get-azure-repo-30565141",
+        "name": "Get Azure Repo Info",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1344,
+          144
+        ],
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "kck9Sr0DATIIbF3R",
+            "name": "Unnamed credential"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Build Azure DevOps push payload\nconst ctx = $(\"Build Git Script\").first().json;\nconst repoInfo = $(\"Get Azure Repo Info\").first().json;\nconst branchCheck = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content\nconst artifactContent = ctx.brdMarkdown || ctx.artifactMarkdown || ctx.content || \"\";\nconst artifactPath = \"/docs/BRD.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// Check if branch exists and get its current commit SHA\nlet oldObjectId = \"0000000000000000000000000000000000000000\";\nlet changeType = \"add\";\n\nif (branchCheck.value && branchCheck.value.length > 0) {\n  // Branch exists - use current commit SHA for update\n  oldObjectId = branchCheck.value[0].objectId;\n  changeType = \"edit\"; // Update existing file\n}\n\n// Build the push payload\nconst changes = [{\n  changeType: changeType,\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString(\"base64\"),\n    contentType: \"base64encoded\"\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo,\n    branchExists: branchCheck.value && branchCheck.value.length > 0\n  }\n}];"
+        },
+        "id": "build-azure-payload-cee22d86",
+        "name": "Build Azure Push Payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1584,
+          256
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/pushes?api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json.azurePushPayload) }}",
+          "options": {}
+        },
+        "id": "push-azure-99898f3d",
+        "name": "Push to Azure DevOps",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1824,
+          256
+        ],
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "kck9Sr0DATIIbF3R",
+            "name": "Unnamed credential"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "append",
+          "options": {}
+        },
+        "id": "merge-results-d44ebf61",
+        "name": "Merge Git Results",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          2064,
+          128
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "noop-azure-9ff90c1e",
+        "name": "Azure Disabled",
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          1584,
+          400
+        ]
+      },
+      {
+        "id": "d876bf55-46fe-4b8a-843b-5f539afcc8ef",
+        "name": "Check Azure Branch",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1464,
+          144
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/refs?filter=heads/{{ $(\"Build Git Script\").first().json.projectSlug }}&api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "options": {
+            "response": {
+              "response": {
+                "neverError": true
+              }
+            }
+          }
+        },
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "kck9Sr0DATIIbF3R",
+            "name": "Unnamed credential"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Mode Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mode Router": {
+        "main": [
+          [
+            {
+              "node": "Chat Handler",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Initialize Parameters",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Initialize Parameters",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Initialize Parameters": {
+        "main": [
+          [
+            {
+              "node": "Ensure DB Schema",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Upsert Project",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Project": {
+        "main": [
+          [
+            {
+              "node": "Create BA Job",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create BA Job": {
+        "main": [
+          [
+            {
+              "node": "Pass Context",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Respond: Execute Ack",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Latest BRD": {
+        "main": [
+          [
+            {
+              "node": "Normalize BRD Rows",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize BRD Rows": {
+        "main": [
+          [
+            {
+              "node": "Determine BRD Flow",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Determine BRD Flow": {
+        "main": [
+          [
+            {
+              "node": "BRD Source Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "BRD Source Router": {
+        "main": [
+          [
+            {
+              "node": "Use Existing BRD",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Generate BRD",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Use Existing BRD": {
+        "main": [
+          [
+            {
+              "node": "Validate BRD",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate BRD": {
+        "main": [
+          [
+            {
+              "node": "Mark BRD Generated",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mark BRD Generated": {
+        "main": [
+          [
+            {
+              "node": "Validate BRD",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate BRD": {
+        "main": [
+          [
+            {
+              "node": "Store BRD Artifact",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Store BRD Artifact": {
+        "main": [
+          [
+            {
+              "node": "Render BRD.md",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render BRD.md": {
+        "main": [
+          [
+            {
+              "node": "Build Git Script",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Git Script": {
+        "main": [
+          [
+            {
+              "node": "SSH: Commit BRD",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "If: Azure Enabled",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SSH: Commit BRD": {
+        "main": [
+          [
+            {
+              "node": "Merge Git Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update Job Status": {
+        "main": [
+          [
+            {
+              "node": "Return Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook: Business Analysis": {
+        "main": [
+          [
+            {
+              "node": "Parse Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Classify Mode": {
+        "main": [
+          [
+            {
+              "node": "Process Classification",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Process Classification": {
+        "main": [
+          [
+            {
+              "node": "If: Mode Check",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: Mode Check": {
+        "main": [
+          [
+            {
+              "node": "Chat Handler",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Initialize Parameters",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Input": {
+        "main": [
+          [
+            {
+              "node": "If: System Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: System Prompt": {
+        "main": [
+          [
+            {
+              "node": "System Prompt Handler",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Classify Mode",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "System Prompt Handler": {
+        "main": [
+          [
+            {
+              "node": "Respond: System Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Chat Handler": {
+        "main": [
+          [
+            {
+              "node": "If: Needs DB Query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: Needs DB Query": {
+        "main": [
+          [
+            {
+              "node": "Execute Chat Query",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond: Chat",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Chat Query": {
+        "main": [
+          [
+            {
+              "node": "Format Chat Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Chat Results": {
+        "main": [
+          [
+            {
+              "node": "Respond: Chat",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Pass Context": {
+        "main": [
+          [
+            {
+              "node": "Extract Nouns (LLM)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Nouns (LLM)": {
+        "main": [
+          [
+            {
+              "node": "Process Nouns",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Process Nouns": {
+        "main": [
+          [
+            {
+              "node": "Classify Nouns (Qdrant)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Classify Nouns (Qdrant)": {
+        "main": [
+          [
+            {
+              "node": "If: External Nouns Exist",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Query Internal Rules": {
+        "main": [
+          [
+            {
+              "node": "Parse Research Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SearXNG Research": {
+        "main": [
+          [
+            {
+              "node": "Parse Research Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Research Results": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Research Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate Research Context": {
+        "main": [
+          [
+            {
+              "node": "Load Latest BRD",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: External Nouns Exist": {
+        "main": [
+          [
+            {
+              "node": "Query Internal Rules",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "SearXNG Research",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Aggregate Research Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: Azure Enabled": {
+        "main": [
+          [
+            {
+              "node": "Get Azure Repo Info",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Azure Disabled",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Azure Push Payload": {
+        "main": [
+          [
+            {
+              "node": "Push to Azure DevOps",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Push to Azure DevOps": {
+        "main": [
+          [
+            {
+              "node": "Merge Git Results",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Azure Disabled": {
+        "main": [
+          [
+            {
+              "node": "Merge Git Results",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge Git Results": {
+        "main": [
+          [
+            {
+              "node": "Update Job Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Azure Repo Info": {
+        "main": [
+          [
+            {
+              "node": "Check Azure Branch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Azure Branch": {
+        "main": [
+          [
+            {
+              "node": "Build Azure Push Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "socrates hlapolosa",
+    "name": null,
+    "description": null,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-01-27T10:31:22.867Z",
+        "id": 705,
+        "workflowId": "nmqyIEwcwVfiIIOu",
+        "versionId": "62431be1-de31-426a-9869-7c8011f5e0c3",
+        "event": "activated",
+        "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c"
+      }
+    ]
+  }
 }
