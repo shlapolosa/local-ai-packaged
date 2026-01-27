@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-27T13:32:31.545Z",
+  "updatedAt": "2026-01-27T16:58:41.439Z",
   "createdAt": "2026-01-21T08:23:48.187Z",
   "id": "DZdCDfvObweaHen4",
   "name": "Test Strategy Pipeline",
@@ -260,7 +260,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { status: 'accepted', message: 'Test Strategy generation started for project: ' + ($('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown'), stage: 'test-strategy', workflow: 'Test Strategy', projectSlug: $('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown', projectName: $('Load Project').first().json.name || $('Process Classification').first().json.projectName || $('Process Classification').first().json.projectSlug || 'unknown' } }}",
+        "responseBody": "={{ { status: \"accepted\", message: \"Test Strategy generation started for project: \" + ($json.projectSlug || \"unknown\"), stage: \"test-strategy\", workflow: \"Test Strategy\", projectSlug: $json.projectSlug || \"unknown\", projectName: $json.projectName || $json.projectSlug || \"unknown\" } }}",
         "options": {}
       },
       "id": "respond-execute-ack",
@@ -1260,9 +1260,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "89c039c2-fb69-41d2-b849-eca166d7d899",
-  "activeVersionId": "89c039c2-fb69-41d2-b849-eca166d7d899",
-  "versionCounter": 72,
+  "versionId": "d2aa7ad1-31e3-4253-8303-6c282dfd09b2",
+  "activeVersionId": "d2aa7ad1-31e3-4253-8303-6c282dfd09b2",
+  "versionCounter": 75,
   "triggerCount": 1,
   "shared": [
     {
@@ -1311,9 +1311,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-01-27T13:32:31.548Z",
-    "createdAt": "2026-01-27T13:32:31.548Z",
-    "versionId": "89c039c2-fb69-41d2-b849-eca166d7d899",
+    "updatedAt": "2026-01-27T16:58:41.443Z",
+    "createdAt": "2026-01-27T16:58:41.443Z",
+    "versionId": "d2aa7ad1-31e3-4253-8303-6c282dfd09b2",
     "workflowId": "DZdCDfvObweaHen4",
     "nodes": [
       {
@@ -1569,7 +1569,7 @@
       {
         "parameters": {
           "respondWith": "json",
-          "responseBody": "={{ { status: 'accepted', message: 'Test Strategy generation started for project: ' + ($('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown'), stage: 'test-strategy', workflow: 'Test Strategy', projectSlug: $('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown', projectName: $('Load Project').first().json.name || $('Process Classification').first().json.projectName || $('Process Classification').first().json.projectSlug || 'unknown' } }}",
+          "responseBody": "={{ { status: \"accepted\", message: \"Test Strategy generation started for project: \" + ($json.projectSlug || \"unknown\"), stage: \"test-strategy\", workflow: \"Test Strategy\", projectSlug: $json.projectSlug || \"unknown\", projectName: $json.projectName || $json.projectSlug || \"unknown\" } }}",
           "options": {}
         },
         "id": "respond-execute-ack",
@@ -2565,10 +2565,10 @@
     "description": null,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-01-27T13:32:31.724Z",
-        "id": 747,
+        "createdAt": "2026-01-27T16:58:41.580Z",
+        "id": 762,
         "workflowId": "DZdCDfvObweaHen4",
-        "versionId": "89c039c2-fb69-41d2-b849-eca166d7d899",
+        "versionId": "d2aa7ad1-31e3-4253-8303-6c282dfd09b2",
         "event": "activated",
         "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c"
       }

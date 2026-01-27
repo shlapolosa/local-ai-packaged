@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-27T13:27:42.284Z",
+  "updatedAt": "2026-01-27T16:58:51.512Z",
   "createdAt": "2026-01-21T05:22:06.467Z",
   "id": "FlqPvbx2ICZvJiQr",
   "name": "Software Delivery Pipeline",
@@ -260,7 +260,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { status: 'accepted', message: 'Software Delivery generation started for project: ' + ($('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown'), stage: 'software-delivery', workflow: 'Software Delivery', projectSlug: $('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown', projectName: $('Load Project').first().json.name || $('Process Classification').first().json.projectName || $('Process Classification').first().json.projectSlug || 'unknown' } }}",
+        "responseBody": "={{ { status: \"accepted\", message: \"Software Delivery generation started for project: \" + ($json.projectSlug || \"unknown\"), stage: \"software-delivery\", workflow: \"Software Delivery\", projectSlug: $json.projectSlug || \"unknown\", projectName: $json.projectName || $json.projectSlug || \"unknown\" } }}",
         "options": {}
       },
       "id": "respond-execute-ack",
@@ -1201,9 +1201,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "ca5dac5d-d3f7-4a1c-bcf3-bb437f2a8a4c",
-  "activeVersionId": "ca5dac5d-d3f7-4a1c-bcf3-bb437f2a8a4c",
-  "versionCounter": 71,
+  "versionId": "54e14319-5549-4d7d-a808-53b1f127611a",
+  "activeVersionId": "54e14319-5549-4d7d-a808-53b1f127611a",
+  "versionCounter": 74,
   "triggerCount": 1,
   "shared": [
     {
@@ -1252,9 +1252,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-01-27T13:27:42.288Z",
-    "createdAt": "2026-01-27T13:27:42.288Z",
-    "versionId": "ca5dac5d-d3f7-4a1c-bcf3-bb437f2a8a4c",
+    "updatedAt": "2026-01-27T16:58:51.516Z",
+    "createdAt": "2026-01-27T16:58:51.516Z",
+    "versionId": "54e14319-5549-4d7d-a808-53b1f127611a",
     "workflowId": "FlqPvbx2ICZvJiQr",
     "nodes": [
       {
@@ -1510,7 +1510,7 @@
       {
         "parameters": {
           "respondWith": "json",
-          "responseBody": "={{ { status: 'accepted', message: 'Software Delivery generation started for project: ' + ($('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown'), stage: 'software-delivery', workflow: 'Software Delivery', projectSlug: $('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown', projectName: $('Load Project').first().json.name || $('Process Classification').first().json.projectName || $('Process Classification').first().json.projectSlug || 'unknown' } }}",
+          "responseBody": "={{ { status: \"accepted\", message: \"Software Delivery generation started for project: \" + ($json.projectSlug || \"unknown\"), stage: \"software-delivery\", workflow: \"Software Delivery\", projectSlug: $json.projectSlug || \"unknown\", projectName: $json.projectName || $json.projectSlug || \"unknown\" } }}",
           "options": {}
         },
         "id": "respond-execute-ack",
@@ -2447,10 +2447,10 @@
     "description": null,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-01-27T13:27:42.461Z",
-        "id": 745,
+        "createdAt": "2026-01-27T16:58:51.668Z",
+        "id": 764,
         "workflowId": "FlqPvbx2ICZvJiQr",
-        "versionId": "ca5dac5d-d3f7-4a1c-bcf3-bb437f2a8a4c",
+        "versionId": "54e14319-5549-4d7d-a808-53b1f127611a",
         "event": "activated",
         "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c"
       }

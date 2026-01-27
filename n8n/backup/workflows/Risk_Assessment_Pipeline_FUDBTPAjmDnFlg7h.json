@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-27T13:55:07.139Z",
+  "updatedAt": "2026-01-27T16:58:45.222Z",
   "createdAt": "2026-01-21T08:23:40.227Z",
   "id": "FUDBTPAjmDnFlg7h",
   "name": "Risk Assessment Pipeline",
@@ -260,7 +260,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { status: \"accepted\", message: \"Risk Assessment generation started for project: \" + ($(\"Load Project\").first().json.slug || $(\"Process Classification\").first().json.projectSlug || \"unknown\"), stage: \"risk-assessment\", workflow: \"Risk Assessment\", projectSlug: $(\"Load Project\").first().json.slug || $(\"Process Classification\").first().json.projectSlug || \"unknown\", projectName: $(\"Load Project\").first().json.name || $(\"Process Classification\").first().json.projectName || $(\"Process Classification\").first().json.projectSlug || \"unknown\" } }}",
+        "responseBody": "={{ { status: \"accepted\", message: \"Risk Assessment generation started for project: \" + ($json.projectSlug || \"unknown\"), stage: \"risk-assessment\", workflow: \"Risk Assessment\", projectSlug: $json.projectSlug || \"unknown\", projectName: $json.projectName || $json.projectSlug || \"unknown\" } }}",
         "options": {}
       },
       "id": "respond-execute-ack",
@@ -1236,9 +1236,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "7fb05c13-8b2e-444b-bf3a-3a74f9193ba1",
-  "activeVersionId": "7fb05c13-8b2e-444b-bf3a-3a74f9193ba1",
-  "versionCounter": 85,
+  "versionId": "9de82613-815d-4cbf-9205-ccc124fa5c7e",
+  "activeVersionId": "9de82613-815d-4cbf-9205-ccc124fa5c7e",
+  "versionCounter": 91,
   "triggerCount": 1,
   "shared": [
     {
@@ -1287,9 +1287,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-01-27T13:55:07.144Z",
-    "createdAt": "2026-01-27T13:55:07.144Z",
-    "versionId": "7fb05c13-8b2e-444b-bf3a-3a74f9193ba1",
+    "updatedAt": "2026-01-27T16:58:45.225Z",
+    "createdAt": "2026-01-27T16:58:45.225Z",
+    "versionId": "9de82613-815d-4cbf-9205-ccc124fa5c7e",
     "workflowId": "FUDBTPAjmDnFlg7h",
     "nodes": [
       {
@@ -1545,7 +1545,7 @@
       {
         "parameters": {
           "respondWith": "json",
-          "responseBody": "={{ { status: \"accepted\", message: \"Risk Assessment generation started for project: \" + ($(\"Load Project\").first().json.slug || $(\"Process Classification\").first().json.projectSlug || \"unknown\"), stage: \"risk-assessment\", workflow: \"Risk Assessment\", projectSlug: $(\"Load Project\").first().json.slug || $(\"Process Classification\").first().json.projectSlug || \"unknown\", projectName: $(\"Load Project\").first().json.name || $(\"Process Classification\").first().json.projectName || $(\"Process Classification\").first().json.projectSlug || \"unknown\" } }}",
+          "responseBody": "={{ { status: \"accepted\", message: \"Risk Assessment generation started for project: \" + ($json.projectSlug || \"unknown\"), stage: \"risk-assessment\", workflow: \"Risk Assessment\", projectSlug: $json.projectSlug || \"unknown\", projectName: $json.projectName || $json.projectSlug || \"unknown\" } }}",
           "options": {}
         },
         "id": "respond-execute-ack",
@@ -2517,10 +2517,10 @@
     "description": null,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-01-27T13:55:07.325Z",
-        "id": 750,
+        "createdAt": "2026-01-27T16:58:45.402Z",
+        "id": 763,
         "workflowId": "FUDBTPAjmDnFlg7h",
-        "versionId": "7fb05c13-8b2e-444b-bf3a-3a74f9193ba1",
+        "versionId": "9de82613-815d-4cbf-9205-ccc124fa5c7e",
         "event": "activated",
         "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c"
       }

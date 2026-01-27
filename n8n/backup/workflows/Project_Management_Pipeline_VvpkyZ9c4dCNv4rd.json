@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-27T13:27:53.234Z",
+  "updatedAt": "2026-01-27T16:59:00.629Z",
   "createdAt": "2026-01-21T05:22:19.077Z",
   "id": "VvpkyZ9c4dCNv4rd",
   "name": "Project Management Pipeline",
@@ -261,7 +261,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { status: 'accepted', message: 'Project Management started for project: ' + ($('Load Project').first().json.slug || $json.projectSlug || 'unknown'), stage: 'project-management', workflow: 'Project Management', projectSlug: $('Load Project').first().json.slug || $json.projectSlug || 'unknown', projectName: $('Load Project').first().json.name || $json.projectName || $json.projectSlug || 'unknown' } }}",
+        "responseBody": "={{ { status: \"accepted\", message: \"Project Management generation started for project: \" + ($json.projectSlug || \"unknown\"), stage: \"project-management\", workflow: \"Project Management\", projectSlug: $json.projectSlug || \"unknown\", projectName: $json.projectName || $json.projectSlug || \"unknown\" } }}",
         "options": {}
       },
       "id": "entry-respond-exec",
@@ -1237,9 +1237,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "0f44891a-d286-4df5-8e0f-855895615f44",
-  "activeVersionId": "0f44891a-d286-4df5-8e0f-855895615f44",
-  "versionCounter": 90,
+  "versionId": "ba99c9a6-0154-4ffe-aec2-e4e0c69e522d",
+  "activeVersionId": "ba99c9a6-0154-4ffe-aec2-e4e0c69e522d",
+  "versionCounter": 93,
   "triggerCount": 1,
   "shared": [
     {
@@ -1288,9 +1288,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-01-27T13:27:53.239Z",
-    "createdAt": "2026-01-27T13:27:53.239Z",
-    "versionId": "0f44891a-d286-4df5-8e0f-855895615f44",
+    "updatedAt": "2026-01-27T16:59:00.632Z",
+    "createdAt": "2026-01-27T16:59:00.632Z",
+    "versionId": "ba99c9a6-0154-4ffe-aec2-e4e0c69e522d",
     "workflowId": "VvpkyZ9c4dCNv4rd",
     "nodes": [
       {
@@ -1547,7 +1547,7 @@
       {
         "parameters": {
           "respondWith": "json",
-          "responseBody": "={{ { status: 'accepted', message: 'Project Management started for project: ' + ($('Load Project').first().json.slug || $json.projectSlug || 'unknown'), stage: 'project-management', workflow: 'Project Management', projectSlug: $('Load Project').first().json.slug || $json.projectSlug || 'unknown', projectName: $('Load Project').first().json.name || $json.projectName || $json.projectSlug || 'unknown' } }}",
+          "responseBody": "={{ { status: \"accepted\", message: \"Project Management generation started for project: \" + ($json.projectSlug || \"unknown\"), stage: \"project-management\", workflow: \"Project Management\", projectSlug: $json.projectSlug || \"unknown\", projectName: $json.projectName || $json.projectSlug || \"unknown\" } }}",
           "options": {}
         },
         "id": "entry-respond-exec",
@@ -2519,10 +2519,10 @@
     "description": null,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-01-27T13:27:53.418Z",
-        "id": 746,
+        "createdAt": "2026-01-27T16:59:00.797Z",
+        "id": 765,
         "workflowId": "VvpkyZ9c4dCNv4rd",
-        "versionId": "0f44891a-d286-4df5-8e0f-855895615f44",
+        "versionId": "ba99c9a6-0154-4ffe-aec2-e4e0c69e522d",
         "event": "activated",
         "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c"
       }

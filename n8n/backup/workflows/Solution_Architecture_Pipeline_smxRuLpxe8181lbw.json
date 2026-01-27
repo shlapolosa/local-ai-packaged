@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-27T12:47:38.563Z",
+  "updatedAt": "2026-01-27T16:58:37.480Z",
   "createdAt": "2026-01-21T07:57:03.106Z",
   "id": "smxRuLpxe8181lbw",
   "name": "Solution Architecture Pipeline",
@@ -260,7 +260,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { status: 'accepted', message: 'Solution Architecture generation started for project: ' + ($('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown'), stage: 'solution-architecture', workflow: 'Solution Architecture', projectSlug: $('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown', projectName: $('Load Project').first().json.name || $('Process Classification').first().json.projectName || $('Process Classification').first().json.projectSlug || 'unknown' } }}",
+        "responseBody": "={{ { status: \"accepted\", message: \"Solution Architecture generation started for project: \" + ($json.projectSlug || \"unknown\"), stage: \"solution-architecture\", workflow: \"Solution Architecture\", projectSlug: $json.projectSlug || \"unknown\", projectName: $json.projectName || $json.projectSlug || \"unknown\" } }}",
         "options": {}
       },
       "id": "respond-execute-ack",
@@ -724,7 +724,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Build Azure DevOps push payload\nconst ctx = $(\"Build Git Script\").first().json;\nconst repoInfo = $(\"Get Azure Repo Info\").first().json;\nconst branchCheck = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content - try common variable names\nconst artifactContent = ctx.artifactContent || ctx.artifactMarkdown || ctx.solutionMarkdown || ctx.content || \"\";\nconst artifactPath = \"/docs/solution-architecture.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// Check if branch exists and get its current commit SHA\nlet oldObjectId = \"0000000000000000000000000000000000000000\";\n\nif (branchCheck.value && branchCheck.value.length > 0) {\n  // Branch exists - use current commit SHA\n  oldObjectId = branchCheck.value[0].objectId;\n}\n\n// Always use 'add' for new stage-specific artifacts\n// Each stage creates its own unique file that didn't exist before\nconst changeType = \"add\";\n\n// Build the push payload\nconst changes = [{\n  changeType: changeType,\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString(\"base64\"),\n    contentType: \"base64encoded\"\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add solution architecture artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo,\n    branchExists: branchCheck.value && branchCheck.value.length > 0\n  }\n}];"
+        "jsCode": "// Build Azure DevOps push payload\nconst ctx = $(\"Build Git Script\").first().json;\nconst repoInfo = $(\"Get Azure Repo Info\").first().json;\nconst branchCheck = $(\"Check Azure Branch\").first().json;\nconst fileCheck = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\nconst artifactContent = ctx.artifactContent || ctx.artifactMarkdown || ctx.content || \"\";\nconst artifactPath = \"/docs/solution-architecture.md\";\nconst branchName = `refs/heads/${projectSlug}`;\n\nlet oldObjectId = \"0000000000000000000000000000000000000000\";\nlet changeType = \"add\";\n\n// Check if branch exists\nif (branchCheck.value && branchCheck.value.length > 0) {\n  oldObjectId = branchCheck.value[0].objectId;\n}\n\n// Check if file exists (statusCode 200 = exists, 404 = doesn't exist)\nconst fileExists = fileCheck.statusCode === 200;\nif (fileExists) {\n  changeType = \"edit\";\n} else {\n  changeType = \"add\";\n}\n\nconst changes = [{\n  changeType: changeType,\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString(\"base64\"),\n    contentType: \"base64encoded\"\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{ name: branchName, oldObjectId: oldObjectId }],\n      commits: [{ comment: `Add solution architecture for ${projectSlug} (job ${jobId})`, changes: changes }]\n    },\n    azureRepoInfo: repoInfo,\n    branchExists: branchCheck.value && branchCheck.value.length > 0,\n    fileExists: fileExists,\n    changeType: changeType\n  }\n}];"
       },
       "id": "build-azure-payload-d70e8d61",
       "name": "Build Azure Push Payload",
@@ -823,6 +823,37 @@
           "response": {
             "response": {
               "fullResponse": false
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "kck9Sr0DATIIbF3R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "id": "check-azure-file-exists-sol",
+      "name": "Check Azure File Exists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3540,
+        554
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/items?path=/{{ $('Build Git Script').first().json.projectSlug }}-docs/docs/solution-architecture.md&versionDescriptor.version={{ $('Build Git Script').first().json.projectSlug }}&versionDescriptor.versionType=branch&api-version=7.1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "autodetect"
             }
           }
         }
@@ -1248,6 +1279,17 @@
       "main": [
         [
           {
+            "node": "Check Azure File Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Azure File Exists": {
+      "main": [
+        [
+          {
             "node": "Build Azure Push Payload",
             "type": "main",
             "index": 0
@@ -1265,9 +1307,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "8c2d58cf-8c43-4402-8325-3ede179da7df",
-  "activeVersionId": "8c2d58cf-8c43-4402-8325-3ede179da7df",
-  "versionCounter": 69,
+  "versionId": "42c2518c-edf4-4afd-aaac-6f72bb104ff4",
+  "activeVersionId": "42c2518c-edf4-4afd-aaac-6f72bb104ff4",
+  "versionCounter": 78,
   "triggerCount": 1,
   "shared": [
     {
@@ -1316,9 +1358,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-01-27T12:47:38.568Z",
-    "createdAt": "2026-01-27T12:47:38.568Z",
-    "versionId": "8c2d58cf-8c43-4402-8325-3ede179da7df",
+    "updatedAt": "2026-01-27T16:58:37.482Z",
+    "createdAt": "2026-01-27T16:58:37.482Z",
+    "versionId": "42c2518c-edf4-4afd-aaac-6f72bb104ff4",
     "workflowId": "smxRuLpxe8181lbw",
     "nodes": [
       {
@@ -1574,7 +1616,7 @@
       {
         "parameters": {
           "respondWith": "json",
-          "responseBody": "={{ { status: 'accepted', message: 'Solution Architecture generation started for project: ' + ($('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown'), stage: 'solution-architecture', workflow: 'Solution Architecture', projectSlug: $('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown', projectName: $('Load Project').first().json.name || $('Process Classification').first().json.projectName || $('Process Classification').first().json.projectSlug || 'unknown' } }}",
+          "responseBody": "={{ { status: \"accepted\", message: \"Solution Architecture generation started for project: \" + ($json.projectSlug || \"unknown\"), stage: \"solution-architecture\", workflow: \"Solution Architecture\", projectSlug: $json.projectSlug || \"unknown\", projectName: $json.projectName || $json.projectSlug || \"unknown\" } }}",
           "options": {}
         },
         "id": "respond-execute-ack",
@@ -2038,7 +2080,7 @@
       },
       {
         "parameters": {
-          "jsCode": "// Build Azure DevOps push payload\nconst ctx = $(\"Build Git Script\").first().json;\nconst repoInfo = $(\"Get Azure Repo Info\").first().json;\nconst branchCheck = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content - try common variable names\nconst artifactContent = ctx.artifactContent || ctx.artifactMarkdown || ctx.solutionMarkdown || ctx.content || \"\";\nconst artifactPath = \"/docs/solution-architecture.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// Check if branch exists and get its current commit SHA\nlet oldObjectId = \"0000000000000000000000000000000000000000\";\n\nif (branchCheck.value && branchCheck.value.length > 0) {\n  // Branch exists - use current commit SHA\n  oldObjectId = branchCheck.value[0].objectId;\n}\n\n// Always use 'add' for new stage-specific artifacts\n// Each stage creates its own unique file that didn't exist before\nconst changeType = \"add\";\n\n// Build the push payload\nconst changes = [{\n  changeType: changeType,\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString(\"base64\"),\n    contentType: \"base64encoded\"\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add solution architecture artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo,\n    branchExists: branchCheck.value && branchCheck.value.length > 0\n  }\n}];"
+          "jsCode": "// Build Azure DevOps push payload\nconst ctx = $(\"Build Git Script\").first().json;\nconst repoInfo = $(\"Get Azure Repo Info\").first().json;\nconst branchCheck = $(\"Check Azure Branch\").first().json;\nconst fileCheck = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\nconst artifactContent = ctx.artifactContent || ctx.artifactMarkdown || ctx.content || \"\";\nconst artifactPath = \"/docs/solution-architecture.md\";\nconst branchName = `refs/heads/${projectSlug}`;\n\nlet oldObjectId = \"0000000000000000000000000000000000000000\";\nlet changeType = \"add\";\n\n// Check if branch exists\nif (branchCheck.value && branchCheck.value.length > 0) {\n  oldObjectId = branchCheck.value[0].objectId;\n}\n\n// Check if file exists (statusCode 200 = exists, 404 = doesn't exist)\nconst fileExists = fileCheck.statusCode === 200;\nif (fileExists) {\n  changeType = \"edit\";\n} else {\n  changeType = \"add\";\n}\n\nconst changes = [{\n  changeType: changeType,\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString(\"base64\"),\n    contentType: \"base64encoded\"\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{ name: branchName, oldObjectId: oldObjectId }],\n      commits: [{ comment: `Add solution architecture for ${projectSlug} (job ${jobId})`, changes: changes }]\n    },\n    azureRepoInfo: repoInfo,\n    branchExists: branchCheck.value && branchCheck.value.length > 0,\n    fileExists: fileExists,\n    changeType: changeType\n  }\n}];"
         },
         "id": "build-azure-payload-d70e8d61",
         "name": "Build Azure Push Payload",
@@ -2137,6 +2179,37 @@
             "response": {
               "response": {
                 "fullResponse": false
+              }
+            }
+          }
+        },
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "kck9Sr0DATIIbF3R",
+            "name": "Unnamed credential"
+          }
+        }
+      },
+      {
+        "id": "check-azure-file-exists-sol",
+        "name": "Check Azure File Exists",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          3540,
+          554
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/items?path=/{{ $('Build Git Script').first().json.projectSlug }}-docs/docs/solution-architecture.md&versionDescriptor.version={{ $('Build Git Script').first().json.projectSlug }}&versionDescriptor.versionType=branch&api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": true,
+                "neverError": true,
+                "responseFormat": "autodetect"
               }
             }
           }
@@ -2562,6 +2635,17 @@
         "main": [
           [
             {
+              "node": "Check Azure File Exists",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Azure File Exists": {
+        "main": [
+          [
+            {
               "node": "Build Azure Push Payload",
               "type": "main",
               "index": 0
@@ -2575,10 +2659,10 @@
     "description": null,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-01-27T12:47:38.759Z",
-        "id": 734,
+        "createdAt": "2026-01-27T16:58:37.652Z",
+        "id": 761,
         "workflowId": "smxRuLpxe8181lbw",
-        "versionId": "8c2d58cf-8c43-4402-8325-3ede179da7df",
+        "versionId": "42c2518c-edf4-4afd-aaac-6f72bb104ff4",
         "event": "activated",
         "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c"
       }
