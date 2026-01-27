@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-01-23T18:29:19.997Z",
+  "updatedAt": "2026-01-27T12:47:38.563Z",
   "createdAt": "2026-01-21T07:57:03.106Z",
   "id": "smxRuLpxe8181lbw",
   "name": "Solution Architecture Pipeline",
@@ -26,7 +26,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst chatInput = body.chatInput || body.message || body.requirements || '';\nconst isSystemPrompt = chatInput.includes('[Auto-Tag]') || chatInput.includes('[Follow-Up Questions]') || chatInput.includes('[Title Generation]');\nlet systemPromptType = null;\nif (chatInput.includes('[Auto-Tag]')) systemPromptType = 'auto-tag';\nelse if (chatInput.includes('[Follow-Up Questions]')) systemPromptType = 'follow-up';\nelse if (chatInput.includes('[Title Generation]')) systemPromptType = 'title-gen';\nreturn [{ json: { rawInput: chatInput, projectSlug: body.projectSlug || body.project_slug || null, projectName: body.projectName || body.project_name || null, requirements: body.requirements || null, sessionId: body.sessionId || body.session_id || null, isSystemPrompt, systemPromptType } }];"
+        "jsCode": "// Parse and normalize incoming request\n// Detect Open WebUI system prompts (auto-tagging, follow-ups, title generation)\nconst input = $json.body || $json;\n\n// Check multiple possible field names for user input\n// Open WebUI may send as chatInput, projectSlug, message, or query\nconst chatInput = input.chatInput || input.message || input.query || input.projectSlug || '';\nconst requirements = input.requirements || '';\n\n// Detect Open WebUI system prompts\nconst isAutoTag = chatInput.includes('### Task:') && chatInput.includes('Generate 1-3 broad tags');\nconst isFollowUp = chatInput.includes('### Task:') && chatInput.includes('Suggest 3-5 relevant follow-up');\nconst isTitleGen = chatInput.includes('### Task:') && chatInput.includes('Generate a concise');\nconst isSystemPrompt = isAutoTag || isFollowUp || isTitleGen;\n\n// Also check requirements field for system prompts\nconst reqIsAutoTag = requirements.includes('### Task:') && requirements.includes('Generate 1-3 broad tags');\nconst reqIsFollowUp = requirements.includes('### Task:') && requirements.includes('Suggest 3-5 relevant follow-up');\nconst reqIsTitleGen = requirements.includes('### Task:') && requirements.includes('Generate a concise');\nconst reqIsSystemPrompt = reqIsAutoTag || reqIsFollowUp || reqIsTitleGen;\n\n// Determine system prompt type\nlet systemPromptType = null;\nif (isAutoTag || reqIsAutoTag) systemPromptType = 'auto-tag';\nelse if (isFollowUp || reqIsFollowUp) systemPromptType = 'follow-up';\nelse if (isTitleGen || reqIsTitleGen) systemPromptType = 'title-gen';\n\n// Only use projectSlug from input if it looks like a slug (no spaces, short)\n// Otherwise it might be the user message sent with wrong field name\nconst inputProjectSlug = input.projectSlug || null;\nconst looksLikeSlug = inputProjectSlug && inputProjectSlug.length < 100 && !inputProjectSlug.includes(' ');\nconst actualProjectSlug = looksLikeSlug ? inputProjectSlug : null;\n\nreturn [{ json: {\n  rawInput: chatInput,\n  projectSlug: actualProjectSlug,\n  projectName: input.projectName || null,\n  requirements: input.requirements || null,\n  sessionId: input.sessionId || null,\n  isSystemPrompt: isSystemPrompt || reqIsSystemPrompt,\n  systemPromptType: systemPromptType\n} }];"
       },
       "id": "parse-input",
       "name": "Parse Input",
@@ -104,7 +104,7 @@
         "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { model: 'llama3.1:8b-instruct-q4_K_M', messages: [{ role: 'system', content: 'Classify intent as chat or execute. Chat: help, status, list, artifacts, jobs, queries. Execute: build, create, generate. Output JSON: {mode, intent}' }, { role: 'user', content: $json.rawInput }], stream: false, format: { type: 'object', required: ['mode', 'intent'], properties: { mode: { type: 'string', enum: ['chat', 'execute'] }, intent: { type: 'string' } } }, options: { temperature: 0.1 } } }}",
+        "jsonBody": "={{ {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a classifier for a Solution Architecture pipeline. Analyze the user input and determine the mode, intent, and extract project information.\\n\\nMODE RULES:\\n- mode=chat: For queries, help requests, status checks. Keywords: help, status, list, artifacts, jobs, what, how, show, get, query, ?\\n- mode=execute: For creating/building/generating solution architecture. Keywords: build, create, generate, make, develop, design a, implement\\n\\nIf input is a single word like \\\"help\\\", \\\"list\\\", \\\"jobs\\\", \\\"status\\\" - it is ALWAYS mode=chat.\\nIf input asks a question or requests information - it is mode=chat.\\nOnly use mode=execute when user explicitly wants to CREATE or BUILD something new.\\n\\nPROJECT EXTRACTION:\\n- Extract the project slug/name if mentioned (e.g., \\\"project healthcare-scheduler\\\" -> projectSlug: \\\"healthcare-scheduler\\\")\\n- Look for patterns like: \\\"project X\\\", \\\"for X\\\", \\\"X project\\\"\\n\\nChat intents: help, status, artifacts, jobs, list\\nExecute intents: create, build, generate\\n\\nOutput JSON only.'\n    },\n    { role: 'user', content: $json.rawInput || $json.requirements }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    required: ['mode', 'intent'],\n    properties: {\n      mode: { type: 'string', enum: ['chat', 'execute'] },\n      intent: { type: 'string' },\n      projectSlug: { type: 'string' },\n      requirements: { type: 'string' }\n    }\n  },\n  options: { temperature: 0.1 }\n} }}",
         "options": {}
       },
       "id": "classify-mode",
@@ -260,7 +260,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { status: 'accepted', agent: 'Solution Architect', stage: 'solution-architecture', jobId: $('Create Job')?.first()?.json?.id || 'pending', message: 'Pipeline started', projectSlug: $json.projectSlug } }}",
+        "responseBody": "={{ { status: 'accepted', message: 'Solution Architecture generation started for project: ' + ($('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown'), stage: 'solution-architecture', workflow: 'Solution Architecture', projectSlug: $('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown', projectName: $('Load Project').first().json.name || $('Process Classification').first().json.projectName || $('Process Classification').first().json.projectSlug || 'unknown' } }}",
         "options": {}
       },
       "id": "respond-execute-ack",
@@ -291,7 +291,7 @@
           "assignments": [
             {
               "name": "projectSlug",
-              "value": "={{ $json.projectSlug }}",
+              "value": "={{ $json.extractedProjectSlug || $json.projectSlug }}",
               "type": "string"
             },
             {
@@ -319,7 +319,12 @@
               "value": 42,
               "type": "number"
             }
-          ]
+          ],
+          "assignments[0]": {
+            "name": "projectSlug",
+            "value": "={{ $json.extractedProjectSlug || $json.projectSlug }}",
+            "type": "string"
+          }
         },
         "options": {}
       },
@@ -665,10 +670,10 @@
       "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": true,
+            "version": 2,
             "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
+            "caseSensitive": true,
+            "typeValidation": "loose"
           },
           "conditions": [
             {
@@ -712,14 +717,14 @@
       ],
       "credentials": {
         "httpBasicAuth": {
-          "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
-          "name": "Azure DevOps PAT"
+          "id": "kck9Sr0DATIIbF3R",
+          "name": "Unnamed credential"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Build Azure DevOps push payload\nconst ctx = $('Build Git Script').first().json;\nconst repoInfo = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content - try common variable names\nconst artifactContent = ctx.artifactContent || ctx.artifactMarkdown || ctx.content || '';\nconst artifactPath = \"/docs/artifact.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// For new branches, use all zeros as oldObjectId\nconst oldObjectId = '0000000000000000000000000000000000000000';\n\n// Build the push payload\nconst changes = [{\n  changeType: 'add',\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString('base64'),\n    contentType: 'base64encoded'\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo\n  }\n}];"
+        "jsCode": "// Build Azure DevOps push payload\nconst ctx = $(\"Build Git Script\").first().json;\nconst repoInfo = $(\"Get Azure Repo Info\").first().json;\nconst branchCheck = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content - try common variable names\nconst artifactContent = ctx.artifactContent || ctx.artifactMarkdown || ctx.solutionMarkdown || ctx.content || \"\";\nconst artifactPath = \"/docs/solution-architecture.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// Check if branch exists and get its current commit SHA\nlet oldObjectId = \"0000000000000000000000000000000000000000\";\n\nif (branchCheck.value && branchCheck.value.length > 0) {\n  // Branch exists - use current commit SHA\n  oldObjectId = branchCheck.value[0].objectId;\n}\n\n// Always use 'add' for new stage-specific artifacts\n// Each stage creates its own unique file that didn't exist before\nconst changeType = \"add\";\n\n// Build the push payload\nconst changes = [{\n  changeType: changeType,\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString(\"base64\"),\n    contentType: \"base64encoded\"\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add solution architecture artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo,\n    branchExists: branchCheck.value && branchCheck.value.length > 0\n  }\n}];"
       },
       "id": "build-azure-payload-d70e8d61",
       "name": "Build Azure Push Payload",
@@ -751,14 +756,14 @@
       ],
       "credentials": {
         "httpBasicAuth": {
-          "id": "AZURE_DEVOPS_PAT_CREDENTIAL_ID",
-          "name": "Azure DevOps PAT"
+          "id": "kck9Sr0DATIIbF3R",
+          "name": "Unnamed credential"
         }
       }
     },
     {
       "parameters": {
-        "mode": "combine",
+        "mode": "append",
         "mergeByFields": {
           "values": [
             {
@@ -790,6 +795,44 @@
         3600,
         704
       ]
+    },
+    {
+      "id": "2df4bd76-3112-4e82-bb69-ba13420948bd",
+      "name": "Check Azure Branch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3480,
+        554
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/refs?filter=heads/{{ $(\"Build Git Script\").first().json.projectSlug }}&api-version=7.1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "kck9Sr0DATIIbF3R",
+          "name": "Unnamed credential"
+        }
+      }
     }
   ],
   "connections": {
@@ -1146,17 +1189,6 @@
         ]
       ]
     },
-    "Get Azure Repo Info": {
-      "main": [
-        [
-          {
-            "node": "Build Azure Push Payload",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Build Azure Push Payload": {
       "main": [
         [
@@ -1200,6 +1232,28 @@
           }
         ]
       ]
+    },
+    "Get Azure Repo Info": {
+      "main": [
+        [
+          {
+            "node": "Check Azure Branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Azure Branch": {
+      "main": [
+        [
+          {
+            "node": "Build Azure Push Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -1211,6 +1265,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
+  "versionId": "8c2d58cf-8c43-4402-8325-3ede179da7df",
+  "activeVersionId": "8c2d58cf-8c43-4402-8325-3ede179da7df",
+  "versionCounter": 69,
   "triggerCount": 1,
   "shared": [
     {
@@ -1234,7 +1291,7 @@
             "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
             "projectId": "nxaQcUOSSZTVQUEF",
             "user": {
-              "updatedAt": "2026-01-26T05:03:20.891Z",
+              "updatedAt": "2026-01-27T09:40:50.835Z",
               "createdAt": "2025-12-22T10:30:48.161Z",
               "id": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
               "email": "socrates.hlapolosa@gmail.com",
@@ -1249,7 +1306,7 @@
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2026-01-26",
+              "lastActiveAt": "2026-01-27",
               "isPending": false
             }
           }
@@ -1257,5 +1314,1274 @@
       }
     }
   ],
-  "tags": []
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-01-27T12:47:38.568Z",
+    "createdAt": "2026-01-27T12:47:38.568Z",
+    "versionId": "8c2d58cf-8c43-4402-8325-3ede179da7df",
+    "workflowId": "smxRuLpxe8181lbw",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "pipeline/solution-architecture",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "webhook-entry",
+        "name": "Webhook: Solution Architecture",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -608,
+          304
+        ],
+        "webhookId": "e778e337-2ac7-4f09-9858-ab38ec378da3"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Parse and normalize incoming request\n// Detect Open WebUI system prompts (auto-tagging, follow-ups, title generation)\nconst input = $json.body || $json;\n\n// Check multiple possible field names for user input\n// Open WebUI may send as chatInput, projectSlug, message, or query\nconst chatInput = input.chatInput || input.message || input.query || input.projectSlug || '';\nconst requirements = input.requirements || '';\n\n// Detect Open WebUI system prompts\nconst isAutoTag = chatInput.includes('### Task:') && chatInput.includes('Generate 1-3 broad tags');\nconst isFollowUp = chatInput.includes('### Task:') && chatInput.includes('Suggest 3-5 relevant follow-up');\nconst isTitleGen = chatInput.includes('### Task:') && chatInput.includes('Generate a concise');\nconst isSystemPrompt = isAutoTag || isFollowUp || isTitleGen;\n\n// Also check requirements field for system prompts\nconst reqIsAutoTag = requirements.includes('### Task:') && requirements.includes('Generate 1-3 broad tags');\nconst reqIsFollowUp = requirements.includes('### Task:') && requirements.includes('Suggest 3-5 relevant follow-up');\nconst reqIsTitleGen = requirements.includes('### Task:') && requirements.includes('Generate a concise');\nconst reqIsSystemPrompt = reqIsAutoTag || reqIsFollowUp || reqIsTitleGen;\n\n// Determine system prompt type\nlet systemPromptType = null;\nif (isAutoTag || reqIsAutoTag) systemPromptType = 'auto-tag';\nelse if (isFollowUp || reqIsFollowUp) systemPromptType = 'follow-up';\nelse if (isTitleGen || reqIsTitleGen) systemPromptType = 'title-gen';\n\n// Only use projectSlug from input if it looks like a slug (no spaces, short)\n// Otherwise it might be the user message sent with wrong field name\nconst inputProjectSlug = input.projectSlug || null;\nconst looksLikeSlug = inputProjectSlug && inputProjectSlug.length < 100 && !inputProjectSlug.includes(' ');\nconst actualProjectSlug = looksLikeSlug ? inputProjectSlug : null;\n\nreturn [{ json: {\n  rawInput: chatInput,\n  projectSlug: actualProjectSlug,\n  projectName: input.projectName || null,\n  requirements: input.requirements || null,\n  sessionId: input.sessionId || null,\n  isSystemPrompt: isSystemPrompt || reqIsSystemPrompt,\n  systemPromptType: systemPromptType\n} }];"
+        },
+        "id": "parse-input",
+        "name": "Parse Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -448,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "sp-check",
+                "leftValue": "={{ $json.isSystemPrompt }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-system-prompt",
+        "name": "If: System Prompt",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -288,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const type = $input.first().json.systemPromptType;\nlet response = {};\nif (type === 'auto-tag') { response = { tags: ['solution-architecture', 'architecture'] }; }\nelse if (type === 'follow-up') { response = { questions: ['What specific aspects would you like to explore?'] }; }\nelse if (type === 'title-gen') { response = { title: 'Solution Architect Assistant' }; }\nreturn [{ json: response }];"
+        },
+        "id": "system-prompt-handler",
+        "name": "System Prompt Handler",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -96,
+          144
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {}
+        },
+        "id": "respond-system-prompt",
+        "name": "Respond: System Prompt",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          112,
+          144
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://ollama:11434/api/chat",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a classifier for a Solution Architecture pipeline. Analyze the user input and determine the mode, intent, and extract project information.\\n\\nMODE RULES:\\n- mode=chat: For queries, help requests, status checks. Keywords: help, status, list, artifacts, jobs, what, how, show, get, query, ?\\n- mode=execute: For creating/building/generating solution architecture. Keywords: build, create, generate, make, develop, design a, implement\\n\\nIf input is a single word like \\\"help\\\", \\\"list\\\", \\\"jobs\\\", \\\"status\\\" - it is ALWAYS mode=chat.\\nIf input asks a question or requests information - it is mode=chat.\\nOnly use mode=execute when user explicitly wants to CREATE or BUILD something new.\\n\\nPROJECT EXTRACTION:\\n- Extract the project slug/name if mentioned (e.g., \\\"project healthcare-scheduler\\\" -> projectSlug: \\\"healthcare-scheduler\\\")\\n- Look for patterns like: \\\"project X\\\", \\\"for X\\\", \\\"X project\\\"\\n\\nChat intents: help, status, artifacts, jobs, list\\nExecute intents: create, build, generate\\n\\nOutput JSON only.'\n    },\n    { role: 'user', content: $json.rawInput || $json.requirements }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    required: ['mode', 'intent'],\n    properties: {\n      mode: { type: 'string', enum: ['chat', 'execute'] },\n      intent: { type: 'string' },\n      projectSlug: { type: 'string' },\n      requirements: { type: 'string' }\n    }\n  },\n  options: { temperature: 0.1 }\n} }}",
+          "options": {}
+        },
+        "id": "classify-mode",
+        "name": "Classify Mode",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -128,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst parsed = $('Parse Input').first().json;\nlet classification = { mode: 'chat', intent: 'help' };\ntry { const content = response.message?.content; if (content) classification = JSON.parse(content); } catch (e) {}\nreturn [{ json: { ...parsed, mode: classification.mode || 'chat', intent: classification.intent || 'help', extractedProjectSlug: classification.projectSlug || null } }];"
+        },
+        "id": "process-classification",
+        "name": "Process Classification",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          32,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "mode-check",
+                "leftValue": "={{ $json.mode }}",
+                "rightValue": "chat",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-mode-check",
+        "name": "If: Mode Check",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          192,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json;\nconst intent = input.intent || 'help';\nconst projectSlug = input.projectSlug || input.extractedProjectSlug;\nlet response = { agent: 'Solution Architect', stage: 'solution-architecture', intent: intent, action: 'direct_response', query: null };\nswitch(intent) {\n  case 'help':\n    response.content = '# Solution Architecture Pipeline\\n\\n## Commands\\n| Command | Description |\\n|---------|-------------|\\n| help | Show help |\\n| status | Check job status |\\n| artifacts | List artifacts |\\n| jobs | List recent jobs |\\n| list | List projects |';\n    response.message = 'Help';\n    break;\n  case 'status': case 'jobs':\n    response.action = 'query_db';\n    response.query = projectSlug ? `SELECT j.id, p.slug as project, j.stage, j.status, j.created_at, j.completed_at FROM architecture.jobs j JOIN architecture.projects p ON j.project_id = p.id WHERE j.stage = 'solution-architecture' AND p.slug = '${projectSlug}' ORDER BY j.created_at DESC LIMIT 10` : `SELECT j.id, p.slug as project, j.stage, j.status, j.created_at, j.completed_at FROM architecture.jobs j JOIN architecture.projects p ON j.project_id = p.id WHERE j.stage = 'solution-architecture' ORDER BY j.created_at DESC LIMIT 10`;\n    response.queryType = 'jobs';\n    break;\n  case 'artifacts':\n    response.action = 'query_db';\n    response.query = `SELECT a.id, p.slug as project, a.artifact_type, a.version, a.created_at FROM architecture.artifacts a JOIN architecture.projects p ON a.project_id = p.id WHERE a.artifact_type LIKE 'solution_%' ORDER BY a.created_at DESC LIMIT 10`;\n    response.queryType = 'artifacts';\n    break;\n  case 'list':\n    response.action = 'query_db';\n    response.query = 'SELECT p.id, p.slug, p.name, p.created_at FROM architecture.projects p ORDER BY p.created_at DESC LIMIT 20';\n    response.queryType = 'projects';\n    break;\n  default:\n    response.content = 'Unknown command. Try help.';\n    response.message = 'Unknown';\n}\nreturn [{ json: response }];"
+        },
+        "id": "chat-handler",
+        "name": "Chat Handler",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          352,
+          144
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "needs-query",
+                "leftValue": "={{ $json.action }}",
+                "rightValue": "query_db",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-needs-db-query",
+        "name": "If: Needs DB Query",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          512,
+          144
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "={{ $json.query }}",
+          "options": {}
+        },
+        "id": "execute-chat-query",
+        "name": "Execute Chat Query",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          672,
+          64
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "avpnXKKamBTlgThS",
+            "name": "Supabase Postgres"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const chatContext = $('Chat Handler').first().json;\nconst queryResults = $input.all().map(i => i.json);\nlet content = '';\nconst queryType = chatContext.queryType;\nif (queryResults.length === 0) { content = 'No results found.'; }\nelse {\n  switch(queryType) {\n    case 'jobs':\n      content = '# Jobs\\n\\n| ID | Project | Stage | Status | Created | Completed |\\n|----|---------|-------|--------|---------|-----------|\\n';\n      for (const row of queryResults) { content += `| ${row.id?.substring(0,8)}... | ${row.project} | ${row.stage} | ${row.status} | ${new Date(row.created_at).toLocaleDateString()} | ${row.completed_at ? new Date(row.completed_at).toLocaleDateString() : '-'} |\\n`; }\n      break;\n    case 'artifacts':\n      content = '# Artifacts\\n\\n| ID | Project | Type | Version | Created |\\n|----|---------|------|---------|---------|\\n';\n      for (const row of queryResults) { content += `| ${row.id?.substring(0,8)}... | ${row.project} | ${row.artifact_type} | ${row.version} | ${new Date(row.created_at).toLocaleDateString()} |\\n`; }\n      break;\n    case 'projects':\n      content = '# Projects\\n\\n| Slug | Name | Created |\\n|------|------|---------|\\n';\n      for (const row of queryResults) { content += `| ${row.slug} | ${row.name} | ${new Date(row.created_at).toLocaleDateString()} |\\n`; }\n      break;\n    default: content = JSON.stringify(queryResults, null, 2);\n  }\n}\nreturn [{ json: { agent: 'Solution Architect', stage: 'solution-architecture', intent: chatContext.intent, success: true, content: content, message: `Found ${queryResults.length} result(s)`, rowCount: queryResults.length } }];"
+        },
+        "id": "format-chat-results",
+        "name": "Format Chat Results",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          832,
+          64
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json }}",
+          "options": {}
+        },
+        "id": "respond-chat",
+        "name": "Respond: Chat",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          1168,
+          80
+        ]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ { status: 'accepted', message: 'Solution Architecture generation started for project: ' + ($('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown'), stage: 'solution-architecture', workflow: 'Solution Architecture', projectSlug: $('Load Project').first().json.slug || $('Process Classification').first().json.projectSlug || 'unknown', projectName: $('Load Project').first().json.name || $('Process Classification').first().json.projectName || $('Process Classification').first().json.projectSlug || 'unknown' } }}",
+          "options": {}
+        },
+        "id": "respond-execute-ack",
+        "name": "Respond: Execute Ack",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.1,
+        "position": [
+          352,
+          464
+        ]
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "id": "trigger",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          0,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "name": "projectSlug",
+                "value": "={{ $json.extractedProjectSlug || $json.projectSlug }}",
+                "type": "string"
+              },
+              {
+                "name": "inputJobId",
+                "value": "={{ $json.inputJobId || null }}",
+                "type": "string"
+              },
+              {
+                "name": "comments",
+                "value": "={{ $json.comments || null }}",
+                "type": "string"
+              },
+              {
+                "name": "ollamaModel",
+                "value": "llama3.1:8b-instruct-q4_K_M",
+                "type": "string"
+              },
+              {
+                "name": "ollamaTemperature",
+                "value": 0,
+                "type": "number"
+              },
+              {
+                "name": "ollamaSeed",
+                "value": 42,
+                "type": "number"
+              }
+            ],
+            "assignments[0]": {
+              "name": "projectSlug",
+              "value": "={{ $json.extractedProjectSlug || $json.projectSlug }}",
+              "type": "string"
+            }
+          },
+          "options": {}
+        },
+        "id": "init-params",
+        "name": "Initialize Parameters",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          400,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT p.id, p.slug, p.name FROM architecture.projects p WHERE p.slug = $1;",
+          "options": {
+            "queryReplacement": "={{ [ $json.projectSlug ] }}"
+          }
+        },
+        "id": "get-project",
+        "name": "Load Project",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          480,
+          304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT id FROM architecture.jobs WHERE project_id = $1 AND stage = 'architecture' AND status = 'completed' ORDER BY created_at DESC LIMIT 1;",
+          "options": {
+            "queryReplacement": "={{ [ $json.id ] }}"
+          }
+        },
+        "id": "get-arch-job",
+        "name": "Get Latest Arch Job",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          720,
+          304
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO architecture.jobs (project_id, stage, input_job_id, status, meta) VALUES ($1, 'solution-architecture', $2, 'running', $3::jsonb) RETURNING id, stage, status;",
+          "options": {
+            "queryReplacement": "={{ [ $('Load Project').first().json.id, $json.id || null, JSON.stringify({ comments: $('Initialize Parameters').first().json.comments }) ] }}"
+          }
+        },
+        "id": "create-job",
+        "name": "Create Solution Arch Job",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          960,
+          304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const init = $('Initialize Parameters').first().json;\nconst project = $('Load Project').first().json;\nconst job = $json;\nreturn [{ json: { ...init, projectId: project.id, projectSlug: project.slug, projectName: project.name || project.slug, jobId: job.id } }];"
+        },
+        "id": "pass-context",
+        "name": "Pass Context",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT DISTINCT ON (a.type) a.type, a.content FROM architecture.artifacts a WHERE a.project_id = $1 AND a.type IN ('brd', 'business_arch', 'application_arch', 'data_arch', 'infrastructure_arch') ORDER BY a.type, a.version DESC;",
+          "options": {
+            "queryReplacement": "={{ [ $json.projectId ] }}"
+          }
+        },
+        "id": "load-artifacts",
+        "name": "Load Architecture Artifacts",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1440,
+          304
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const ctx = $('Pass Context').first().json;\nconst rows = $input.all().map(i => i.json);\nconst byType = {};\nfor (const r of rows) byType[r.type] = r.content;\nreturn [{ json: { ...ctx, artifacts: byType } }];"
+        },
+        "id": "collect-artifacts",
+        "name": "Collect Artifacts",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1680,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://ollama:11434/api/chat",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Solution Architect producing integration artifacts. Output JSON with: integrationStyle (rest_only|events_only|hybrid), solutionMarkdown (starts with \"# Solution Architecture:\"), openapiYaml (OpenAPI 3.0 spec if REST), asyncapiYaml (AsyncAPI 2.0 spec if events), avroSchemasJson (Avro schemas object if events), cloudEventsMarkdown (Cloud Events documentation if events), sqlSchemaSql (PostgreSQL DDL). Include all relevant artifacts based on integrationStyle. No code fences anywhere.' },\n    { role: 'user', content: 'PROJECT: ' + $json.projectName + '\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($json.artifacts.data_arch || {}).slice(0,4000) + '\\nINFRA_ARCH: ' + JSON.stringify($json.artifacts.infrastructure_arch || {}).slice(0,4000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['integrationStyle','solutionMarkdown','sqlSchemaSql'], properties: { integrationStyle: { type: 'string', enum: ['rest_only','events_only','hybrid'] }, solutionMarkdown: { type: 'string' }, openapiYaml: { type: ['string','null'] }, asyncapiYaml: { type: ['string','null'] }, avroSchemasJson: { type: ['object','null'] }, cloudEventsMarkdown: { type: ['string','null'] }, sqlSchemaSql: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
+          "options": {
+            "timeout": 300000
+          }
+        },
+        "id": "gen-solution",
+        "name": "Generate Solution Package",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1920,
+          304
+        ],
+        "retryOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const raw = $json.message?.content;\nlet p; try { p = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { return [{ json: { valid: false, error: 'JSON parse failed: ' + e.message } }]; }\nconst fnv1a = (s) => { let h = 0x811c9dc5; for (let i = 0; i < (s||'').length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };\nconst valid = p.solutionMarkdown && p.solutionMarkdown.startsWith('# Solution Architecture:');\nreturn [{ json: {\n  valid,\n  integrationStyle: p.integrationStyle || 'rest_only',\n  solutionMarkdown: p.solutionMarkdown || '',\n  openapiYaml: p.openapiYaml || null,\n  asyncapiYaml: p.asyncapiYaml || null,\n  avroSchemasJson: p.avroSchemasJson || null,\n  cloudEventsMarkdown: p.cloudEventsMarkdown || null,\n  sqlSchemaSql: p.sqlSchemaSql || '',\n  hashes: {\n    solution: fnv1a(p.solutionMarkdown),\n    openapi: fnv1a(p.openapiYaml),\n    asyncapi: fnv1a(p.asyncapiYaml),\n    avro: fnv1a(JSON.stringify(p.avroSchemasJson)),\n    cloudEvents: fnv1a(p.cloudEventsMarkdown),\n    sql: fnv1a(p.sqlSchemaSql)\n  }\n} }];"
+        },
+        "id": "val-solution",
+        "name": "Validate Solution",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2160,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const j = $json;\nif (!j.valid) return [];\nconst ctx = $('Pass Context').first().json;\nconst meta = { jobId: ctx.jobId, stage: 'solution-architecture', integrationStyle: j.integrationStyle };\nconst out = [];\n\n// Always include solution architecture markdown\nout.push({ json: { artifactType: 'solution_arch_md', content: { markdown: j.solutionMarkdown }, contentHash: j.hashes.solution, meta } });\n\n// REST artifacts\nif (j.openapiYaml) out.push({ json: { artifactType: 'openapi_yaml', content: { yaml: j.openapiYaml }, contentHash: j.hashes.openapi, meta } });\n\n// Event-driven artifacts\nif (j.asyncapiYaml) out.push({ json: { artifactType: 'asyncapi_yaml', content: { yaml: j.asyncapiYaml }, contentHash: j.hashes.asyncapi, meta } });\nif (j.avroSchemasJson) out.push({ json: { artifactType: 'avro_schemas_json', content: { schemas: j.avroSchemasJson }, contentHash: j.hashes.avro, meta } });\nif (j.cloudEventsMarkdown) out.push({ json: { artifactType: 'cloud_events_md', content: { markdown: j.cloudEventsMarkdown }, contentHash: j.hashes.cloudEvents, meta } });\n\n// Database artifacts\nif (j.sqlSchemaSql) out.push({ json: { artifactType: 'sql_schema_sql', content: { sql: j.sqlSchemaSql }, contentHash: j.hashes.sql, meta } });\n\nreturn out;"
+        },
+        "id": "explode-solution",
+        "name": "Explode Solution Artifacts",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2400,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH next_version AS (SELECT COALESCE(MAX(version), 0) + 1 AS v FROM architecture.artifacts WHERE project_id = $1 AND type = $2) INSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta) SELECT $1, $2, next_version.v, $3::jsonb, $4, $5::jsonb FROM next_version RETURNING id, version;",
+          "options": {
+            "queryReplacement": "={{ [ $('Pass Context').first().json.projectId, $json.artifactType, JSON.stringify($json.content), $json.contentHash, JSON.stringify($json.meta) ] }}"
+          }
+        },
+        "id": "store-solution",
+        "name": "Store Solution Artifacts",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2640,
+          304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const ctx = $('Pass Context').first().json;\nconst sol = $('Validate Solution').first().json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\n// Helper to safely escape heredoc content\nconst safeHeredoc = (content, marker) => {\n  if (!content) return '';\n  return String(content).replace(new RegExp(marker, 'g'), marker + '_ESCAPED');\n};\n\nlet sh = `set -e\nmkdir -p /opt/workspace\n\nif [ ! -d '${repoDir}/.git' ]; then\n  git clone '${remote}' '${repoDir}'\nfi\ncd '${repoDir}'\ngit fetch origin --prune\n\ngit checkout -B '${projectSlug}' 'origin/${projectSlug}' 2>/dev/null || git checkout -B '${projectSlug}'\nmkdir -p '${projectDir}/docs' '${projectDir}/api' '${projectDir}/db'\n`;\n\n// Solution Architecture markdown\nsh += `cat > '${projectDir}/docs/solution-architecture.md' <<'EOFSOL_${jobId}'\n${safeHeredoc(sol.solutionMarkdown, 'EOFSOL_' + jobId)}\nEOFSOL_${jobId}\n`;\n\n// REST API spec\nif (sol.openapiYaml) {\n  sh += `cat > '${projectDir}/api/openapi.yaml' <<'EOFAPI_${jobId}'\n${safeHeredoc(sol.openapiYaml, 'EOFAPI_' + jobId)}\nEOFAPI_${jobId}\n`;\n}\n\n// Event-driven specs\nif (sol.asyncapiYaml) {\n  sh += `cat > '${projectDir}/api/asyncapi.yaml' <<'EOFASYNC_${jobId}'\n${safeHeredoc(sol.asyncapiYaml, 'EOFASYNC_' + jobId)}\nEOFASYNC_${jobId}\n`;\n}\n\nif (sol.avroSchemasJson) {\n  sh += `cat > '${projectDir}/api/avro-schemas.json' <<'EOFAVRO_${jobId}'\n${safeHeredoc(JSON.stringify(sol.avroSchemasJson, null, 2), 'EOFAVRO_' + jobId)}\nEOFAVRO_${jobId}\n`;\n}\n\nif (sol.cloudEventsMarkdown) {\n  sh += `cat > '${projectDir}/docs/cloud-events.md' <<'EOFCE_${jobId}'\n${safeHeredoc(sol.cloudEventsMarkdown, 'EOFCE_' + jobId)}\nEOFCE_${jobId}\n`;\n}\n\n// Database schema\nif (sol.sqlSchemaSql) {\n  sh += `cat > '${projectDir}/db/schema.sql' <<'EOFSQL_${jobId}'\n${safeHeredoc(sol.sqlSchemaSql, 'EOFSQL_' + jobId)}\nEOFSQL_${jobId}\n`;\n}\n\nsh += `\ngit add '${projectSlug}-docs'\ngit commit -m 'Add solution architecture for ${projectSlug} (job ${jobId})' || true\ngit push -u origin '${projectSlug}'\n`;\n\nreturn [{ json: { ...ctx, integrationStyle: sol.integrationStyle, gitScript: sh } }];"
+        },
+        "id": "build-git-script",
+        "name": "Build Git Script",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2880,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "authentication": "privateKey",
+          "command": "={{ $json.gitScript }}"
+        },
+        "id": "ssh-commit",
+        "name": "SSH: Commit Solution Files",
+        "type": "n8n-nodes-base.ssh",
+        "typeVersion": 1,
+        "position": [
+          3120,
+          304
+        ],
+        "credentials": {
+          "sshPrivateKey": {
+            "id": "SxKNiry9nQQ96pnU",
+            "name": "SSH Private Key account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "UPDATE architecture.jobs SET status = 'completed', completed_at = now() WHERE id = $1 RETURNING id, status;",
+          "options": {
+            "queryReplacement": "={{ [ $('Pass Context').first().json.jobId ] }}"
+          }
+        },
+        "id": "update-job",
+        "name": "Update Job Status",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          3360,
+          304
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const ctx = $('Pass Context').first().json;\nconst sol = $('Validate Solution').first().json;\nreturn [{ json: {\n  success: true,\n  jobId: ctx.jobId,\n  projectSlug: ctx.projectSlug,\n  stage: 'solution-architecture',\n  integrationStyle: sol.integrationStyle,\n  artifacts: {\n    solutionArch: ctx.projectSlug + '-docs/docs/solution-architecture.md',\n    openapi: sol.openapiYaml ? ctx.projectSlug + '-docs/api/openapi.yaml' : null,\n    asyncapi: sol.asyncapiYaml ? ctx.projectSlug + '-docs/api/asyncapi.yaml' : null,\n    avroSchemas: sol.avroSchemasJson ? ctx.projectSlug + '-docs/api/avro-schemas.json' : null,\n    cloudEvents: sol.cloudEventsMarkdown ? ctx.projectSlug + '-docs/docs/cloud-events.md' : null,\n    sqlSchema: sol.sqlSchemaSql ? ctx.projectSlug + '-docs/db/schema.sql' : null\n  }\n} }];"
+        },
+        "id": "return-result",
+        "name": "Return Result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3600,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "version": 2,
+                    "combinator": "and"
+                  },
+                  "conditions": [
+                    {
+                      "operator": {
+                        "name": "equals",
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "leftValue": "={{ $json.mode }}",
+                      "rightValue": "chat"
+                    }
+                  ]
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "version": 2,
+                    "combinator": "and"
+                  },
+                  "conditions": [
+                    {
+                      "operator": {
+                        "name": "equals",
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "leftValue": "={{ $json.mode }}",
+                      "rightValue": "execute"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "extra"
+          }
+        },
+        "id": "mode-router",
+        "name": "Mode Router",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [
+          160,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Solution Architect Chat Handler\nconst agentConfig = {\n  name: 'Solution Architect',\n  shortName: 'solution-architect',\n  collectionName: 'agent-knowledge-solution-architect',\n  folder: 'agent-docs/solution-architect',\n  helpFile: '/data/shared/knowledge/agent-docs/solution-architect/help.md'\n};\n\nconst input = $input.all()[0].json;\nconst intent = input.intent || 'help';\nconst query = input.query || '';\n\nlet response = {\n  agent: agentConfig.name,\n  intent: intent,\n  success: true\n};\n\nswitch (intent) {\n  case 'help':\n    response.content = `# ${agentConfig.name} Agent Help\\n\\n## Available Commands\\n\\n| Intent | Description |\\n|--------|-------------|\\n| help | Show this help message |\\n| status | Check knowledge base status |\\n| list | List documents in knowledge base |\\n| upload | Upload a document to knowledge base |\\n| reload | Reload all documents in knowledge base |\\n| query | Query the knowledge base |\\n\\n## Knowledge Base\\n- Collection: ${agentConfig.collectionName}\\n- Folder: ${agentConfig.folder}\\n\\n## Solution Domains\\n- Solution Design Patterns\\n- Integration Architecture\\n- Deployment Architecture\\n- Scalability Planning\\n`;\n    response.message = `${agentConfig.name} Help`;\n    break;\n    \n  case 'status':\n    response.action = 'query_qdrant_status';\n    response.collection = agentConfig.collectionName;\n    break;\n    \n  case 'list':\n    response.action = 'query_qdrant_list';\n    response.collection = agentConfig.collectionName;\n    break;\n    \n  case 'upload':\n    response.action = 'call_knowledge_loader';\n    response.loaderPayload = {\n      action: 'upload',\n      collection: agentConfig.collectionName,\n      folder: agentConfig.folder,\n      content: input.content || '',\n      filename: input.filename || ''\n    };\n    break;\n    \n  case 'reload':\n    response.action = 'call_knowledge_loader';\n    response.loaderPayload = {\n      action: 'reload',\n      collection: agentConfig.collectionName,\n      folder: agentConfig.folder\n    };\n    break;\n    \n  case 'query':\n    response.action = 'rag_query';\n    response.collection = agentConfig.collectionName;\n    response.query = query;\n    break;\n    \n  default:\n    response.success = false;\n    response.errorMessage = `Unknown intent: ${intent}. Valid intents: help, status, list, upload, reload, query`;\n}\n\nreturn [{ json: response }];"
+        },
+        "id": "chat-handler",
+        "name": "Chat Handler",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          400,
+          80
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "azure-enabled-check",
+                "leftValue": "={{ $env.AZURE_DEVOPS_ORG }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-azure-3d4bf0bf",
+        "name": "If: Azure Enabled",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          3120,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "method": "GET",
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}?api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "options": {}
+        },
+        "id": "get-azure-repo-2751023d",
+        "name": "Get Azure Repo Info",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          3360,
+          554
+        ],
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "kck9Sr0DATIIbF3R",
+            "name": "Unnamed credential"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Build Azure DevOps push payload\nconst ctx = $(\"Build Git Script\").first().json;\nconst repoInfo = $(\"Get Azure Repo Info\").first().json;\nconst branchCheck = $json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\n\n// Get artifact content - try common variable names\nconst artifactContent = ctx.artifactContent || ctx.artifactMarkdown || ctx.solutionMarkdown || ctx.content || \"\";\nconst artifactPath = \"/docs/solution-architecture.md\";\n\n// Determine branch reference\nconst branchName = `refs/heads/${projectSlug}`;\n\n// Check if branch exists and get its current commit SHA\nlet oldObjectId = \"0000000000000000000000000000000000000000\";\n\nif (branchCheck.value && branchCheck.value.length > 0) {\n  // Branch exists - use current commit SHA\n  oldObjectId = branchCheck.value[0].objectId;\n}\n\n// Always use 'add' for new stage-specific artifacts\n// Each stage creates its own unique file that didn't exist before\nconst changeType = \"add\";\n\n// Build the push payload\nconst changes = [{\n  changeType: changeType,\n  item: { path: `/${projectSlug}-docs${artifactPath}` },\n  newContent: {\n    content: Buffer.from(artifactContent).toString(\"base64\"),\n    contentType: \"base64encoded\"\n  }\n}];\n\nreturn [{\n  json: {\n    ...ctx,\n    azurePushPayload: {\n      refUpdates: [{\n        name: branchName,\n        oldObjectId: oldObjectId\n      }],\n      commits: [{\n        comment: `Add solution architecture artifacts for ${projectSlug} (job ${jobId})`,\n        changes: changes\n      }]\n    },\n    azureRepoInfo: repoInfo,\n    branchExists: branchCheck.value && branchCheck.value.length > 0\n  }\n}];"
+        },
+        "id": "build-azure-payload-d70e8d61",
+        "name": "Build Azure Push Payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3600,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/pushes?api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json.azurePushPayload) }}",
+          "options": {}
+        },
+        "id": "push-azure-9084c41c",
+        "name": "Push to Azure DevOps",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          3840,
+          554
+        ],
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "kck9Sr0DATIIbF3R",
+            "name": "Unnamed credential"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "append",
+          "mergeByFields": {
+            "values": [
+              {
+                "field1": "jobId",
+                "field2": "jobId"
+              }
+            ]
+          },
+          "options": {
+            "fuzzyCompare": false
+          }
+        },
+        "id": "merge-results-aaced5ca",
+        "name": "Merge Git Results",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          4080,
+          429
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "noop-azure-80e8a835",
+        "name": "Azure Disabled",
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          3600,
+          704
+        ]
+      },
+      {
+        "id": "2df4bd76-3112-4e82-bb69-ba13420948bd",
+        "name": "Check Azure Branch",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          3480,
+          554
+        ],
+        "parameters": {
+          "method": "GET",
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/git/repositories/{{ $env.AZURE_DEVOPS_REPO }}/refs?filter=heads/{{ $(\"Build Git Script\").first().json.projectSlug }}&api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": false
+              }
+            }
+          }
+        },
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "kck9Sr0DATIIbF3R",
+            "name": "Unnamed credential"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook: Solution Architecture": {
+        "main": [
+          [
+            {
+              "node": "Parse Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Input": {
+        "main": [
+          [
+            {
+              "node": "If: System Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: System Prompt": {
+        "main": [
+          [
+            {
+              "node": "System Prompt Handler",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Classify Mode",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "System Prompt Handler": {
+        "main": [
+          [
+            {
+              "node": "Respond: System Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Classify Mode": {
+        "main": [
+          [
+            {
+              "node": "Process Classification",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Process Classification": {
+        "main": [
+          [
+            {
+              "node": "If: Mode Check",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: Mode Check": {
+        "main": [
+          [
+            {
+              "node": "Chat Handler",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Initialize Parameters",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Chat Handler": {
+        "main": [
+          [
+            {
+              "node": "If: Needs DB Query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: Needs DB Query": {
+        "main": [
+          [
+            {
+              "node": "Execute Chat Query",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond: Chat",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Chat Query": {
+        "main": [
+          [
+            {
+              "node": "Format Chat Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Chat Results": {
+        "main": [
+          [
+            {
+              "node": "Respond: Chat",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Initialize Parameters": {
+        "main": [
+          [
+            {
+              "node": "Load Project",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Project": {
+        "main": [
+          [
+            {
+              "node": "Get Latest Arch Job",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Latest Arch Job": {
+        "main": [
+          [
+            {
+              "node": "Create Solution Arch Job",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create Solution Arch Job": {
+        "main": [
+          [
+            {
+              "node": "Pass Context",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Respond: Execute Ack",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Pass Context": {
+        "main": [
+          [
+            {
+              "node": "Load Architecture Artifacts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Architecture Artifacts": {
+        "main": [
+          [
+            {
+              "node": "Collect Artifacts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Collect Artifacts": {
+        "main": [
+          [
+            {
+              "node": "Generate Solution Package",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Solution Package": {
+        "main": [
+          [
+            {
+              "node": "Validate Solution",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate Solution": {
+        "main": [
+          [
+            {
+              "node": "Explode Solution Artifacts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Explode Solution Artifacts": {
+        "main": [
+          [
+            {
+              "node": "Store Solution Artifacts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Store Solution Artifacts": {
+        "main": [
+          [
+            {
+              "node": "Build Git Script",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Git Script": {
+        "main": [
+          [
+            {
+              "node": "SSH: Commit Solution Files",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "If: Azure Enabled",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "SSH: Commit Solution Files": {
+        "main": [
+          [
+            {
+              "node": "Merge Git Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update Job Status": {
+        "main": [
+          [
+            {
+              "node": "Return Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Mode Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mode Router": {
+        "main": [
+          [
+            {
+              "node": "Chat Handler",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Initialize Parameters",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: Azure Enabled": {
+        "main": [
+          [
+            {
+              "node": "Get Azure Repo Info",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Azure Disabled",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Azure Push Payload": {
+        "main": [
+          [
+            {
+              "node": "Push to Azure DevOps",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Push to Azure DevOps": {
+        "main": [
+          [
+            {
+              "node": "Merge Git Results",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Azure Disabled": {
+        "main": [
+          [
+            {
+              "node": "Merge Git Results",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge Git Results": {
+        "main": [
+          [
+            {
+              "node": "Update Job Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Azure Repo Info": {
+        "main": [
+          [
+            {
+              "node": "Check Azure Branch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Azure Branch": {
+        "main": [
+          [
+            {
+              "node": "Build Azure Push Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "socrates hlapolosa",
+    "name": null,
+    "description": null,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-01-27T12:47:38.759Z",
+        "id": 734,
+        "workflowId": "smxRuLpxe8181lbw",
+        "versionId": "8c2d58cf-8c43-4402-8325-3ede179da7df",
+        "event": "activated",
+        "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c"
+      }
+    ]
+  }
 }
