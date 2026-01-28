@@ -109,12 +109,12 @@
             },
             {
               "name": "projectName",
-              "value": "={{ $json.projectName || 'architecture-project' }}",
+              "value": "={{ $json.projectName || $json.extractedProjectSlug || $json.projectSlug }}",
               "type": "string"
             },
             {
               "name": "projectSlug",
-              "value": "={{ $json.projectSlug || 'architecture-project' }}",
+              "value": "={{ $json.extractedProjectSlug || $json.projectSlug }}",
               "type": "string"
             },
             {
@@ -550,7 +550,7 @@
         "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a classifier for a Business Analysis pipeline. Analyze the user input and determine the mode and intent.\\n\\nMODE RULES:\\n- mode=chat: For queries, help requests, status checks. Keywords: help, status, list, artifacts, jobs, what, how, show, get, query, ?\\n- mode=execute: For creating/building/generating BRD documents. Keywords: build, create, generate, make, develop, design a, implement\\n\\nIf input is a single word like \"help\", \"list\", \"jobs\", \"status\" - it is ALWAYS mode=chat.\\nIf input asks a question or requests information - it is mode=chat.\\nOnly use mode=execute when user explicitly wants to CREATE or BUILD something new.\\n\\nChat intents: help, status, artifacts, jobs, list\\nExecute intents: create, build, generate\\n\\nOutput JSON only.'\n    },\n    { role: 'user', content: $json.rawInput || $json.requirements }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    required: ['mode', 'intent'],\n    properties: {\n      mode: { type: 'string', enum: ['chat', 'execute'] },\n      intent: { type: 'string' },\n      projectSlug: { type: 'string' },\n      requirements: { type: 'string' }\n    }\n  },\n  options: { temperature: 0.1 }\n} }}",
+        "jsonBody": "={{ {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a classifier for a Business Analysis pipeline. Analyze the user input and determine the mode and intent.\\n\\nMODE RULES:\\n- mode=chat: For queries, help requests, status checks. Keywords: help, status, list, artifacts, jobs, what, how, show, get, query, ?\\n- mode=execute: For creating/building/generating BRD documents. Keywords: build, create, generate, make, develop, design a, implement\\n\\nIf input is a single word like \"help\", \"list\", \"jobs\", \"status\" - it is ALWAYS mode=chat.\\nIf input asks a question or requests information - it is mode=chat.\\nOnly use mode=execute when user explicitly wants to CREATE or BUILD something new.\\n\\nChat intents: help, status, artifacts, jobs, list\\nExecute intents: create, build, generate\\n\\nPROJECT EXTRACTION (CRITICAL):\\n- ALWAYS extract the projectSlug from the input text\\n- Look for patterns like \"project X\", \"for X\", \"called X\", \"named X\"\\n- The projectSlug should be lowercase-hyphenated (e.g., \"healthcare-appointment-scheduler\")\\n- If no project name is found, set projectSlug to null\\n\\nOutput JSON only.'\n    },\n    { role: 'user', content: $json.rawInput || $json.requirements }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    required: ['mode', 'intent', 'projectSlug'],\n    properties: {\n      mode: { type: 'string', enum: ['chat', 'execute'] },\n      intent: { type: 'string' },\n      projectSlug: { type: 'string' },\n      requirements: { type: 'string' }\n    }\n  },\n  options: { temperature: 0.1 }\n} }}",
         "options": {}
       },
       "id": "classify-mode",
@@ -564,7 +564,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Process LLM classification response\nconst parseInput = $('Parse Input').first().json;\nconst llmResponse = $json.message?.content || '{}';\n\nlet classified;\ntry {\n  classified = typeof llmResponse === 'string' ? JSON.parse(llmResponse) : llmResponse;\n} catch (e) {\n  classified = { mode: 'chat', intent: 'help' };\n}\n\nconst mode = classified.mode || 'chat';\nconst intent = classified.intent || 'help';\n\nconst projectSlug = parseInput.projectSlug || classified.projectSlug || null;\nconst requirements = parseInput.requirements || classified.requirements || parseInput.rawInput;\nconst projectName = parseInput.projectName || projectSlug || 'new-project';\n\nreturn [{ json: {\n  mode,\n  intent,\n  projectSlug,\n  projectName,\n  requirements,\n  rawInput: parseInput.rawInput,\n  sessionId: parseInput.sessionId\n} }];"
+        "jsCode": "// Process LLM classification response\nconst parseInput = $('Parse Input').first().json;\nconst llmResponse = $json.message?.content || '{}';\n\nlet classified;\ntry {\n  classified = typeof llmResponse === 'string' ? JSON.parse(llmResponse) : llmResponse;\n} catch (e) {\n  classified = { mode: 'chat', intent: 'help' };\n}\n\nconst mode = classified.mode || 'chat';\nconst intent = classified.intent || 'help';\n\nconst extractedProjectSlug = classified.projectSlug || null;\nconst projectSlug = parseInput.projectSlug || extractedProjectSlug;\nconst requirements = parseInput.requirements || classified.requirements || parseInput.rawInput;\nconst projectName = parseInput.projectName || projectSlug || 'new-project';\n\nreturn [{ json: {\n  mode,\n  intent,\n  projectSlug,\n  extractedProjectSlug,\n  projectName,\n  requirements,\n  rawInput: parseInput.rawInput,\n  sessionId: parseInput.sessionId\n} }];"
       },
       "id": "process-classification",
       "name": "Process Classification",
@@ -1825,12 +1825,12 @@
               },
               {
                 "name": "projectName",
-                "value": "={{ $json.projectName || 'architecture-project' }}",
+                "value": "={{ $json.projectName || $json.extractedProjectSlug || $json.projectSlug }}",
                 "type": "string"
               },
               {
                 "name": "projectSlug",
-                "value": "={{ $json.projectSlug || 'architecture-project' }}",
+                "value": "={{ $json.extractedProjectSlug || $json.projectSlug }}",
                 "type": "string"
               },
               {
@@ -2266,7 +2266,7 @@
           "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a classifier for a Business Analysis pipeline. Analyze the user input and determine the mode and intent.\\n\\nMODE RULES:\\n- mode=chat: For queries, help requests, status checks. Keywords: help, status, list, artifacts, jobs, what, how, show, get, query, ?\\n- mode=execute: For creating/building/generating BRD documents. Keywords: build, create, generate, make, develop, design a, implement\\n\\nIf input is a single word like \"help\", \"list\", \"jobs\", \"status\" - it is ALWAYS mode=chat.\\nIf input asks a question or requests information - it is mode=chat.\\nOnly use mode=execute when user explicitly wants to CREATE or BUILD something new.\\n\\nChat intents: help, status, artifacts, jobs, list\\nExecute intents: create, build, generate\\n\\nOutput JSON only.'\n    },\n    { role: 'user', content: $json.rawInput || $json.requirements }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    required: ['mode', 'intent'],\n    properties: {\n      mode: { type: 'string', enum: ['chat', 'execute'] },\n      intent: { type: 'string' },\n      projectSlug: { type: 'string' },\n      requirements: { type: 'string' }\n    }\n  },\n  options: { temperature: 0.1 }\n} }}",
+          "jsonBody": "={{ {\n  model: 'llama3.1:8b-instruct-q4_K_M',\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a classifier for a Business Analysis pipeline. Analyze the user input and determine the mode and intent.\\n\\nMODE RULES:\\n- mode=chat: For queries, help requests, status checks. Keywords: help, status, list, artifacts, jobs, what, how, show, get, query, ?\\n- mode=execute: For creating/building/generating BRD documents. Keywords: build, create, generate, make, develop, design a, implement\\n\\nIf input is a single word like \"help\", \"list\", \"jobs\", \"status\" - it is ALWAYS mode=chat.\\nIf input asks a question or requests information - it is mode=chat.\\nOnly use mode=execute when user explicitly wants to CREATE or BUILD something new.\\n\\nChat intents: help, status, artifacts, jobs, list\\nExecute intents: create, build, generate\\n\\nPROJECT EXTRACTION (CRITICAL):\\n- ALWAYS extract the projectSlug from the input text\\n- Look for patterns like \"project X\", \"for X\", \"called X\", \"named X\"\\n- The projectSlug should be lowercase-hyphenated (e.g., \"healthcare-appointment-scheduler\")\\n- If no project name is found, set projectSlug to null\\n\\nOutput JSON only.'\n    },\n    { role: 'user', content: $json.rawInput || $json.requirements }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    required: ['mode', 'intent', 'projectSlug'],\n    properties: {\n      mode: { type: 'string', enum: ['chat', 'execute'] },\n      intent: { type: 'string' },\n      projectSlug: { type: 'string' },\n      requirements: { type: 'string' }\n    }\n  },\n  options: { temperature: 0.1 }\n} }}",
           "options": {}
         },
         "id": "classify-mode",
@@ -2280,7 +2280,7 @@
       },
       {
         "parameters": {
-          "jsCode": "// Process LLM classification response\nconst parseInput = $('Parse Input').first().json;\nconst llmResponse = $json.message?.content || '{}';\n\nlet classified;\ntry {\n  classified = typeof llmResponse === 'string' ? JSON.parse(llmResponse) : llmResponse;\n} catch (e) {\n  classified = { mode: 'chat', intent: 'help' };\n}\n\nconst mode = classified.mode || 'chat';\nconst intent = classified.intent || 'help';\n\nconst projectSlug = parseInput.projectSlug || classified.projectSlug || null;\nconst requirements = parseInput.requirements || classified.requirements || parseInput.rawInput;\nconst projectName = parseInput.projectName || projectSlug || 'new-project';\n\nreturn [{ json: {\n  mode,\n  intent,\n  projectSlug,\n  projectName,\n  requirements,\n  rawInput: parseInput.rawInput,\n  sessionId: parseInput.sessionId\n} }];"
+          "jsCode": "// Process LLM classification response\nconst parseInput = $('Parse Input').first().json;\nconst llmResponse = $json.message?.content || '{}';\n\nlet classified;\ntry {\n  classified = typeof llmResponse === 'string' ? JSON.parse(llmResponse) : llmResponse;\n} catch (e) {\n  classified = { mode: 'chat', intent: 'help' };\n}\n\nconst mode = classified.mode || 'chat';\nconst intent = classified.intent || 'help';\n\nconst extractedProjectSlug = classified.projectSlug || null;\nconst projectSlug = parseInput.projectSlug || extractedProjectSlug;\nconst requirements = parseInput.requirements || classified.requirements || parseInput.rawInput;\nconst projectName = parseInput.projectName || projectSlug || 'new-project';\n\nreturn [{ json: {\n  mode,\n  intent,\n  projectSlug,\n  extractedProjectSlug,\n  projectName,\n  requirements,\n  rawInput: parseInput.rawInput,\n  sessionId: parseInput.sessionId\n} }];"
         },
         "id": "process-classification",
         "name": "Process Classification",
