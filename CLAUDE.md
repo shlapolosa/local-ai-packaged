@@ -215,6 +215,11 @@ If SearXNG container restarts continuously, run `chmod 755 searxng` to fix permi
 
 Ensure "Expose daemon on tcp://localhost:2375 without TLS" is enabled in Docker settings for Supabase analytics.
 
+## ArchiMate Modeling
+
+- **Default format**: ArchiMate Exchange File (.xml) - compatible with both ADOIT and Archi
+- Schema: `http://www.opengroup.org/xsd/archimate/3.0/`
+
 ## Task Master AI Instructions
 **Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
 @./.taskmaster/CLAUDE.md
