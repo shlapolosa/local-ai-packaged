@@ -1,0 +1,325 @@
+[
+  {
+    "id": "ref-arch-1",
+    "content": "Healthcare Application Reference Architecture\n\nSource: Enterprise Architecture Standards for Healthcare Providers",
+    "text": "Reference Architecture - Healthcare Application Reference Architecture\n\nSource: Enterprise Architecture Standards for Healthcare Providers",
+    "metadata": {
+      "source": "healthcare-application-architecture.md",
+      "section": "intro",
+      "title": "Healthcare Application Reference Architecture",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-2",
+    "content": "Overview\n\nThis reference architecture defines the standard layered architecture for healthcare applications. It guides the generation of ArchiMate Application Layer elements.",
+    "text": "Reference Architecture - Overview\n\nThis reference architecture defines the standard layered architecture for healthcare applications. It guides the generation of ArchiMate Application Layer elements.",
+    "metadata": {
+      "source": "healthcare-application-architecture.md",
+      "section": "overview",
+      "title": "Overview",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-3",
+    "content": "Architecture Layers\n\n### Layer 1: Presentation Layer\n**Purpose**: User interfaces for patients, providers, and staff\n\n| Component | ID Pattern | Description |\n|-----------|------------|-------------|\n| Mobile Application | `id-ac-mobile` | Native/hybrid mobile app for patients |\n| Web Portal | `id-ac-web` | Browser-based interface for all users |\n| Provider Portal | `id-ac-provider-portal` | Clinician-facing web interface |\n| Admin Console | `id-ac-admin` | Administrative interface |\n\n**ArchiMate Elements**:\n- ApplicationComponent for each UI\n- ApplicationInterface for each component's API\n\n### Layer 2: Gateway Layer\n**Purpose**: Security perimeter, routing, rate limiting, API management\n\n| Component | ID Pattern | Description |\n|-----------|------------|-------------|\n| Firewall | `id-ac-firewall` | Network security (optional in diagram) |\n| API Gateway | `id-ac-gateway` | Central API routing and management |\n| Load Balancer | `id-ac-lb` | Traffic distribution |\n\n**ArchiMate Elements**:\n- ApplicationComponent for gateway\n- ApplicationInterface for public APIs\n- ApplicationFunction for routing, rate-limiting\n\n### Layer 3: Identity & Access Management (IAM)\n**Purpose**: Authentication, authorization, SSO, user management\n\n| Component | ID Pattern | Description |\n|-----------|------------|-------------|\n| Identity Provider | `id-ac-identity` | Authentication service |\n| Authorization Service | `id-ac-authz` | RBAC/ABAC policy enforcement |\n| Session Manager | `id-ac-session` | Token/session management |\n\n**ArchiMate Elements**:\n- ApplicationComponent for IAM\n- ApplicationService for auth/authz capabilities\n- ApplicationFunction for token validation, policy evaluation\n\n### Layer 4: Service Layer (Bounded Contexts)\n**Purpose**: Business logic organized by domain\n\n| Domain | ID Pattern | Description |\n|--------|------------|-------------|\n| Patient Domain | `id-ac-patient` | Patient demographics, preferences |\n| Provider Domain | `id-ac-provider` | Clinician profiles, schedules |\n| Appointment Domain | `id-ac-appointment` | Scheduling, booking |\n| Clinical Domain | `id-ac-clinical` | Medical records, notes |\n| Notification Domain | `id-ac-notification` | Alerts, reminders, communications |\n| Billing Domain | `id-ac-billing` | Claims, payments |\n| Eligibility Domain | `id-ac-eligibility` | Insurance verification |\n| Screening Domain | `id-ac-screening` | Preventive health programs |\n\n**ArchiMate Elements**:\n- ApplicationComponent per domain\n- ApplicationService for exposed capabilities\n- ApplicationInterface for domain APIs\n- ApplicationFunction for business logic\n- DataObject for domain entities\n\n### Layer 5: Integration/ESB Layer\n**Purpose**: Protocol translation, data mapping, orchestration between internal and external systems\n\n| Component | ID Pattern | Description |\n|-----------|------------|-------------|\n| Integration Hub | `id-ac-integration` | Central ESB/iPaaS |\n| Adapter (per external) | `id-ai-{ext}-adapter` | Protocol adapters |\n\n**Layout Rule**: ESB layer is HORIZONTAL, spanning full width between Service and External layers.\n\n**ArchiMate Elements**:\n- ApplicationComponent for integration hub\n- ApplicationInterface for each adapter\n- ApplicationFunction for transformations\n\n### Layer 6: External Systems Layer\n**Purpose**: Third-party and backend provider systems\n\n| System Type | ID Pattern | Examples |\n|-------------|------------|----------|\n| Health Information Exchange | `id-ac-ext-hie` | Malaffi, CommonWell |\n| Insurance/Payer | `id-ac-ext-insurer` | Daman, insurance APIs |\n| EMR/EHR Systems | `id-ac-ext-emr` | Epic, Cerner |\n| Licensing/Regulatory | `id-ac-ext-licensing` | Accela, DOH systems |\n| Lab Systems | `id-ac-ext-lab` | Laboratory information systems |\n| Pharmacy Systems | `id-ac-ext-pharmacy` | Prescription networks |\n\n**ArchiMate Elements**:\n- ApplicationComponent (external) for each system\n- ApplicationInterface for integration points\n\n### Layer 7: Data & Analytics Layer (Future/Optional)\n**Purpose**: Reporting, insights, machine learning\n\n| Component | ID Pattern | Description |\n|-----------|------------|-------------|\n| ELT/CDC Pipelines | `id-ac-etl` | Data ingestion |\n| Data Warehouse | `id-ac-dw` | Analytical storage |\n| Analytics Engine | `id-ac-analytics` | BI/reporting |\n| ML Models | `id-ac-ml` | Predictive models |",
+    "text": "Reference Architecture - Architecture Layers\n\n### Layer 1: Presentation Layer\n**Purpose**: User interfaces for patients, providers, and staff\n\n| Component | ID Pattern | Description |\n|-----------|------------|-------------|\n| Mobile Application | `id-ac-mobile` | Native/hybrid mobile app for patients |\n| Web Portal | `id-ac-web` | Browser-based interface for all users |\n| Provider Portal | `id-ac-provider-portal` | Clinician-facing web inter",
+    "metadata": {
+      "source": "healthcare-application-architecture.md",
+      "section": "architecture-layers",
+      "title": "Architecture Layers",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-4",
+    "content": "View Layout Guidelines\n\n### Application Architecture View (id-view-application)\n\n```\nY Position   Layer Content\n---------    -------------\ny=0          PRESENTATION: Mobile, Web Portal (side by side)\ny=120        GATEWAY: API Gateway (centered)\ny=240        IAM: Identity & Access Management (full width)\ny=360        SERVICE: Domain components (side by side)\ny=600        ESB: Integration Layer (horizontal, full width)\ny=720        EXTERNAL: Backend systems (side by side)\n```\n\n### Spacing Rules\n- Row spacing: 120px vertical gap between layers\n- Column spacing: 200px horizontal gap between components\n- Node sizes:\n  - Components: 180x60\n  - Interfaces: 180x45\n  - Functions: 85x40\n  - Groupings: 100% width of contained elements + 40px padding",
+    "text": "Reference Architecture - View Layout Guidelines\n\n### Application Architecture View (id-view-application)\n\n```\nY Position   Layer Content\n---------    -------------\ny=0          PRESENTATION: Mobile, Web Portal (side by side)\ny=120        GATEWAY: API Gateway (centered)\ny=240        IAM: Identity & Access Management (full width)\ny=360        SERVICE: Domain components (side by side)\ny=600        ESB: Integration Layer (horizontal, full width)\ny=7",
+    "metadata": {
+      "source": "healthcare-application-architecture.md",
+      "section": "view-layout-guidelines",
+      "title": "View Layout Guidelines",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-5",
+    "content": "Relationship Patterns\n\n### Gateway Pattern\n- Mobile/Web \u2192 Gateway Interface (NOT directly to Gateway Component)\n- Gateway Interface \u2192 Domain Interface\n- Use Flow relationships between interfaces\n\n### Domain-to-External Pattern\n- Domain Interface \u2192 ESB Adapter Interface \u2192 External Interface\n- Never skip the ESB layer for external integrations\n\n### IAM Pattern\n- All authenticated requests flow through IAM\n- IAM serves all domain components",
+    "text": "Reference Architecture - Relationship Patterns\n\n### Gateway Pattern\n- Mobile/Web \u2192 Gateway Interface (NOT directly to Gateway Component)\n- Gateway Interface \u2192 Domain Interface\n- Use Flow relationships between interfaces\n\n### Domain-to-External Pattern\n- Domain Interface \u2192 ESB Adapter Interface \u2192 External Interface\n- Never skip the ESB layer for external integrations\n\n### IAM Pattern\n- All authenticated requests flow through IAM\n- IAM serves all",
+    "metadata": {
+      "source": "healthcare-application-architecture.md",
+      "section": "relationship-patterns",
+      "title": "Relationship Patterns",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-6",
+    "content": "ArchiMate Color Palette\n\n| Layer | Element Type | Color | Hex |\n|-------|--------------|-------|-----|\n| Application | Component, Function | Light Blue | #B5D3E7 |\n| Application | Interface | Light Blue (border) | #9BC4E2 |\n| Application | Service | Yellow | #FFFFB5 |\n| Application | Data Object | Green | #C9E7B5 |\n| Application | Event | Orange | #FFB5B5 |\n| External | All external elements | Gray | #D5D5D5 |",
+    "text": "Reference Architecture - ArchiMate Color Palette\n\n| Layer | Element Type | Color | Hex |\n|-------|--------------|-------|-----|\n| Application | Component, Function | Light Blue | #B5D3E7 |\n| Application | Interface | Light Blue (border) | #9BC4E2 |\n| Application | Service | Yellow | #FFFFB5 |\n| Application | Data Object | Green | #C9E7B5 |\n| Application | Event | Orange | #FFB5B5 |\n| External | All external elements | Gray | #D5D5D5 |",
+    "metadata": {
+      "source": "healthcare-application-architecture.md",
+      "section": "archimate-color-palette",
+      "title": "ArchiMate Color Palette",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-7",
+    "content": "Usage Notes\n\n1. **Not all layers required**: Only include components explicitly mentioned in requirements\n2. **Reference guides layout**: Even if components are minimal, follow layer positions\n3. **ESB always horizontal**: Integration layer spans full width\n4. **Interfaces for flows**: Gateway patterns use Interface-to-Interface relationships",
+    "text": "Reference Architecture - Usage Notes\n\n1. **Not all layers required**: Only include components explicitly mentioned in requirements\n2. **Reference guides layout**: Even if components are minimal, follow layer positions\n3. **ESB always horizontal**: Integration layer spans full width\n4. **Interfaces for flows**: Gateway patterns use Interface-to-Interface relationships",
+    "metadata": {
+      "source": "healthcare-application-architecture.md",
+      "section": "usage-notes",
+      "title": "Usage Notes",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-8",
+    "content": "ArchiMate Relationship Patterns\n\nSource: ArchiMate 3.1 Specification + Healthcare Implementation Guide",
+    "text": "Reference Architecture - ArchiMate Relationship Patterns\n\nSource: ArchiMate 3.1 Specification + Healthcare Implementation Guide",
+    "metadata": {
+      "source": "archimate-relationship-patterns.md",
+      "section": "intro",
+      "title": "ArchiMate Relationship Patterns",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-9",
+    "content": "Overview\n\nThis document defines the correct relationship types between ArchiMate elements for healthcare architecture models.",
+    "text": "Reference Architecture - Overview\n\nThis document defines the correct relationship types between ArchiMate elements for healthcare architecture models.",
+    "metadata": {
+      "source": "archimate-relationship-patterns.md",
+      "section": "overview",
+      "title": "Overview",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-10",
+    "content": "Relationship Rules by Layer\n\n### Motivation Layer Relationships\n\n| Source | Target | Relationship | Description |\n|--------|--------|--------------|-------------|\n| Stakeholder | Driver | Association | Stakeholder has concern |\n| Driver | Goal | Influence | Driver motivates goal |\n| Outcome | Goal | Realization | Outcome achieves goal |\n| Assessment | Driver | Association | Assessment identifies driver |\n\n### Strategy Layer Relationships\n\n| Source | Target | Relationship | Description |\n|--------|--------|--------------|-------------|\n| CourseOfAction | Outcome | Realization | Initiative achieves outcome |\n| Capability | CourseOfAction | Realization | Capability enables initiative |\n| Resource | Capability | Assignment | Resource supports capability |\n\n### Business Layer Relationships\n\n| Source | Target | Relationship | Description |\n|--------|--------|--------------|-------------|\n| BusinessActor | BusinessProcess | Assignment | Actor performs process |\n| BusinessProcess | Capability | Realization | Process implements capability |\n| BusinessProcess | BusinessService | Realization | Process delivers service |\n| BusinessService | BusinessActor | Serving | Service serves actor |\n| BusinessObject | BusinessProcess | Access | Process accesses data |\n\n### Application Layer Relationships\n\n| Source | Target | Relationship | Description |\n|--------|--------|--------------|-------------|\n| ApplicationComponent | ApplicationInterface | Composition | Component owns interface |\n| ApplicationInterface | ApplicationService | Assignment | Interface exposes service |\n| ApplicationFunction | ApplicationService | Realization | Function implements service |\n| ApplicationComponent | ApplicationFunction | Assignment | Component has function |\n| ApplicationFunction | DataObject | Access | Function reads/writes data |\n| ApplicationFunction | ApplicationEvent | Triggering | Function triggers event |\n| ApplicationEvent | ApplicationFunction | Triggering | Event triggers function |\n| ApplicationInterface | ApplicationInterface | Flow | Interface-to-interface communication |\n\n### Cross-Layer Relationships\n\n| Source | Target | Relationship | Description |\n|--------|--------|--------------|-------------|\n| ApplicationService | BusinessProcess | Serving | App serves business |\n| ApplicationComponent | Capability | Realization | App realizes capability |\n| DataObject | BusinessObject | Realization | App data realizes business object |",
+    "text": "Reference Architecture - Relationship Rules by Layer\n\n### Motivation Layer Relationships\n\n| Source | Target | Relationship | Description |\n|--------|--------|--------------|-------------|\n| Stakeholder | Driver | Association | Stakeholder has concern |\n| Driver | Goal | Influence | Driver motivates goal |\n| Outcome | Goal | Realization | Outcome achieves goal |\n| Assessment | Driver | Association | Assessment identifies driver |\n\n### Strategy Layer R",
+    "metadata": {
+      "source": "archimate-relationship-patterns.md",
+      "section": "relationship-rules-by-layer",
+      "title": "Relationship Rules by Layer",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-11",
+    "content": "Critical Semantic Rules\n\n### Rule 1: Gateway Pattern\n**CORRECT**: Mobile Interface \u2192 Gateway Interface \u2192 Domain Interface\n**WRONG**: Mobile Component \u2192 Gateway Component\n\nGateway relationships flow through **Interfaces**, not Components. Use Flow relationships.\n\n```\nid-ai-mobile \u2500[Flow]\u2192 id-ai-gateway \u2500[Flow]\u2192 id-ai-patient\n```\n\n### Rule 2: ESB/Integration Pattern\nThe ESB layer sits **horizontally** between internal domains and external systems.\n\n**CORRECT**: Domain Interface \u2192 ESB Adapter Interface \u2192 External Interface\n**WRONG**: Domain Component \u2192 External Component (skipping ESB)\n\n```\nid-ai-patient \u2500[Flow]\u2192 id-ai-daman-adapter \u2500[Flow]\u2192 id-ai-ext-daman\n```\n\n### Rule 3: Serving Direction\nApplicationService **serves** BusinessProcess (arrow points TO business).\n\n**CORRECT**: id-as-eligibility \u2500[Serving]\u2192 id-bp-check-eligibility\n**WRONG**: id-bp-check-eligibility \u2500[Serving]\u2192 id-as-eligibility\n\n### Rule 4: Realization Direction\nLower layer **realizes** higher layer (arrow points UP).\n\n**CORRECT**: id-ac-patient \u2500[Realization]\u2192 id-cap-patient-management\n**WRONG**: id-cap-patient-management \u2500[Realization]\u2192 id-ac-patient\n\n### Rule 5: Access Modifiers\nDataObject access should specify read/write when relevant.\n\n```xml\n<relationship identifier=\"id-rel-001\" source=\"id-af-validate\" target=\"id-do-patient\" xsi:type=\"Access\">\n  <property propertyDefinitionRef=\"accessType\"><value>read</value></property>\n</relationship>\n```",
+    "text": "Reference Architecture - Critical Semantic Rules\n\n### Rule 1: Gateway Pattern\n**CORRECT**: Mobile Interface \u2192 Gateway Interface \u2192 Domain Interface\n**WRONG**: Mobile Component \u2192 Gateway Component\n\nGateway relationships flow through **Interfaces**, not Components. Use Flow relationships.\n\n```\nid-ai-mobile \u2500[Flow]\u2192 id-ai-gateway \u2500[Flow]\u2192 id-ai-patient\n```\n\n### Rule 2: ESB/Integration Pattern\nThe ESB layer sits **horizontally** between internal domai",
+    "metadata": {
+      "source": "archimate-relationship-patterns.md",
+      "section": "critical-semantic-rules",
+      "title": "Critical Semantic Rules",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-12",
+    "content": "Traceability Chain\n\nA complete architecture should have traceable chains from motivation to implementation:\n\n```\nStakeholder \u2500[Association]\u2192 Driver \u2500[Influence]\u2192 Goal\n                                                  \u2191\n                                    Outcome \u2500[Realization]\u2518\n                                      \u2191\n                        CourseOfAction \u2500[Realization]\u2518\n                              \u2191\n                   Capability \u2500[Realization]\u2518\n                        \u2191\n            BusinessProcess \u2500[Realization]\u2518\n                   \u2191\n      ApplicationService \u2500[Serving]\u2518\n```",
+    "text": "Reference Architecture - Traceability Chain\n\nA complete architecture should have traceable chains from motivation to implementation:\n\n```\nStakeholder \u2500[Association]\u2192 Driver \u2500[Influence]\u2192 Goal\n                                                  \u2191\n                                    Outcome \u2500[Realization]\u2518\n                                      \u2191\n                        CourseOfAction \u2500[Realization]\u2518\n                              \u2191\n              ",
+    "metadata": {
+      "source": "archimate-relationship-patterns.md",
+      "section": "traceability-chain",
+      "title": "Traceability Chain",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-13",
+    "content": "Relationship ID Naming\n\nAll relationships use sequential IDs: `id-rel-001`, `id-rel-002`, etc.",
+    "text": "Reference Architecture - Relationship ID Naming\n\nAll relationships use sequential IDs: `id-rel-001`, `id-rel-002`, etc.",
+    "metadata": {
+      "source": "archimate-relationship-patterns.md",
+      "section": "relationship-id-naming",
+      "title": "Relationship ID Naming",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-14",
+    "content": "Validation Checklist\n\n- [ ] All relationship source elements exist\n- [ ] All relationship target elements exist\n- [ ] Gateway flows use Interface-to-Interface\n- [ ] ESB layer not skipped for external integrations\n- [ ] Serving relationships point TO business layer\n- [ ] Realization relationships point UP the stack\n- [ ] Traceability chains are complete",
+    "text": "Reference Architecture - Validation Checklist\n\n- [ ] All relationship source elements exist\n- [ ] All relationship target elements exist\n- [ ] Gateway flows use Interface-to-Interface\n- [ ] ESB layer not skipped for external integrations\n- [ ] Serving relationships point TO business layer\n- [ ] Realization relationships point UP the stack\n- [ ] Traceability chains are complete",
+    "metadata": {
+      "source": "archimate-relationship-patterns.md",
+      "section": "validation-checklist",
+      "title": "Validation Checklist",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-15",
+    "content": "ArchiMate View Templates\n\nSource: ArchiMate 3.1 Specification + Healthcare Best Practices",
+    "text": "Reference Architecture - ArchiMate View Templates\n\nSource: ArchiMate 3.1 Specification + Healthcare Best Practices",
+    "metadata": {
+      "source": "archimate-view-templates.md",
+      "section": "intro",
+      "title": "ArchiMate View Templates",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-16",
+    "content": "Standard Views\n\nEvery healthcare architecture model should include these views:\n\n### View 1: Motivation View (id-view-motivation)\n**Purpose**: Show why the initiative exists\n\n**Elements**:\n- Stakeholders (top row)\n- Drivers (second row)\n- Goals (third row)\n- Outcomes (bottom row)\n\n**Layout**:\n```\ny=0    \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n       \u2502Stakeholder1\u2502  \u2502Stakeholder2\u2502  \u2502Stakeholder3\u2502\n       \u2514\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n             \u2502Association    \u2502              \u2502\ny=120  \u250c\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n       \u2502  Driver 1  \u2502  \u2502  Driver 2  \u2502  \u2502  Driver 3  \u2502\n       \u2514\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n             \u2502Influence      \u2502              \u2502\ny=240  \u250c\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u25bc\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n       \u2502   Goal 1   \u2502  \u2502   Goal 2   \u2502  \u2502   Goal 3   \u2502\n       \u2514\u2500\u2500\u2500\u2500\u2500\u25b2\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u25b2\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u25b2\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n             \u2502Realization    \u2502              \u2502\ny=360  \u250c\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n       \u2502 Outcome 1  \u2502  \u2502 Outcome 2  \u2502  \u2502 Outcome 3  \u2502\n       \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n```\n\n### View 2: Strategy View (id-view-strategy)\n**Purpose**: Show how objectives will be achieved\n\n**Elements**:\n- Outcomes (top, from motivation)\n- Courses of Action (middle)\n- Capabilities (bottom)\n\n**Layout**:\n```\ny=0    \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n       \u2502 Outcome 1  \u2502  \u2502 Outcome 2  \u2502\n       \u2514\u2500\u2500\u2500\u2500\u2500\u25b2\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u25b2\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n             \u2502Realization    \u2502\ny=120  \u250c\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n       \u2502   CoA 1    \u2502  \u2502   CoA 2    \u2502\n       \u2514\u2500\u2500\u2500\u2500\u2500\u25b2\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u25b2\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n             \u2502Realization    \u2502\ny=240  \u250c\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n       \u2502Capability 1\u2502  \u2502Capability 2\u2502  \u2502Capability 3\u2502\n       \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n```\n\n### View 3: Capability Map (id-view-capability-map)\n**Purpose**: Grid view of business capabilities\n\n**Layout**: 3-4 column grid, L1 capabilities as group headers\n\n```\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502                  CAPABILITY MAP                          \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 Patient Mgmt    \u2502 Clinical Mgmt   \u2502 Administrative      \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 \u2022 Registration  \u2502 \u2022 Documentation \u2502 \u2022 Scheduling        \u2502\n\u2502 \u2022 Eligibility   \u2502 \u2022 Orders        \u2502 \u2022 Billing           \u2502\n\u2502 \u2022 Demographics  \u2502 \u2022 Results       \u2502 \u2022 Reporting         \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n```\n\n### View 4: Process View (id-view-process)\n**Purpose**: Business process flow\n\n**Elements**:\n- BusinessActor (left column)\n- BusinessProcess (flow left-to-right)\n- BusinessService (below processes)\n\n**Layout**:\n```\n       \u2502 Check      \u2502 Select     \u2502 Book       \u2502 Complete   \u2502\n       \u2502 Eligibility\u2502 Package    \u2502 Appointment\u2502 Screening  \u2502\n\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502                    PROCESS FLOW                          \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n       \u2502            \u2502            \u2502            \u2502\n       \u25bc            \u25bc            \u25bc            \u25bc\n   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n   \u2502Elig Svc\u2502  \u2502Package \u2502  \u2502Booking \u2502  \u2502Results \u2502\n   \u2502        \u2502  \u2502Service \u2502  \u2502Service \u2502  \u2502Service \u2502\n   \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n```\n\n### View 5: Application Architecture (id-view-application)\n**Purpose**: Complete application landscape\n\n**Layout** (Reference Architecture):\n```\ny=0     \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n        \u2502              PRESENTATION LAYER                  \u2502\n        \u2502   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510            \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510          \u2502\n        \u2502   \u2502 Mobile   \u2502            \u2502 Web      \u2502          \u2502\n        \u2502   \u2502 App      \u2502            \u2502 Portal   \u2502          \u2502\n        \u2502   \u2514\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2518            \u2514\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2518          \u2502\n        \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\ny=120            \u2502                       \u2502\n        \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n        \u2502        \u25bc                       \u25bc                \u2502\n        \u2502   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510        \u2502\n        \u2502   \u2502           API GATEWAY              \u2502        \u2502\n        \u2502   \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518        \u2502\n        \u2502                      \u2502   GATEWAY LAYER          \u2502\n        \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\ny=240                          \u2502\n        \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n        \u2502                      \u25bc                          \u2502\n        \u2502   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510        \u2502\n        \u2502   \u2502    IDENTITY & ACCESS MANAGEMENT    \u2502        \u2502\n        \u2502   \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518        \u2502\n        \u2502                      IAM LAYER                  \u2502\n        \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\ny=360\n        \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n        \u2502              SERVICE LAYER (DOMAINS)            \u2502\n        \u2502 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\u2502\n        \u2502 \u2502Patient  \u2502 \u2502Provider \u2502 \u2502Appoint- \u2502 \u2502Notifi-  \u2502\u2502\n        \u2502 \u2502Domain   \u2502 \u2502Domain   \u2502 \u2502ment     \u2502 \u2502cation   \u2502\u2502\n        \u2502 \u2514\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2518 \u2514\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2518 \u2514\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2518 \u2514\u2500\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2518\u2502\n        \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2518\ny=600          \u2502           \u2502           \u2502           \u2502\n        \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n        \u2502      \u25bc           \u25bc           \u25bc           \u25bc      \u2502\n        \u2502 \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510 \u2502\n        \u2502 \u2502           INTEGRATION / ESB LAYER           \u2502 \u2502\n        \u2502 \u2502  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510        \u2502 \u2502\n        \u2502 \u2502  \u2502Daman   \u2502  \u2502Malaffi \u2502  \u2502EMR     \u2502   ...  \u2502 \u2502\n        \u2502 \u2502  \u2502Adapter \u2502  \u2502Adapter \u2502  \u2502Adapter \u2502        \u2502 \u2502\n        \u2502 \u2502  \u2514\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u252c\u2500\u2500\u2500\u2500\u2518        \u2502 \u2502\n        \u2502 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518 \u2502\n        \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\ny=720            \u2502           \u2502           \u2502\n        \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n        \u2502        \u25bc           \u25bc           \u25bc               \u2502\n        \u2502   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510          \u2502\n        \u2502   \u2502 Daman  \u2502  \u2502Malaffi \u2502  \u2502  EMR   \u2502   ...    \u2502\n        \u2502   \u2502(Payer) \u2502  \u2502 (HIE)  \u2502  \u2502Systems \u2502          \u2502\n        \u2502   \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518          \u2502\n        \u2502              EXTERNAL SYSTEMS LAYER            \u2502\n        \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n```\n\n### View 6: Integration View (id-view-integration)\n**Purpose**: External system connections\n\n**Elements**:\n- Internal ApplicationComponents (left)\n- Integration adapters (center)\n- External systems (right)\n\n**Layout**: Horizontal flow showing data exchange",
+    "text": "Reference Architecture - Standard Views\n\nEvery healthcare architecture model should include these views:\n\n### View 1: Motivation View (id-view-motivation)\n**Purpose**: Show why the initiative exists\n\n**Elements**:\n- Stakeholders (top row)\n- Drivers (second row)\n- Goals (third row)\n- Outcomes (bottom row)\n\n**Layout**:\n```\ny=0    \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n       \u2502Stakeholder1\u2502  \u2502Stakeholder2\u2502  \u2502Stakeholder3\u2502\n       \u2514\u2500\u2500",
+    "metadata": {
+      "source": "archimate-view-templates.md",
+      "section": "standard-views",
+      "title": "Standard Views",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-17",
+    "content": "Node Sizing\n\n| Element Type | Width | Height |\n|--------------|-------|--------|\n| ApplicationComponent | 180px | 60px |\n| ApplicationInterface | 180px | 45px |\n| ApplicationService | 150px | 45px |\n| ApplicationFunction | 85px | 40px |\n| BusinessProcess | 120px | 50px |\n| BusinessActor | 100px | 80px |\n| DataObject | 120px | 45px |\n| Grouping | auto | auto |",
+    "text": "Reference Architecture - Node Sizing\n\n| Element Type | Width | Height |\n|--------------|-------|--------|\n| ApplicationComponent | 180px | 60px |\n| ApplicationInterface | 180px | 45px |\n| ApplicationService | 150px | 45px |\n| ApplicationFunction | 85px | 40px |\n| BusinessProcess | 120px | 50px |\n| BusinessActor | 100px | 80px |\n| DataObject | 120px | 45px |\n| Grouping | auto | auto |",
+    "metadata": {
+      "source": "archimate-view-templates.md",
+      "section": "node-sizing",
+      "title": "Node Sizing",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-18",
+    "content": "Color Palette (ArchiMate Standard)\n\n| Layer | Element Type | Fill Color | Border |\n|-------|--------------|------------|--------|\n| Motivation | Stakeholder, Driver, Goal, Outcome | #CCCCFF | #9999CC |\n| Strategy | Capability, CourseOfAction, Resource | #F5DEB3 | #D4B896 |\n| Business | Actor, Process, Service, Object | #FFFFB5 | #CCCC8F |\n| Application | Component, Function | #B5D3E7 | #8FB5CC |\n| Application | Interface | #B5D3E7 | #6699AA |\n| Application | Service | #FFFFB5 | #CCCC8F |\n| Application | Data Object | #C9E7B5 | #99CC8F |\n| Application | Event | #FFB5B5 | #CC8F8F |\n| Technology | Node, Device, Network | #C9E7B5 | #99CC8F |\n| External | All external elements | #D5D5D5 | #AAAAAA |",
+    "text": "Reference Architecture - Color Palette (ArchiMate Standard)\n\n| Layer | Element Type | Fill Color | Border |\n|-------|--------------|------------|--------|\n| Motivation | Stakeholder, Driver, Goal, Outcome | #CCCCFF | #9999CC |\n| Strategy | Capability, CourseOfAction, Resource | #F5DEB3 | #D4B896 |\n| Business | Actor, Process, Service, Object | #FFFFB5 | #CCCC8F |\n| Application | Component, Function | #B5D3E7 | #8FB5CC |\n| Application | Interface | #B5D3E7 |",
+    "metadata": {
+      "source": "archimate-view-templates.md",
+      "section": "color-palette-archimate-standa",
+      "title": "Color Palette (ArchiMate Standard)",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  },
+  {
+    "id": "ref-arch-19",
+    "content": "XML View Structure\n\n```xml\n<views>\n  <diagrams>\n    <view identifier=\"id-view-motivation\" xsi:type=\"Diagram\">\n      <name xml:lang=\"en\">Motivation View</name>\n      <node identifier=\"id-node-001\" elementRef=\"id-sh-doh\"\n            x=\"50\" y=\"50\" w=\"180\" h=\"60\">\n        <style>\n          <fillColor r=\"204\" g=\"204\" b=\"255\"/>\n          <lineColor r=\"153\" g=\"153\" b=\"204\"/>\n        </style>\n      </node>\n      <!-- More nodes... -->\n      <connection identifier=\"id-conn-001\" relationshipRef=\"id-rel-001\"\n                  source=\"id-node-001\" target=\"id-node-002\"/>\n    </view>\n  </diagrams>\n</views>\n```",
+    "text": "Reference Architecture - XML View Structure\n\n```xml\n<views>\n  <diagrams>\n    <view identifier=\"id-view-motivation\" xsi:type=\"Diagram\">\n      <name xml:lang=\"en\">Motivation View</name>\n      <node identifier=\"id-node-001\" elementRef=\"id-sh-doh\"\n            x=\"50\" y=\"50\" w=\"180\" h=\"60\">\n        <style>\n          <fillColor r=\"204\" g=\"204\" b=\"255\"/>\n          <lineColor r=\"153\" g=\"153\" b=\"204\"/>\n        </style>\n      </node>\n      <!-- More no",
+    "metadata": {
+      "source": "archimate-view-templates.md",
+      "section": "xml-view-structure",
+      "title": "XML View Structure",
+      "type": "reference-architecture",
+      "consumers": [
+        "app-architect",
+        "solution-architect",
+        "infra-architect",
+        "architecture-pipeline"
+      ]
+    }
+  }
+]

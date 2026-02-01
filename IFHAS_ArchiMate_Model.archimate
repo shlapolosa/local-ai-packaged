@@ -1,0 +1,954 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="IFHAS Preventive Screening Initiative" id="id-ifhas-model-001" version="5.0.0">
+  <purpose>ArchiMate model for IFHAS (Integrated Family Health and Screening) initiative for Abu Dhabi Department of Health</purpose>
+
+  <!-- ==================== MOTIVATION LAYER ==================== -->
+  <folder name="Motivation" id="id-folder-motivation" type="motivation">
+
+    <!-- STAKEHOLDERS -->
+    <element xsi:type="archimate:Stakeholder" name="Department of Health Abu Dhabi (DOH/ADPHC)" id="id-sh-doh" documentation="Government entity responsible for healthcare policy and preventive screening programs"/>
+    <element xsi:type="archimate:Stakeholder" name="Sahatna/TAMM Platform" id="id-sh-sahatna" documentation="Digital health super app providing citizen health services"/>
+    <element xsi:type="archimate:Stakeholder" name="Daman Health Insurance" id="id-sh-daman" documentation="Insurance provider managing Thiqa coverage and IFHAS eligibility"/>
+    <element xsi:type="archimate:Stakeholder" name="Malaffi HIE" id="id-sh-malaffi" documentation="Abu Dhabi Health Information Exchange for health records"/>
+    <element xsi:type="archimate:Stakeholder" name="Healthcare Providers/Facilities" id="id-sh-providers" documentation="Hospitals and clinics delivering IFHAS screening services"/>
+    <element xsi:type="archimate:Stakeholder" name="Accela/DOH Licensing" id="id-sh-accela" documentation="Facility licensing system identifying IFHAS providers"/>
+    <element xsi:type="archimate:Stakeholder" name="Citizens (Thiqa C1-C4 Members)" id="id-sh-citizens" documentation="Target population eligible for IFHAS screening"/>
+    <element xsi:type="archimate:Stakeholder" name="DOH Business Owners" id="id-sh-doh-business" documentation="Program managers responsible for IFHAS outcomes"/>
+    <element xsi:type="archimate:Stakeholder" name="DOH Data Teams" id="id-sh-doh-data" documentation="Analytics teams measuring program effectiveness"/>
+
+    <!-- DRIVERS -->
+    <element xsi:type="archimate:Driver" name="Low IFHAS participation (~40%)" id="id-dr-low-participation" documentation="Current screening uptake is significantly below target"/>
+    <element xsi:type="archimate:Driver" name="Rising chronic disease burden" id="id-dr-chronic-disease" documentation="Increasing prevalence of cardiovascular, mental health, and cancer conditions"/>
+    <element xsi:type="archimate:Driver" name="Need to improve population health" id="id-dr-population-health" documentation="Strategic imperative to shift from reactive to preventive care"/>
+    <element xsi:type="archimate:Driver" name="Fragmented citizen screening journeys" id="id-dr-fragmented-journey" documentation="Disconnected touchpoints across eligibility, booking, and results"/>
+    <element xsi:type="archimate:Driver" name="Poor visibility of IFHAS services" id="id-dr-poor-visibility" documentation="Citizens unaware of available screening programs"/>
+    <element xsi:type="archimate:Driver" name="Complex booking processes" id="id-dr-complex-booking" documentation="Difficult multi-step appointment booking across providers"/>
+    <element xsi:type="archimate:Driver" name="Low engagement with preventive services" id="id-dr-low-engagement" documentation="Citizens not proactively seeking preventive care"/>
+    <element xsi:type="archimate:Driver" name="Manual eligibility verification" id="id-dr-manual-eligibility" documentation="Fragmented IFHAS history and eligibility checks"/>
+    <element xsi:type="archimate:Driver" name="Inconsistent user follow-through" id="id-dr-inconsistent-followthrough" documentation="Eligible users not completing available packages"/>
+    <element xsi:type="archimate:Driver" name="Screening results not accessible" id="id-dr-results-inaccessible" documentation="Citizens cannot easily view their screening results"/>
+    <element xsi:type="archimate:Driver" name="Difficulty distinguishing IFHAS encounters" id="id-dr-encounter-identification" documentation="No standardized way to identify IFHAS visits"/>
+    <element xsi:type="archimate:Driver" name="Inconsistent IFHAS service identification" id="id-dr-service-identification" documentation="Facilities not consistently flagging IFHAS services"/>
+    <element xsi:type="archimate:Driver" name="No centralized IFHAS provider list" id="id-dr-no-provider-list" documentation="Lack of authoritative facility registry"/>
+    <element xsi:type="archimate:Driver" name="Limited preventive screening information" id="id-dr-limited-info" documentation="Citizens lack access to eligibility and package details"/>
+    <element xsi:type="archimate:Driver" name="Difficulty managing appointments/results" id="id-dr-appointment-difficulty" documentation="No unified digital access to booking and results"/>
+    <element xsi:type="archimate:Driver" name="Lack of proactive health engagement" id="id-dr-no-proactive-engagement" documentation="No system to remind citizens of preventive care"/>
+    <element xsi:type="archimate:Driver" name="Lack of screening experience feedback" id="id-dr-no-feedback" documentation="No mechanism to collect post-appointment surveys"/>
+    <element xsi:type="archimate:Driver" name="Limited program effectiveness visibility" id="id-dr-limited-visibility" documentation="Insufficient data on engagement and outcomes"/>
+
+    <!-- GOALS -->
+    <element xsi:type="archimate:Goal" name="Increase IFHAS participation by 75% by 2026" id="id-gl-increase-participation" documentation="Primary KPI for program success"/>
+    <element xsi:type="archimate:Goal" name="Enable early detection through preventive screening" id="id-gl-early-detection" documentation="Identify chronic conditions before complications"/>
+    <element xsi:type="archimate:Goal" name="Shift healthcare to preventive model" id="id-gl-preventive-model" documentation="Transform from reactive to proactive care"/>
+    <element xsi:type="archimate:Goal" name="Provide unified digital IFHAS experience" id="id-gl-unified-experience" documentation="Single integrated journey for all IFHAS touchpoints"/>
+    <element xsi:type="archimate:Goal" name="Increase awareness of IFHAS programs" id="id-gl-increase-awareness" documentation="Educate citizens on benefits and eligibility"/>
+    <element xsi:type="archimate:Goal" name="Digitize and simplify IFHAS booking" id="id-gl-digitize-booking" documentation="Enable seamless appointment booking"/>
+    <element xsi:type="archimate:Goal" name="Proactively engage users via nudges" id="id-gl-proactive-engagement" documentation="Send timely reminders based on eligibility"/>
+    <element xsi:type="archimate:Goal" name="Centralize eligibility and package data via APIs" id="id-gl-centralize-data" documentation="Real-time integration with Daman"/>
+    <element xsi:type="archimate:Goal" name="Enable proactive engagement using insurance data" id="id-gl-insurance-engagement" documentation="Use Thiqa data to drive engagement"/>
+    <element xsi:type="archimate:Goal" name="Digitally expose IFHAS screening results" id="id-gl-expose-results" documentation="Make results accessible in Sahatna"/>
+    <element xsi:type="archimate:Goal" name="Standardize IFHAS encounter identification" id="id-gl-standardize-encounters" documentation="Use ICS codes for encounter tagging"/>
+    <element xsi:type="archimate:Goal" name="Clearly flag IFHAS services and encounters" id="id-gl-flag-services" documentation="Providers tag IFHAS appointments"/>
+    <element xsi:type="archimate:Goal" name="Maintain authoritative IFHAS facility list" id="id-gl-facility-list" documentation="DOH licensing integration"/>
+    <element xsi:type="archimate:Goal" name="Easily discover eligible IFHAS packages" id="id-gl-discover-packages" documentation="Personalized package display"/>
+    <element xsi:type="archimate:Goal" name="Access booking, questionnaires, results digitally" id="id-gl-digital-access" documentation="Full digital journey access"/>
+    <element xsi:type="archimate:Goal" name="Receive reminders and nudges" id="id-gl-receive-reminders" documentation="Proactive notifications"/>
+    <element xsi:type="archimate:Goal" name="Collect post-appointment survey feedback" id="id-gl-collect-feedback" documentation="Survey mechanism for quality improvement"/>
+    <element xsi:type="archimate:Goal" name="Measure engagement, completion, satisfaction" id="id-gl-measure-kpis" documentation="Analytics and reporting"/>
+
+    <!-- OUTCOMES -->
+    <element xsi:type="archimate:Outcome" name="Higher population screening uptake" id="id-oc-higher-uptake" documentation="Increased number of citizens completing IFHAS screenings"/>
+    <element xsi:type="archimate:Outcome" name="Earlier diagnosis and reduced complications" id="id-oc-earlier-diagnosis" documentation="Chronic conditions detected before progression"/>
+    <element xsi:type="archimate:Outcome" name="Improved public health indicators" id="id-oc-improved-health" documentation="Better population health metrics and longevity"/>
+    <element xsi:type="archimate:Outcome" name="Seamless end-to-end screening journey" id="id-oc-seamless-journey" documentation="Unified citizen experience from discovery to results"/>
+    <element xsi:type="archimate:Outcome" name="Citizens understand eligibility and value" id="id-oc-citizen-understanding" documentation="Improved awareness of IFHAS benefits"/>
+    <element xsi:type="archimate:Outcome" name="Reduced booking friction" id="id-oc-reduced-friction" documentation="Faster, easier appointment completion"/>
+    <element xsi:type="archimate:Outcome" name="Increased booking and completion rates" id="id-oc-increased-completion" documentation="More citizens booking and attending screenings"/>
+    <element xsi:type="archimate:Outcome" name="Reliable real-time eligibility determination" id="id-oc-reliable-eligibility" documentation="Accurate Thiqa status and package availability"/>
+    <element xsi:type="archimate:Outcome" name="Higher utilization of approved packages" id="id-oc-higher-utilization" documentation="More eligible packages being used"/>
+    <element xsi:type="archimate:Outcome" name="Citizens can view results in Sahatna" id="id-oc-results-accessible" documentation="Screening results visible in app"/>
+    <element xsi:type="archimate:Outcome" name="Accurate IFHAS report classification" id="id-oc-accurate-classification" documentation="Correct encounter identification"/>
+    <element xsi:type="archimate:Outcome" name="Facilities correctly appear in journeys" id="id-oc-facilities-visible" documentation="Licensed facilities shown appropriately"/>
+    <element xsi:type="archimate:Outcome" name="Users only see licensed facilities" id="id-oc-licensed-facilities" documentation="Filtered facility list"/>
+    <element xsi:type="archimate:Outcome" name="Increased awareness of preventive options" id="id-oc-increased-awareness" documentation="Citizens know their eligible packages"/>
+    <element xsi:type="archimate:Outcome" name="Improved citizen experience and satisfaction" id="id-oc-improved-experience" documentation="Higher NPS and satisfaction scores"/>
+    <element xsi:type="archimate:Outcome" name="Increased screening completion and follow-up" id="id-oc-completion-followup" documentation="More screenings completed"/>
+    <element xsi:type="archimate:Outcome" name="Continuous IFHAS service quality improvement" id="id-oc-quality-improvement" documentation="Feedback-driven enhancements"/>
+    <element xsi:type="archimate:Outcome" name="Data-driven program optimization" id="id-oc-data-driven" documentation="Analytics-informed decisions"/>
+
+  </folder>
+
+  <!-- ==================== STRATEGY LAYER ==================== -->
+  <folder name="Strategy" id="id-folder-strategy" type="strategy">
+
+    <!-- COURSES OF ACTION -->
+    <element xsi:type="archimate:CourseOfAction" name="Implement digital eligibility checks and booking via Sahatna" id="id-coa-digital-eligibility" documentation="Digital IFHAS discovery, eligibility, booking journeys, reminders, and nudges"/>
+    <element xsi:type="archimate:CourseOfAction" name="Provide age/gender-based IFHAS packages" id="id-coa-age-gender-packages" documentation="Enable timely booking of preventive screenings by demographic"/>
+    <element xsi:type="archimate:CourseOfAction" name="Operationalize DOH preventive strategy" id="id-coa-operationalize-strategy" documentation="Scalable digital screening access"/>
+    <element xsi:type="archimate:CourseOfAction" name="Deliver unified IFHAS flow" id="id-coa-unified-flow" documentation="Eligibility, packages, facility selection, booking, questionnaires, results, history"/>
+    <element xsi:type="archimate:CourseOfAction" name="Publish IFHAS educational content" id="id-coa-publish-content" documentation="Benefits, FAQs, offerings through landing pages and CMS"/>
+    <element xsi:type="archimate:CourseOfAction" name="Integrate Sahatna with EMRs for booking" id="id-coa-emr-integration" documentation="Direct in-app booking of IFHAS appointments"/>
+    <element xsi:type="archimate:CourseOfAction" name="Send proactive nudges and reminders" id="id-coa-send-nudges" documentation="Based on eligibility, insurance status, pending packages"/>
+    <element xsi:type="archimate:CourseOfAction" name="Integrate with Daman APIs" id="id-coa-daman-integration" documentation="Retrieve Thiqa status, packages, authorization history"/>
+    <element xsi:type="archimate:CourseOfAction" name="Surface actionable booking prompts" id="id-coa-booking-prompts" documentation="Use Daman eligibility data for prompts"/>
+    <element xsi:type="archimate:CourseOfAction" name="Integrate with Malaffi for results" id="id-coa-malaffi-integration" documentation="Retrieve and expose IFHAS screening results"/>
+    <element xsi:type="archimate:CourseOfAction" name="Enforce IFHAS encounter identification" id="id-coa-enforce-encounter-id" documentation="Use ICS visit codes and encounter IDs"/>
+    <element xsi:type="archimate:CourseOfAction" name="Maintain IFHAS facility list via Accela" id="id-coa-maintain-facility-list" documentation="DOH licensing integration"/>
+    <element xsi:type="archimate:CourseOfAction" name="Filter facilities using DOH licensing flags" id="id-coa-filter-facilities" documentation="Show only licensed IFHAS providers"/>
+    <element xsi:type="archimate:CourseOfAction" name="Display personalized eligible packages" id="id-coa-personalized-packages" documentation="Based on age, gender, and history"/>
+    <element xsi:type="archimate:CourseOfAction" name="Implement UX improvements and surveys" id="id-coa-ux-surveys" documentation="Collect post-appointment feedback"/>
+    <element xsi:type="archimate:CourseOfAction" name="Trigger appointment reminders" id="id-coa-trigger-reminders" documentation="24H and 1H before appointments"/>
+    <element xsi:type="archimate:CourseOfAction" name="Collect and analyze survey feedback" id="id-coa-analyze-feedback" documentation="Post-appointment survey analysis"/>
+    <element xsi:type="archimate:CourseOfAction" name="Track KPIs across program" id="id-coa-track-kpis" documentation="Engagement, completion, satisfaction, outcomes"/>
+
+    <!-- CAPABILITIES -->
+    <element xsi:type="archimate:Capability" name="Patient Identification" id="id-cap-patient-id" documentation="Ability to identify and authenticate patients"/>
+    <element xsi:type="archimate:Capability" name="Patient Profile Management" id="id-cap-patient-profile" documentation="Ability to manage patient demographic and preference data"/>
+    <element xsi:type="archimate:Capability" name="Patient Preference Management" id="id-cap-patient-preference" documentation="Ability to capture and apply patient communication preferences"/>
+    <element xsi:type="archimate:Capability" name="Patient History Management" id="id-cap-patient-history" documentation="Ability to maintain longitudinal patient records"/>
+    <element xsi:type="archimate:Capability" name="Patient Analytics Management" id="id-cap-patient-analytics" documentation="Ability to analyze patient engagement and outcomes"/>
+    <element xsi:type="archimate:Capability" name="Healthcare Service Portfolio Management" id="id-cap-service-portfolio" documentation="Ability to manage catalog of healthcare services"/>
+    <element xsi:type="archimate:Capability" name="Healthcare Service/Patient Matching" id="id-cap-service-patient-matching" documentation="Ability to match services to eligible patients"/>
+    <element xsi:type="archimate:Capability" name="Healthcare Case Establishment" id="id-cap-case-establishment" documentation="Ability to create and initialize healthcare cases"/>
+    <element xsi:type="archimate:Capability" name="Healthcare Case Encounter Management" id="id-cap-encounter-mgmt" documentation="Ability to manage patient encounters"/>
+    <element xsi:type="archimate:Capability" name="Healthcare Case Information Management" id="id-cap-case-info-mgmt" documentation="Ability to manage case data and history"/>
+    <element xsi:type="archimate:Capability" name="Medical Facility Management" id="id-cap-facility-mgmt" documentation="Ability to manage facility information and status"/>
+    <element xsi:type="archimate:Capability" name="Medical Facility/Service Matching" id="id-cap-facility-service-matching" documentation="Ability to link facilities to services"/>
+    <element xsi:type="archimate:Capability" name="Agreement Eligibility Determination" id="id-cap-agreement-eligibility" documentation="Ability to determine insurance eligibility"/>
+    <element xsi:type="archimate:Capability" name="Agreement Lifecycle Management" id="id-cap-agreement-lifecycle" documentation="Ability to track insurance policy states"/>
+    <element xsi:type="archimate:Capability" name="Agreement Information Management" id="id-cap-agreement-info" documentation="Ability to manage insurance data"/>
+    <element xsi:type="archimate:Capability" name="Message Management" id="id-cap-message-mgmt" documentation="Ability to create and deliver messages"/>
+    <element xsi:type="archimate:Capability" name="Message/Patient Matching" id="id-cap-message-patient-matching" documentation="Ability to target messages to patients"/>
+    <element xsi:type="archimate:Capability" name="Message/Schedule Matching" id="id-cap-message-schedule-matching" documentation="Ability to schedule messages"/>
+    <element xsi:type="archimate:Capability" name="Channel Management" id="id-cap-channel-mgmt" documentation="Ability to manage delivery channels"/>
+    <element xsi:type="archimate:Capability" name="Content Management" id="id-cap-content-mgmt" documentation="Ability to create and publish content"/>
+    <element xsi:type="archimate:Capability" name="Meeting/Appointment Management" id="id-cap-meeting-mgmt" documentation="Ability to schedule and manage appointments"/>
+    <element xsi:type="archimate:Capability" name="Schedule Management" id="id-cap-schedule-mgmt" documentation="Ability to manage time slots and availability"/>
+    <element xsi:type="archimate:Capability" name="Work Item Management" id="id-cap-work-item-mgmt" documentation="Ability to track work items and tasks"/>
+    <element xsi:type="archimate:Capability" name="Inquiry/Feedback Management" id="id-cap-inquiry-mgmt" documentation="Ability to collect and manage feedback"/>
+    <element xsi:type="archimate:Capability" name="Health Condition Management" id="id-cap-health-condition" documentation="Ability to track health conditions"/>
+    <element xsi:type="archimate:Capability" name="Information Transformation" id="id-cap-info-transformation" documentation="Ability to transform data formats"/>
+    <element xsi:type="archimate:Capability" name="Information Security Management" id="id-cap-info-security" documentation="Ability to secure information access"/>
+    <element xsi:type="archimate:Capability" name="Partner Management" id="id-cap-partner-mgmt" documentation="Ability to manage healthcare partners"/>
+    <element xsi:type="archimate:Capability" name="Performance Management" id="id-cap-performance-mgmt" documentation="Ability to measure and report performance"/>
+
+    <!-- RESOURCES -->
+    <element xsi:type="archimate:Resource" name="Daman API" id="id-res-daman-api" documentation="External API for Thiqa eligibility and IFHAS data"/>
+    <element xsi:type="archimate:Resource" name="Malaffi API" id="id-res-malaffi-api" documentation="External API for health records and results"/>
+    <element xsi:type="archimate:Resource" name="DOH Licensing Data" id="id-res-doh-licensing" documentation="Facility licensing information from Accela"/>
+    <element xsi:type="archimate:Resource" name="IFHAS Package Definitions" id="id-res-ifhas-packages" documentation="DOH-defined screening packages"/>
+
+  </folder>
+
+  <!-- ==================== BUSINESS LAYER ==================== -->
+  <folder name="Business" id="id-folder-business" type="business">
+
+    <!-- BUSINESS PROCESSES -->
+    <element xsi:type="archimate:BusinessProcess" name="Check User Eligibility" id="id-bp-check-eligibility" documentation="Verify user IFHAS eligibility via Daman"/>
+    <element xsi:type="archimate:BusinessProcess" name="Display IFHAS Landing Page" id="id-bp-landing-page" documentation="Show IFHAS information and options to eligible users"/>
+    <element xsi:type="archimate:BusinessProcess" name="Determine Available Packages" id="id-bp-determine-packages" documentation="Calculate available packages based on age/gender/history"/>
+    <element xsi:type="archimate:BusinessProcess" name="Select IFHAS Package" id="id-bp-select-package" documentation="User selects desired screening package"/>
+    <element xsi:type="archimate:BusinessProcess" name="Select IFHAS Facility" id="id-bp-select-facility" documentation="User chooses from licensed IFHAS providers"/>
+    <element xsi:type="archimate:BusinessProcess" name="Select Physician" id="id-bp-select-physician" documentation="User selects physician with available slots"/>
+    <element xsi:type="archimate:BusinessProcess" name="Choose Appointment Slot" id="id-bp-choose-slot" documentation="User selects available time slot"/>
+    <element xsi:type="archimate:BusinessProcess" name="Book IFHAS Appointment" id="id-bp-book-appointment" documentation="Confirm and create appointment"/>
+    <element xsi:type="archimate:BusinessProcess" name="Fill Pre-screening Questionnaire" id="id-bp-fill-questionnaire" documentation="Complete digital questionnaire for Major package"/>
+    <element xsi:type="archimate:BusinessProcess" name="Send Appointment Reminders" id="id-bp-send-reminders" documentation="24H and 1H reminder notifications"/>
+    <element xsi:type="archimate:BusinessProcess" name="View IFHAS Results" id="id-bp-view-results" documentation="Display screening results from Malaffi"/>
+    <element xsi:type="archimate:BusinessProcess" name="View Encounter History" id="id-bp-view-history" documentation="Display past IFHAS appointments and packages"/>
+    <element xsi:type="archimate:BusinessProcess" name="Send Eligibility Nudges" id="id-bp-send-nudges" documentation="Proactive notifications based on eligibility"/>
+    <element xsi:type="archimate:BusinessProcess" name="Collect Post-Appointment Survey" id="id-bp-collect-survey" documentation="Gather feedback after screening"/>
+    <element xsi:type="archimate:BusinessProcess" name="Sync Facility Data" id="id-bp-sync-facilities" documentation="Daily sync with DOH licensing system"/>
+
+    <!-- BUSINESS SERVICES -->
+    <element xsi:type="archimate:BusinessService" name="IFHAS Eligibility Service" id="id-bs-eligibility" documentation="Provides eligibility verification"/>
+    <element xsi:type="archimate:BusinessService" name="IFHAS Booking Service" id="id-bs-booking" documentation="Provides appointment booking"/>
+    <element xsi:type="archimate:BusinessService" name="IFHAS Information Service" id="id-bs-information" documentation="Provides program information and education"/>
+    <element xsi:type="archimate:BusinessService" name="IFHAS Results Service" id="id-bs-results" documentation="Provides access to screening results"/>
+    <element xsi:type="archimate:BusinessService" name="IFHAS Notification Service" id="id-bs-notification" documentation="Provides reminders and nudges"/>
+
+    <!-- BUSINESS ACTORS -->
+    <element xsi:type="archimate:BusinessActor" name="Citizen/Patient" id="id-ba-citizen" documentation="User of Sahatna seeking IFHAS screening"/>
+    <element xsi:type="archimate:BusinessActor" name="Healthcare Provider" id="id-ba-provider" documentation="Facility delivering IFHAS screening"/>
+    <element xsi:type="archimate:BusinessActor" name="DOH Administrator" id="id-ba-doh-admin" documentation="Program administrator"/>
+
+  </folder>
+
+  <!-- ==================== APPLICATION LAYER ==================== -->
+  <folder name="Application" id="id-folder-application" type="application">
+
+    <!-- APPLICATION COMPONENTS -->
+    <element xsi:type="archimate:ApplicationComponent" name="Identity Service Module" id="id-ac-identity" documentation="Authentication and token management"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Patient Service Module" id="id-ac-patient" documentation="Patient information and preferences"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Provider Service Module" id="id-ac-provider" documentation="Facility and physician management"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Integration Service Module" id="id-ac-integration" documentation="FHIR transformation and provider integration"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Appointment Service Module" id="id-ac-appointment" documentation="Appointment lifecycle management"/>
+    <element xsi:type="archimate:ApplicationComponent" name="PHR Service Module" id="id-ac-phr" documentation="Patient health records from Malaffi"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Notification Service Module" id="id-ac-notification" documentation="SMS, Email, Push notifications"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Reference Service Module" id="id-ac-reference" documentation="Lookup values and reference data"/>
+    <element xsi:type="archimate:ApplicationComponent" name="CMS Service Module" id="id-ac-cms" documentation="Content management via Strapi"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Batch Worker Service Module" id="id-ac-batch" documentation="Background jobs and data sync"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Sahatna Mobile App" id="id-ac-mobile" documentation="iOS and Android mobile application"/>
+
+    <!-- APPLICATION SERVICES -->
+    <element xsi:type="archimate:ApplicationService" name="UAE Pass Login Service" id="id-as-uaepass" documentation="User authentication via UAE Pass"/>
+    <element xsi:type="archimate:ApplicationService" name="Patient Info API" id="id-as-patient-info" documentation="Patient data retrieval"/>
+    <element xsi:type="archimate:ApplicationService" name="Eligibility Check API" id="id-as-eligibility" documentation="Daman eligibility verification"/>
+    <element xsi:type="archimate:ApplicationService" name="Package Determination API" id="id-as-packages" documentation="Available packages calculation"/>
+    <element xsi:type="archimate:ApplicationService" name="Facility Search API" id="id-as-facility-search" documentation="IFHAS facility lookup"/>
+    <element xsi:type="archimate:ApplicationService" name="Physician Search API" id="id-as-physician-search" documentation="Physician availability lookup"/>
+    <element xsi:type="archimate:ApplicationService" name="Slot Availability API" id="id-as-slots" documentation="Time slot availability"/>
+    <element xsi:type="archimate:ApplicationService" name="Appointment Booking API" id="id-as-booking" documentation="Appointment creation"/>
+    <element xsi:type="archimate:ApplicationService" name="PHR Retrieval API" id="id-as-phr" documentation="Health records from Malaffi"/>
+    <element xsi:type="archimate:ApplicationService" name="Notification API" id="id-as-notification" documentation="Message delivery"/>
+    <element xsi:type="archimate:ApplicationService" name="Survey API" id="id-as-survey" documentation="Feedback collection"/>
+    <element xsi:type="archimate:ApplicationService" name="Content Delivery API" id="id-as-content" documentation="CMS content retrieval"/>
+    <element xsi:type="archimate:ApplicationService" name="DOH Licensing Sync API" id="id-as-licensing-sync" documentation="Facility data synchronization"/>
+
+    <!-- EXTERNAL APPLICATION COMPONENTS -->
+    <element xsi:type="archimate:ApplicationComponent" name="Daman Insurance System" id="id-ac-ext-daman" documentation="External: Thiqa eligibility and IFHAS history"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Malaffi HIE System" id="id-ac-ext-malaffi" documentation="External: Health information exchange"/>
+    <element xsi:type="archimate:ApplicationComponent" name="DOH Licensing System (Accela)" id="id-ac-ext-accela" documentation="External: Facility licensing"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Provider EMR Systems" id="id-ac-ext-emr" documentation="External: Facility EMR systems"/>
+    <element xsi:type="archimate:ApplicationComponent" name="UAE Pass" id="id-ac-ext-uaepass" documentation="External: Digital identity platform"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Strapi CMS" id="id-ac-ext-strapi" documentation="External: Content management system"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Firebase" id="id-ac-ext-firebase" documentation="External: Push notification service"/>
+
+  </folder>
+
+  <!-- ==================== RELATIONS ==================== -->
+  <folder name="Relations" id="id-folder-relations" type="relations">
+
+    <!-- STAKEHOLDER-DRIVER ASSOCIATIONS -->
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-001" source="id-sh-doh" target="id-dr-low-participation"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-002" source="id-sh-doh" target="id-dr-chronic-disease"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-003" source="id-sh-doh" target="id-dr-population-health"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-004" source="id-sh-doh" target="id-dr-fragmented-journey"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-005" source="id-sh-sahatna" target="id-dr-poor-visibility"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-006" source="id-sh-sahatna" target="id-dr-complex-booking"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-007" source="id-sh-sahatna" target="id-dr-low-engagement"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-008" source="id-sh-daman" target="id-dr-manual-eligibility"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-009" source="id-sh-daman" target="id-dr-inconsistent-followthrough"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-010" source="id-sh-malaffi" target="id-dr-results-inaccessible"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-011" source="id-sh-malaffi" target="id-dr-encounter-identification"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-012" source="id-sh-providers" target="id-dr-service-identification"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-013" source="id-sh-accela" target="id-dr-no-provider-list"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-014" source="id-sh-citizens" target="id-dr-limited-info"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-015" source="id-sh-citizens" target="id-dr-appointment-difficulty"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-016" source="id-sh-citizens" target="id-dr-no-proactive-engagement"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-017" source="id-sh-doh-business" target="id-dr-no-feedback"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-rel-018" source="id-sh-doh-data" target="id-dr-limited-visibility"/>
+
+    <!-- DRIVER-GOAL INFLUENCE -->
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-020" source="id-dr-low-participation" target="id-gl-increase-participation"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-021" source="id-dr-chronic-disease" target="id-gl-early-detection"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-022" source="id-dr-population-health" target="id-gl-preventive-model"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-023" source="id-dr-fragmented-journey" target="id-gl-unified-experience"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-024" source="id-dr-poor-visibility" target="id-gl-increase-awareness"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-025" source="id-dr-complex-booking" target="id-gl-digitize-booking"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-026" source="id-dr-low-engagement" target="id-gl-proactive-engagement"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-027" source="id-dr-manual-eligibility" target="id-gl-centralize-data"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-028" source="id-dr-inconsistent-followthrough" target="id-gl-insurance-engagement"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-029" source="id-dr-results-inaccessible" target="id-gl-expose-results"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-030" source="id-dr-encounter-identification" target="id-gl-standardize-encounters"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-031" source="id-dr-service-identification" target="id-gl-flag-services"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-032" source="id-dr-no-provider-list" target="id-gl-facility-list"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-033" source="id-dr-limited-info" target="id-gl-discover-packages"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-034" source="id-dr-appointment-difficulty" target="id-gl-digital-access"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-035" source="id-dr-no-proactive-engagement" target="id-gl-receive-reminders"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-036" source="id-dr-no-feedback" target="id-gl-collect-feedback"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="id-rel-037" source="id-dr-limited-visibility" target="id-gl-measure-kpis"/>
+
+    <!-- OUTCOME REALIZES GOAL -->
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-040" source="id-oc-higher-uptake" target="id-gl-increase-participation"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-041" source="id-oc-earlier-diagnosis" target="id-gl-early-detection"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-042" source="id-oc-improved-health" target="id-gl-preventive-model"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-043" source="id-oc-seamless-journey" target="id-gl-unified-experience"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-044" source="id-oc-citizen-understanding" target="id-gl-increase-awareness"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-045" source="id-oc-reduced-friction" target="id-gl-digitize-booking"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-046" source="id-oc-increased-completion" target="id-gl-proactive-engagement"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-047" source="id-oc-reliable-eligibility" target="id-gl-centralize-data"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-048" source="id-oc-higher-utilization" target="id-gl-insurance-engagement"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-049" source="id-oc-results-accessible" target="id-gl-expose-results"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-050" source="id-oc-accurate-classification" target="id-gl-standardize-encounters"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-051" source="id-oc-facilities-visible" target="id-gl-flag-services"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-052" source="id-oc-licensed-facilities" target="id-gl-facility-list"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-053" source="id-oc-increased-awareness" target="id-gl-discover-packages"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-054" source="id-oc-improved-experience" target="id-gl-digital-access"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-055" source="id-oc-completion-followup" target="id-gl-receive-reminders"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-056" source="id-oc-quality-improvement" target="id-gl-collect-feedback"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-057" source="id-oc-data-driven" target="id-gl-measure-kpis"/>
+
+    <!-- COURSE OF ACTION REALIZES OUTCOME -->
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-060" source="id-coa-digital-eligibility" target="id-oc-higher-uptake"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-061" source="id-coa-age-gender-packages" target="id-oc-earlier-diagnosis"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-062" source="id-coa-operationalize-strategy" target="id-oc-improved-health"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-063" source="id-coa-unified-flow" target="id-oc-seamless-journey"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-064" source="id-coa-publish-content" target="id-oc-citizen-understanding"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-065" source="id-coa-emr-integration" target="id-oc-reduced-friction"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-066" source="id-coa-send-nudges" target="id-oc-increased-completion"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-067" source="id-coa-daman-integration" target="id-oc-reliable-eligibility"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-068" source="id-coa-booking-prompts" target="id-oc-higher-utilization"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-069" source="id-coa-malaffi-integration" target="id-oc-results-accessible"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-070" source="id-coa-enforce-encounter-id" target="id-oc-accurate-classification"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-071" source="id-coa-maintain-facility-list" target="id-oc-facilities-visible"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-072" source="id-coa-filter-facilities" target="id-oc-licensed-facilities"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-073" source="id-coa-personalized-packages" target="id-oc-increased-awareness"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-074" source="id-coa-ux-surveys" target="id-oc-improved-experience"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-075" source="id-coa-trigger-reminders" target="id-oc-completion-followup"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-076" source="id-coa-analyze-feedback" target="id-oc-quality-improvement"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-077" source="id-coa-track-kpis" target="id-oc-data-driven"/>
+
+    <!-- CAPABILITY REALIZES COURSE OF ACTION -->
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-080" source="id-cap-patient-id" target="id-coa-digital-eligibility"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-081" source="id-cap-agreement-eligibility" target="id-coa-digital-eligibility"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-082" source="id-cap-service-portfolio" target="id-coa-age-gender-packages"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-083" source="id-cap-service-patient-matching" target="id-coa-age-gender-packages"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-084" source="id-cap-channel-mgmt" target="id-coa-operationalize-strategy"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-085" source="id-cap-encounter-mgmt" target="id-coa-unified-flow"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-086" source="id-cap-patient-history" target="id-coa-unified-flow"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-087" source="id-cap-content-mgmt" target="id-coa-publish-content"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-088" source="id-cap-meeting-mgmt" target="id-coa-emr-integration"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-089" source="id-cap-schedule-mgmt" target="id-coa-emr-integration"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-090" source="id-cap-message-mgmt" target="id-coa-send-nudges"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-091" source="id-cap-message-patient-matching" target="id-coa-send-nudges"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-092" source="id-cap-agreement-lifecycle" target="id-coa-daman-integration"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-093" source="id-cap-agreement-info" target="id-coa-daman-integration"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-094" source="id-cap-info-transformation" target="id-coa-daman-integration"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-095" source="id-cap-service-patient-matching" target="id-coa-booking-prompts"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-096" source="id-cap-case-info-mgmt" target="id-coa-malaffi-integration"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-097" source="id-cap-health-condition" target="id-coa-malaffi-integration"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-098" source="id-cap-case-establishment" target="id-coa-enforce-encounter-id"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-099" source="id-cap-facility-mgmt" target="id-coa-maintain-facility-list"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-100" source="id-cap-partner-mgmt" target="id-coa-maintain-facility-list"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-101" source="id-cap-facility-service-matching" target="id-coa-filter-facilities"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-102" source="id-cap-patient-profile" target="id-coa-personalized-packages"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-103" source="id-cap-inquiry-mgmt" target="id-coa-ux-surveys"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-104" source="id-cap-message-schedule-matching" target="id-coa-trigger-reminders"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-105" source="id-cap-inquiry-mgmt" target="id-coa-analyze-feedback"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-106" source="id-cap-performance-mgmt" target="id-coa-track-kpis"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-107" source="id-cap-patient-analytics" target="id-coa-track-kpis"/>
+
+    <!-- BUSINESS PROCESS REALIZES CAPABILITY -->
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-110" source="id-bp-check-eligibility" target="id-cap-agreement-eligibility"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-111" source="id-bp-landing-page" target="id-cap-content-mgmt"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-112" source="id-bp-determine-packages" target="id-cap-service-patient-matching"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-113" source="id-bp-select-package" target="id-cap-service-portfolio"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-114" source="id-bp-select-facility" target="id-cap-facility-mgmt"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-115" source="id-bp-select-physician" target="id-cap-partner-mgmt"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-116" source="id-bp-choose-slot" target="id-cap-schedule-mgmt"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-117" source="id-bp-book-appointment" target="id-cap-meeting-mgmt"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-118" source="id-bp-fill-questionnaire" target="id-cap-case-establishment"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-119" source="id-bp-send-reminders" target="id-cap-message-schedule-matching"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-120" source="id-bp-view-results" target="id-cap-case-info-mgmt"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-121" source="id-bp-view-history" target="id-cap-patient-history"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-122" source="id-bp-send-nudges" target="id-cap-message-patient-matching"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-123" source="id-bp-collect-survey" target="id-cap-inquiry-mgmt"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-124" source="id-bp-sync-facilities" target="id-cap-facility-mgmt"/>
+
+    <!-- APPLICATION SERVICE REALIZES BUSINESS PROCESS -->
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-130" source="id-as-eligibility" target="id-bp-check-eligibility"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-131" source="id-as-content" target="id-bp-landing-page"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-132" source="id-as-packages" target="id-bp-determine-packages"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-133" source="id-as-facility-search" target="id-bp-select-facility"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-134" source="id-as-physician-search" target="id-bp-select-physician"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-135" source="id-as-slots" target="id-bp-choose-slot"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-136" source="id-as-booking" target="id-bp-book-appointment"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-137" source="id-as-notification" target="id-bp-send-reminders"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-138" source="id-as-phr" target="id-bp-view-results"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-139" source="id-as-patient-info" target="id-bp-view-history"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-140" source="id-as-notification" target="id-bp-send-nudges"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-141" source="id-as-survey" target="id-bp-collect-survey"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-142" source="id-as-licensing-sync" target="id-bp-sync-facilities"/>
+
+    <!-- APPLICATION COMPONENT REALIZES APPLICATION SERVICE -->
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-150" source="id-ac-identity" target="id-as-uaepass"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-151" source="id-ac-patient" target="id-as-patient-info"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-152" source="id-ac-integration" target="id-as-eligibility"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-153" source="id-ac-integration" target="id-as-packages"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-154" source="id-ac-provider" target="id-as-facility-search"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-155" source="id-ac-provider" target="id-as-physician-search"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-156" source="id-ac-appointment" target="id-as-slots"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-157" source="id-ac-appointment" target="id-as-booking"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-158" source="id-ac-phr" target="id-as-phr"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-159" source="id-ac-notification" target="id-as-notification"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-160" source="id-ac-patient" target="id-as-survey"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-161" source="id-ac-cms" target="id-as-content"/>
+    <element xsi:type="archimate:RealizationRelationship" id="id-rel-162" source="id-ac-batch" target="id-as-licensing-sync"/>
+
+    <!-- EXTERNAL SYSTEM FLOWS -->
+    <element xsi:type="archimate:FlowRelationship" id="id-rel-170" source="id-ac-ext-daman" target="id-ac-integration"/>
+    <element xsi:type="archimate:FlowRelationship" id="id-rel-171" source="id-ac-ext-malaffi" target="id-ac-phr"/>
+    <element xsi:type="archimate:FlowRelationship" id="id-rel-172" source="id-ac-ext-accela" target="id-ac-batch"/>
+    <element xsi:type="archimate:FlowRelationship" id="id-rel-173" source="id-ac-ext-emr" target="id-ac-integration"/>
+    <element xsi:type="archimate:FlowRelationship" id="id-rel-174" source="id-ac-ext-uaepass" target="id-ac-identity"/>
+    <element xsi:type="archimate:FlowRelationship" id="id-rel-175" source="id-ac-ext-strapi" target="id-ac-cms"/>
+    <element xsi:type="archimate:FlowRelationship" id="id-rel-176" source="id-ac-ext-firebase" target="id-ac-notification"/>
+
+    <!-- BUSINESS ACTOR USES BUSINESS SERVICE -->
+    <element xsi:type="archimate:ServingRelationship" id="id-rel-180" source="id-bs-eligibility" target="id-ba-citizen"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-rel-181" source="id-bs-booking" target="id-ba-citizen"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-rel-182" source="id-bs-information" target="id-ba-citizen"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-rel-183" source="id-bs-results" target="id-ba-citizen"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-rel-184" source="id-bs-notification" target="id-ba-citizen"/>
+
+  </folder>
+
+  <!-- ==================== VIEWS ==================== -->
+  <folder name="Views" id="id-folder-views" type="diagrams">
+
+    <!-- VIEW 1: STAKEHOLDER LANDSCAPE -->
+    <element xsi:type="archimate:ArchimateDiagramModel" name="1. Stakeholder Landscape" id="id-view-stakeholders">
+      <child xsi:type="archimate:DiagramObject" id="id-do-sh-doh" targetConnections="id-dc-001 id-dc-002 id-dc-003 id-dc-004" archimateElement="id-sh-doh">
+        <bounds x="48" y="36" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-sh-sahatna" targetConnections="id-dc-005 id-dc-006 id-dc-007" archimateElement="id-sh-sahatna">
+        <bounds x="264" y="36" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-sh-daman" targetConnections="id-dc-008 id-dc-009" archimateElement="id-sh-daman">
+        <bounds x="480" y="36" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-sh-malaffi" targetConnections="id-dc-010 id-dc-011" archimateElement="id-sh-malaffi">
+        <bounds x="696" y="36" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-sh-providers" targetConnections="id-dc-012" archimateElement="id-sh-providers">
+        <bounds x="48" y="120" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-sh-accela" targetConnections="id-dc-013" archimateElement="id-sh-accela">
+        <bounds x="264" y="120" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-sh-citizens" targetConnections="id-dc-014 id-dc-015 id-dc-016" archimateElement="id-sh-citizens">
+        <bounds x="480" y="120" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-sh-doh-business" targetConnections="id-dc-017" archimateElement="id-sh-doh-business">
+        <bounds x="696" y="120" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-sh-doh-data" targetConnections="id-dc-018" archimateElement="id-sh-doh-data">
+        <bounds x="372" y="204" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-low-participation" archimateElement="id-dr-low-participation">
+        <bounds x="48" y="300" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-001" source="id-do-dr-low-participation" target="id-do-sh-doh" archimateRelationship="id-rel-001"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-chronic-disease" archimateElement="id-dr-chronic-disease">
+        <bounds x="264" y="300" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-002" source="id-do-dr-chronic-disease" target="id-do-sh-doh" archimateRelationship="id-rel-002"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-population-health" archimateElement="id-dr-population-health">
+        <bounds x="480" y="300" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-003" source="id-do-dr-population-health" target="id-do-sh-doh" archimateRelationship="id-rel-003"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-fragmented-journey" archimateElement="id-dr-fragmented-journey">
+        <bounds x="696" y="300" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-004" source="id-do-dr-fragmented-journey" target="id-do-sh-doh" archimateRelationship="id-rel-004"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-poor-visibility" archimateElement="id-dr-poor-visibility">
+        <bounds x="48" y="384" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-005" source="id-do-dr-poor-visibility" target="id-do-sh-sahatna" archimateRelationship="id-rel-005"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-complex-booking" archimateElement="id-dr-complex-booking">
+        <bounds x="264" y="384" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-006" source="id-do-dr-complex-booking" target="id-do-sh-sahatna" archimateRelationship="id-rel-006"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-low-engagement" archimateElement="id-dr-low-engagement">
+        <bounds x="480" y="384" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-007" source="id-do-dr-low-engagement" target="id-do-sh-sahatna" archimateRelationship="id-rel-007"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-manual-eligibility" archimateElement="id-dr-manual-eligibility">
+        <bounds x="696" y="384" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-008" source="id-do-dr-manual-eligibility" target="id-do-sh-daman" archimateRelationship="id-rel-008"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-inconsistent-followthrough" archimateElement="id-dr-inconsistent-followthrough">
+        <bounds x="48" y="468" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-009" source="id-do-dr-inconsistent-followthrough" target="id-do-sh-daman" archimateRelationship="id-rel-009"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-results-inaccessible" archimateElement="id-dr-results-inaccessible">
+        <bounds x="264" y="468" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-010" source="id-do-dr-results-inaccessible" target="id-do-sh-malaffi" archimateRelationship="id-rel-010"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-encounter-identification" archimateElement="id-dr-encounter-identification">
+        <bounds x="480" y="468" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-011" source="id-do-dr-encounter-identification" target="id-do-sh-malaffi" archimateRelationship="id-rel-011"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-service-identification" archimateElement="id-dr-service-identification">
+        <bounds x="696" y="468" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-012" source="id-do-dr-service-identification" target="id-do-sh-providers" archimateRelationship="id-rel-012"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-no-provider-list" archimateElement="id-dr-no-provider-list">
+        <bounds x="48" y="552" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-013" source="id-do-dr-no-provider-list" target="id-do-sh-accela" archimateRelationship="id-rel-013"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-limited-info" archimateElement="id-dr-limited-info">
+        <bounds x="264" y="552" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-014" source="id-do-dr-limited-info" target="id-do-sh-citizens" archimateRelationship="id-rel-014"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-appointment-difficulty" archimateElement="id-dr-appointment-difficulty">
+        <bounds x="480" y="552" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-015" source="id-do-dr-appointment-difficulty" target="id-do-sh-citizens" archimateRelationship="id-rel-015"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-no-proactive-engagement" archimateElement="id-dr-no-proactive-engagement">
+        <bounds x="696" y="552" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-016" source="id-do-dr-no-proactive-engagement" target="id-do-sh-citizens" archimateRelationship="id-rel-016"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-no-feedback" archimateElement="id-dr-no-feedback">
+        <bounds x="264" y="636" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-017" source="id-do-dr-no-feedback" target="id-do-sh-doh-business" archimateRelationship="id-rel-017"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do-dr-limited-visibility" archimateElement="id-dr-limited-visibility">
+        <bounds x="480" y="636" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc-018" source="id-do-dr-limited-visibility" target="id-do-sh-doh-data" archimateRelationship="id-rel-018"/>
+      </child>
+    </element>
+
+    <!-- VIEW 2: GOAL REALIZATION (Driver -> Goal -> Outcome) -->
+    <element xsi:type="archimate:ArchimateDiagramModel" name="2. Goal Realization" id="id-view-goals">
+      <child xsi:type="archimate:DiagramObject" id="id-do2-dr-low-participation" archimateElement="id-dr-low-participation">
+        <bounds x="48" y="36" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-020" source="id-do2-dr-low-participation" target="id-do2-gl-increase-participation" archimateRelationship="id-rel-020"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-gl-increase-participation" targetConnections="id-dc2-020" archimateElement="id-gl-increase-participation">
+        <bounds x="48" y="132" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-040" source="id-do2-gl-increase-participation" target="id-do2-oc-higher-uptake" archimateRelationship="id-rel-040"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-oc-higher-uptake" targetConnections="id-dc2-040" archimateElement="id-oc-higher-uptake">
+        <bounds x="48" y="228" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-dr-chronic-disease" archimateElement="id-dr-chronic-disease">
+        <bounds x="264" y="36" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-021" source="id-do2-dr-chronic-disease" target="id-do2-gl-early-detection" archimateRelationship="id-rel-021"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-gl-early-detection" targetConnections="id-dc2-021" archimateElement="id-gl-early-detection">
+        <bounds x="264" y="132" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-041" source="id-do2-gl-early-detection" target="id-do2-oc-earlier-diagnosis" archimateRelationship="id-rel-041"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-oc-earlier-diagnosis" targetConnections="id-dc2-041" archimateElement="id-oc-earlier-diagnosis">
+        <bounds x="264" y="228" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-dr-fragmented-journey" archimateElement="id-dr-fragmented-journey">
+        <bounds x="480" y="36" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-023" source="id-do2-dr-fragmented-journey" target="id-do2-gl-unified-experience" archimateRelationship="id-rel-023"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-gl-unified-experience" targetConnections="id-dc2-023" archimateElement="id-gl-unified-experience">
+        <bounds x="480" y="132" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-043" source="id-do2-gl-unified-experience" target="id-do2-oc-seamless-journey" archimateRelationship="id-rel-043"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-oc-seamless-journey" targetConnections="id-dc2-043" archimateElement="id-oc-seamless-journey">
+        <bounds x="480" y="228" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-dr-complex-booking" archimateElement="id-dr-complex-booking">
+        <bounds x="696" y="36" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-025" source="id-do2-dr-complex-booking" target="id-do2-gl-digitize-booking" archimateRelationship="id-rel-025"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-gl-digitize-booking" targetConnections="id-dc2-025" archimateElement="id-gl-digitize-booking">
+        <bounds x="696" y="132" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-045" source="id-do2-gl-digitize-booking" target="id-do2-oc-reduced-friction" archimateRelationship="id-rel-045"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-oc-reduced-friction" targetConnections="id-dc2-045" archimateElement="id-oc-reduced-friction">
+        <bounds x="696" y="228" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-dr-manual-eligibility" archimateElement="id-dr-manual-eligibility">
+        <bounds x="48" y="324" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-027" source="id-do2-dr-manual-eligibility" target="id-do2-gl-centralize-data" archimateRelationship="id-rel-027"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-gl-centralize-data" targetConnections="id-dc2-027" archimateElement="id-gl-centralize-data">
+        <bounds x="48" y="420" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-047" source="id-do2-gl-centralize-data" target="id-do2-oc-reliable-eligibility" archimateRelationship="id-rel-047"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-oc-reliable-eligibility" targetConnections="id-dc2-047" archimateElement="id-oc-reliable-eligibility">
+        <bounds x="48" y="516" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-dr-results-inaccessible" archimateElement="id-dr-results-inaccessible">
+        <bounds x="264" y="324" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-029" source="id-do2-dr-results-inaccessible" target="id-do2-gl-expose-results" archimateRelationship="id-rel-029"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-gl-expose-results" targetConnections="id-dc2-029" archimateElement="id-gl-expose-results">
+        <bounds x="264" y="420" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-049" source="id-do2-gl-expose-results" target="id-do2-oc-results-accessible" archimateRelationship="id-rel-049"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-oc-results-accessible" targetConnections="id-dc2-049" archimateElement="id-oc-results-accessible">
+        <bounds x="264" y="516" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-dr-no-provider-list" archimateElement="id-dr-no-provider-list">
+        <bounds x="480" y="324" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-032" source="id-do2-dr-no-provider-list" target="id-do2-gl-facility-list" archimateRelationship="id-rel-032"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-gl-facility-list" targetConnections="id-dc2-032" archimateElement="id-gl-facility-list">
+        <bounds x="480" y="420" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-052" source="id-do2-gl-facility-list" target="id-do2-oc-licensed-facilities" archimateRelationship="id-rel-052"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-oc-licensed-facilities" targetConnections="id-dc2-052" archimateElement="id-oc-licensed-facilities">
+        <bounds x="480" y="516" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-dr-no-feedback" archimateElement="id-dr-no-feedback">
+        <bounds x="696" y="324" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-036" source="id-do2-dr-no-feedback" target="id-do2-gl-collect-feedback" archimateRelationship="id-rel-036"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-gl-collect-feedback" targetConnections="id-dc2-036" archimateElement="id-gl-collect-feedback">
+        <bounds x="696" y="420" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc2-056" source="id-do2-gl-collect-feedback" target="id-do2-oc-quality-improvement" archimateRelationship="id-rel-056"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do2-oc-quality-improvement" targetConnections="id-dc2-056" archimateElement="id-oc-quality-improvement">
+        <bounds x="696" y="516" width="180" height="55"/>
+      </child>
+    </element>
+
+    <!-- VIEW 3: STRATEGY - COURSE OF ACTION -->
+    <element xsi:type="archimate:ArchimateDiagramModel" name="3. Strategy - Course of Action" id="id-view-coa">
+      <child xsi:type="archimate:DiagramObject" id="id-do3-oc-higher-uptake" archimateElement="id-oc-higher-uptake">
+        <bounds x="48" y="36" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-coa-digital-eligibility" archimateElement="id-coa-digital-eligibility">
+        <bounds x="48" y="132" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc3-060" source="id-do3-coa-digital-eligibility" target="id-do3-oc-higher-uptake" archimateRelationship="id-rel-060"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-oc-seamless-journey" archimateElement="id-oc-seamless-journey">
+        <bounds x="264" y="36" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-coa-unified-flow" archimateElement="id-coa-unified-flow">
+        <bounds x="264" y="132" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc3-063" source="id-do3-coa-unified-flow" target="id-do3-oc-seamless-journey" archimateRelationship="id-rel-063"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-oc-reduced-friction" archimateElement="id-oc-reduced-friction">
+        <bounds x="480" y="36" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-coa-emr-integration" archimateElement="id-coa-emr-integration">
+        <bounds x="480" y="132" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc3-065" source="id-do3-coa-emr-integration" target="id-do3-oc-reduced-friction" archimateRelationship="id-rel-065"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-oc-reliable-eligibility" archimateElement="id-oc-reliable-eligibility">
+        <bounds x="696" y="36" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-coa-daman-integration" archimateElement="id-coa-daman-integration">
+        <bounds x="696" y="132" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc3-067" source="id-do3-coa-daman-integration" target="id-do3-oc-reliable-eligibility" archimateRelationship="id-rel-067"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-oc-results-accessible" archimateElement="id-oc-results-accessible">
+        <bounds x="48" y="228" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-coa-malaffi-integration" archimateElement="id-coa-malaffi-integration">
+        <bounds x="48" y="324" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc3-069" source="id-do3-coa-malaffi-integration" target="id-do3-oc-results-accessible" archimateRelationship="id-rel-069"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-oc-licensed-facilities" archimateElement="id-oc-licensed-facilities">
+        <bounds x="264" y="228" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-coa-maintain-facility-list" archimateElement="id-coa-maintain-facility-list">
+        <bounds x="264" y="324" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc3-071" source="id-do3-coa-maintain-facility-list" target="id-do3-oc-licensed-facilities" archimateRelationship="id-rel-071"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-oc-increased-completion" archimateElement="id-oc-increased-completion">
+        <bounds x="480" y="228" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-coa-send-nudges" archimateElement="id-coa-send-nudges">
+        <bounds x="480" y="324" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc3-066" source="id-do3-coa-send-nudges" target="id-do3-oc-increased-completion" archimateRelationship="id-rel-066"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-oc-quality-improvement" archimateElement="id-oc-quality-improvement">
+        <bounds x="696" y="228" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do3-coa-analyze-feedback" archimateElement="id-coa-analyze-feedback">
+        <bounds x="696" y="324" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc3-076" source="id-do3-coa-analyze-feedback" target="id-do3-oc-quality-improvement" archimateRelationship="id-rel-076"/>
+      </child>
+    </element>
+
+    <!-- VIEW 4: CAPABILITY MAP -->
+    <element xsi:type="archimate:ArchimateDiagramModel" name="4. Capability Map" id="id-view-capabilities">
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-patient-id" archimateElement="id-cap-patient-id">
+        <bounds x="48" y="36" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-patient-profile" archimateElement="id-cap-patient-profile">
+        <bounds x="216" y="36" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-patient-preference" archimateElement="id-cap-patient-preference">
+        <bounds x="384" y="36" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-patient-history" archimateElement="id-cap-patient-history">
+        <bounds x="552" y="36" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-patient-analytics" archimateElement="id-cap-patient-analytics">
+        <bounds x="720" y="36" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-service-portfolio" archimateElement="id-cap-service-portfolio">
+        <bounds x="48" y="108" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-service-patient-matching" archimateElement="id-cap-service-patient-matching">
+        <bounds x="216" y="108" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-case-establishment" archimateElement="id-cap-case-establishment">
+        <bounds x="384" y="108" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-encounter-mgmt" archimateElement="id-cap-encounter-mgmt">
+        <bounds x="552" y="108" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-case-info-mgmt" archimateElement="id-cap-case-info-mgmt">
+        <bounds x="720" y="108" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-facility-mgmt" archimateElement="id-cap-facility-mgmt">
+        <bounds x="48" y="180" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-facility-service-matching" archimateElement="id-cap-facility-service-matching">
+        <bounds x="216" y="180" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-agreement-eligibility" archimateElement="id-cap-agreement-eligibility">
+        <bounds x="384" y="180" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-agreement-lifecycle" archimateElement="id-cap-agreement-lifecycle">
+        <bounds x="552" y="180" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-agreement-info" archimateElement="id-cap-agreement-info">
+        <bounds x="720" y="180" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-message-mgmt" archimateElement="id-cap-message-mgmt">
+        <bounds x="48" y="252" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-message-patient-matching" archimateElement="id-cap-message-patient-matching">
+        <bounds x="216" y="252" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-message-schedule-matching" archimateElement="id-cap-message-schedule-matching">
+        <bounds x="384" y="252" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-channel-mgmt" archimateElement="id-cap-channel-mgmt">
+        <bounds x="552" y="252" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-content-mgmt" archimateElement="id-cap-content-mgmt">
+        <bounds x="720" y="252" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-meeting-mgmt" archimateElement="id-cap-meeting-mgmt">
+        <bounds x="48" y="324" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-schedule-mgmt" archimateElement="id-cap-schedule-mgmt">
+        <bounds x="216" y="324" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-work-item-mgmt" archimateElement="id-cap-work-item-mgmt">
+        <bounds x="384" y="324" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-inquiry-mgmt" archimateElement="id-cap-inquiry-mgmt">
+        <bounds x="552" y="324" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-health-condition" archimateElement="id-cap-health-condition">
+        <bounds x="720" y="324" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-info-transformation" archimateElement="id-cap-info-transformation">
+        <bounds x="48" y="396" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-info-security" archimateElement="id-cap-info-security">
+        <bounds x="216" y="396" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-partner-mgmt" archimateElement="id-cap-partner-mgmt">
+        <bounds x="384" y="396" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do4-cap-performance-mgmt" archimateElement="id-cap-performance-mgmt">
+        <bounds x="552" y="396" width="150" height="55"/>
+      </child>
+    </element>
+
+    <!-- VIEW 5: BUSINESS PROCESS VIEW -->
+    <element xsi:type="archimate:ArchimateDiagramModel" name="5. Business Process View" id="id-view-processes">
+      <child xsi:type="archimate:DiagramObject" id="id-do5-bp-check-eligibility" archimateElement="id-bp-check-eligibility">
+        <bounds x="48" y="36" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc5-110" source="id-do5-bp-check-eligibility" target="id-do5-cap-agreement-eligibility" archimateRelationship="id-rel-110"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-cap-agreement-eligibility" targetConnections="id-dc5-110" archimateElement="id-cap-agreement-eligibility">
+        <bounds x="48" y="132" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-bp-landing-page" archimateElement="id-bp-landing-page">
+        <bounds x="264" y="36" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc5-111" source="id-do5-bp-landing-page" target="id-do5-cap-content-mgmt" archimateRelationship="id-rel-111"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-cap-content-mgmt" targetConnections="id-dc5-111" archimateElement="id-cap-content-mgmt">
+        <bounds x="264" y="132" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-bp-determine-packages" archimateElement="id-bp-determine-packages">
+        <bounds x="480" y="36" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc5-112" source="id-do5-bp-determine-packages" target="id-do5-cap-service-patient-matching" archimateRelationship="id-rel-112"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-cap-service-patient-matching" targetConnections="id-dc5-112" archimateElement="id-cap-service-patient-matching">
+        <bounds x="480" y="132" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-bp-select-facility" archimateElement="id-bp-select-facility">
+        <bounds x="696" y="36" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc5-114" source="id-do5-bp-select-facility" target="id-do5-cap-facility-mgmt" archimateRelationship="id-rel-114"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-cap-facility-mgmt" targetConnections="id-dc5-114" archimateElement="id-cap-facility-mgmt">
+        <bounds x="696" y="132" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-bp-book-appointment" archimateElement="id-bp-book-appointment">
+        <bounds x="48" y="228" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc5-117" source="id-do5-bp-book-appointment" target="id-do5-cap-meeting-mgmt" archimateRelationship="id-rel-117"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-cap-meeting-mgmt" targetConnections="id-dc5-117" archimateElement="id-cap-meeting-mgmt">
+        <bounds x="48" y="324" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-bp-send-reminders" archimateElement="id-bp-send-reminders">
+        <bounds x="264" y="228" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc5-119" source="id-do5-bp-send-reminders" target="id-do5-cap-message-schedule-matching" archimateRelationship="id-rel-119"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-cap-message-schedule-matching" targetConnections="id-dc5-119" archimateElement="id-cap-message-schedule-matching">
+        <bounds x="264" y="324" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-bp-view-results" archimateElement="id-bp-view-results">
+        <bounds x="480" y="228" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc5-120" source="id-do5-bp-view-results" target="id-do5-cap-case-info-mgmt" archimateRelationship="id-rel-120"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-cap-case-info-mgmt" targetConnections="id-dc5-120" archimateElement="id-cap-case-info-mgmt">
+        <bounds x="480" y="324" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-bp-collect-survey" archimateElement="id-bp-collect-survey">
+        <bounds x="696" y="228" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc5-123" source="id-do5-bp-collect-survey" target="id-do5-cap-inquiry-mgmt" archimateRelationship="id-rel-123"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do5-cap-inquiry-mgmt" targetConnections="id-dc5-123" archimateElement="id-cap-inquiry-mgmt">
+        <bounds x="696" y="324" width="180" height="55"/>
+      </child>
+    </element>
+
+    <!-- VIEW 6: APPLICATION LAYER -->
+    <element xsi:type="archimate:ArchimateDiagramModel" name="6. Application Services" id="id-view-applications">
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-identity" archimateElement="id-ac-identity">
+        <bounds x="48" y="36" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-150" source="id-do6-ac-identity" target="id-do6-as-uaepass" archimateRelationship="id-rel-150"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-uaepass" targetConnections="id-dc6-150" archimateElement="id-as-uaepass">
+        <bounds x="48" y="132" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-patient" archimateElement="id-ac-patient">
+        <bounds x="216" y="36" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-151" source="id-do6-ac-patient" target="id-do6-as-patient-info" archimateRelationship="id-rel-151"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-160" source="id-do6-ac-patient" target="id-do6-as-survey" archimateRelationship="id-rel-160"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-patient-info" targetConnections="id-dc6-151" archimateElement="id-as-patient-info">
+        <bounds x="216" y="132" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-integration" archimateElement="id-ac-integration">
+        <bounds x="384" y="36" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-152" source="id-do6-ac-integration" target="id-do6-as-eligibility" archimateRelationship="id-rel-152"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-153" source="id-do6-ac-integration" target="id-do6-as-packages" archimateRelationship="id-rel-153"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-eligibility" targetConnections="id-dc6-152" archimateElement="id-as-eligibility">
+        <bounds x="384" y="132" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-packages" targetConnections="id-dc6-153" archimateElement="id-as-packages">
+        <bounds x="384" y="204" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-provider" archimateElement="id-ac-provider">
+        <bounds x="552" y="36" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-154" source="id-do6-ac-provider" target="id-do6-as-facility-search" archimateRelationship="id-rel-154"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-155" source="id-do6-ac-provider" target="id-do6-as-physician-search" archimateRelationship="id-rel-155"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-facility-search" targetConnections="id-dc6-154" archimateElement="id-as-facility-search">
+        <bounds x="552" y="132" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-physician-search" targetConnections="id-dc6-155" archimateElement="id-as-physician-search">
+        <bounds x="552" y="204" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-appointment" archimateElement="id-ac-appointment">
+        <bounds x="720" y="36" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-156" source="id-do6-ac-appointment" target="id-do6-as-slots" archimateRelationship="id-rel-156"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-157" source="id-do6-ac-appointment" target="id-do6-as-booking" archimateRelationship="id-rel-157"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-slots" targetConnections="id-dc6-156" archimateElement="id-as-slots">
+        <bounds x="720" y="132" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-booking" targetConnections="id-dc6-157" archimateElement="id-as-booking">
+        <bounds x="720" y="204" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-phr" archimateElement="id-ac-phr">
+        <bounds x="48" y="300" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-158" source="id-do6-ac-phr" target="id-do6-as-phr" archimateRelationship="id-rel-158"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-phr" targetConnections="id-dc6-158" archimateElement="id-as-phr">
+        <bounds x="48" y="396" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-notification" archimateElement="id-ac-notification">
+        <bounds x="216" y="300" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-159" source="id-do6-ac-notification" target="id-do6-as-notification" archimateRelationship="id-rel-159"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-notification" targetConnections="id-dc6-159" archimateElement="id-as-notification">
+        <bounds x="216" y="396" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-survey" targetConnections="id-dc6-160" archimateElement="id-as-survey">
+        <bounds x="384" y="300" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-cms" archimateElement="id-ac-cms">
+        <bounds x="552" y="300" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-161" source="id-do6-ac-cms" target="id-do6-as-content" archimateRelationship="id-rel-161"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-content" targetConnections="id-dc6-161" archimateElement="id-as-content">
+        <bounds x="552" y="396" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-batch" archimateElement="id-ac-batch">
+        <bounds x="720" y="300" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-162" source="id-do6-ac-batch" target="id-do6-as-licensing-sync" archimateRelationship="id-rel-162"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-as-licensing-sync" targetConnections="id-dc6-162" archimateElement="id-as-licensing-sync">
+        <bounds x="720" y="396" width="150" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-ext-daman" archimateElement="id-ac-ext-daman">
+        <bounds x="48" y="516" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-170" source="id-do6-ac-ext-daman" target="id-do6-ac-integration" archimateRelationship="id-rel-170"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-ext-malaffi" archimateElement="id-ac-ext-malaffi">
+        <bounds x="216" y="516" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-171" source="id-do6-ac-ext-malaffi" target="id-do6-ac-phr" archimateRelationship="id-rel-171"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-ext-accela" archimateElement="id-ac-ext-accela">
+        <bounds x="384" y="516" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-172" source="id-do6-ac-ext-accela" target="id-do6-ac-batch" archimateRelationship="id-rel-172"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-ext-emr" archimateElement="id-ac-ext-emr">
+        <bounds x="552" y="516" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-173" source="id-do6-ac-ext-emr" target="id-do6-ac-integration" archimateRelationship="id-rel-173"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do6-ac-ext-uaepass" archimateElement="id-ac-ext-uaepass">
+        <bounds x="720" y="516" width="150" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc6-174" source="id-do6-ac-ext-uaepass" target="id-do6-ac-identity" archimateRelationship="id-rel-174"/>
+      </child>
+    </element>
+
+    <!-- VIEW 7: FULL TRACEABILITY (Simplified End-to-End) -->
+    <element xsi:type="archimate:ArchimateDiagramModel" name="7. Full Traceability" id="id-view-traceability">
+      <child xsi:type="archimate:DiagramObject" id="id-do7-sh-doh" archimateElement="id-sh-doh">
+        <bounds x="372" y="24" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc7-001" source="id-do7-sh-doh" target="id-do7-dr-low-participation" archimateRelationship="id-rel-001"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do7-dr-low-participation" targetConnections="id-dc7-001" archimateElement="id-dr-low-participation">
+        <bounds x="372" y="108" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc7-020" source="id-do7-dr-low-participation" target="id-do7-gl-increase-participation" archimateRelationship="id-rel-020"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do7-gl-increase-participation" targetConnections="id-dc7-020" archimateElement="id-gl-increase-participation">
+        <bounds x="372" y="192" width="180" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do7-oc-higher-uptake" archimateElement="id-oc-higher-uptake">
+        <bounds x="372" y="276" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc7-040" source="id-do7-oc-higher-uptake" target="id-do7-gl-increase-participation" archimateRelationship="id-rel-040"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do7-coa-digital-eligibility" archimateElement="id-coa-digital-eligibility">
+        <bounds x="372" y="360" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc7-060" source="id-do7-coa-digital-eligibility" target="id-do7-oc-higher-uptake" archimateRelationship="id-rel-060"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do7-cap-agreement-eligibility" archimateElement="id-cap-agreement-eligibility">
+        <bounds x="372" y="444" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc7-081" source="id-do7-cap-agreement-eligibility" target="id-do7-coa-digital-eligibility" archimateRelationship="id-rel-081"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do7-bp-check-eligibility" archimateElement="id-bp-check-eligibility">
+        <bounds x="372" y="528" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc7-110" source="id-do7-bp-check-eligibility" target="id-do7-cap-agreement-eligibility" archimateRelationship="id-rel-110"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do7-as-eligibility" archimateElement="id-as-eligibility">
+        <bounds x="372" y="612" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc7-130" source="id-do7-as-eligibility" target="id-do7-bp-check-eligibility" archimateRelationship="id-rel-130"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do7-ac-integration" archimateElement="id-ac-integration">
+        <bounds x="372" y="696" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc7-152" source="id-do7-ac-integration" target="id-do7-as-eligibility" archimateRelationship="id-rel-152"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-do7-ac-ext-daman" archimateElement="id-ac-ext-daman">
+        <bounds x="372" y="780" width="180" height="55"/>
+        <sourceConnection xsi:type="archimate:DiagramModelArchimateConnection" id="id-dc7-170" source="id-do7-ac-ext-daman" target="id-do7-ac-integration" archimateRelationship="id-rel-170"/>
+      </child>
+    </element>
+
+  </folder>
+
+</archimate:model>

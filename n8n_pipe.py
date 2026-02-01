@@ -2,19 +2,21 @@
 title: n8n Pipeline Pipe
 author: Cole Medin (original), Enhanced for Architecture Pipeline
 author_url: https://www.youtube.com/@ColeMedin
-version: 0.4.0
+version: 0.5.0
 
 Simple pipe that sends chat messages to an n8n webhook endpoint.
 Supports self-contained pipeline workflows with:
 - Chat mode (help, status, artifacts queries)
 - Execute mode (async BRD/artifact generation)
 - System prompt mode (auto-tag, follow-up, title generation)
+- File uploads (extracts content and sends as requirements)
 """
 
 from typing import Optional, Callable, Awaitable
 from pydantic import BaseModel, Field
 import time
 import requests
+import base64
 
 
 def extract_event_info(event_emitter) -> tuple[Optional[str], Optional[str]]:
@@ -177,6 +179,54 @@ class Pipe:
         # 6. Fallback: return JSON as formatted string
         return f"```json\n{json.dumps(response_data, indent=2)}\n```"
 
+    def extract_file_content(self, messages: list) -> Optional[str]:
+        """Extract file content from messages if present.
+
+        Open WebUI attaches files to messages in various formats:
+        - 'files': list of file objects with 'data' (base64 or text) and 'type'
+        - Images, PDFs, and text files may be attached
+
+        Returns the extracted text content or None if no files found.
+        """
+        for msg in messages:
+            # Check for files array in message
+            files = msg.get("files", [])
+            for f in files:
+                file_type = f.get("type", "")
+                data = f.get("data")
+
+                if not data:
+                    continue
+
+                # Handle text files directly
+                if file_type.startswith("text/") or file_type in ["application/json", "application/xml"]:
+                    # Data might be base64 encoded or plain text
+                    if isinstance(data, str):
+                        # Try to decode base64, fall back to plain text
+                        if data.startswith("data:"):
+                            # Data URL format: data:text/plain;base64,CONTENT
+                            try:
+                                base64_content = data.split(",", 1)[1] if "," in data else data
+                                return base64.b64decode(base64_content).decode("utf-8")
+                            except Exception:
+                                pass
+                        return data
+
+                # Handle other document types (PDFs, Word docs) - just pass through
+                # The n8n workflow can handle these
+                if file_type.startswith("application/"):
+                    if isinstance(data, str):
+                        return data
+
+            # Also check for 'content' that might contain file data in older format
+            content = msg.get("content", "")
+            if isinstance(content, list):
+                for item in content:
+                    if isinstance(item, dict) and item.get("type") == "file":
+                        return item.get("data") or item.get("content")
+
+        return None
+
     async def pipe(
         self,
         body: dict,
@@ -203,9 +253,17 @@ class Pipe:
             __event_emitter__, "info", "Calling n8n workflow...", False
         )
 
+        # Extract file content from messages if present
+        file_content = self.extract_file_content(messages)
+
         # Build payload
         payload = {"sessionId": chat_id or "default"}
         payload[self.valves.input_field] = user_message
+
+        # If file content was extracted, send it as requirements
+        # This triggers execute mode in the Architecture Pipeline
+        if file_content:
+            payload["requirements"] = file_content
 
         try:
             headers = {"Content-Type": "application/json"}

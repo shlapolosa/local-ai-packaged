@@ -1,0 +1,565 @@
+<!DOCTYPE html><html><head>
+      <title>IFHAS_Sequence_Diagrams</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:////Users/socrateshlapolosa/.vscode/extensions/shd101wyy.markdown-preview-enhanced-0.8.20/crossnote/dependencies/katex/katex.min.css">
+      
+      
+      <script type="text/javascript" src="file:////Users/socrateshlapolosa/.vscode/extensions/shd101wyy.markdown-preview-enhanced-0.8.20/crossnote/dependencies/mermaid/mermaid.min.js" charset="UTF-8"></script>
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script></head><body for="html-export">
+    
+    
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="ifhas-use-case-sequence-diagrams">IFHAS Use Case Sequence Diagrams </h1>
+<h2 id="uc1-check-user-eligibility">UC1: Check User Eligibility </h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant U as User
+    participant T as TAMM Dashboard
+    participant S as Sahatna Backend
+    participant D as Daman API
+
+    U-&gt;&gt;T: Open TAMM Dashboard
+    T-&gt;&gt;S: Request IFHAS Status (EID)
+    S-&gt;&gt;D: GET /member/eligibility (EID)
+    D--&gt;&gt;S: Member Details Response
+    Note over D,S: Card Number, Thiqa Category,&lt;br/&gt;Enrollment Date, Expiry Date,&lt;br/&gt;Member Status
+
+    alt Thiqa C1-C4 &amp; Active
+        S--&gt;&gt;T: Eligible = true
+        T--&gt;&gt;U: Display IFHAS Banner &amp; Quick Tool
+    else Not C1-C4 or Inactive
+        S--&gt;&gt;T: Eligible = false
+        T--&gt;&gt;U: Hide IFHAS Components
+    end
+</div><hr>
+<h2 id="uc2-view-ifhas-landing-page">UC2: View IFHAS Landing Page </h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant U as User
+    participant SA as Sahatna App
+    participant BE as Sahatna Backend
+    participant D as Daman API
+    participant ST as Strapi CMS
+
+    U-&gt;&gt;SA: Navigate to IFHAS Landing
+
+    par Fetch User Data
+        SA-&gt;&gt;BE: Get Pending Packages
+        BE-&gt;&gt;D: GET /member/ifhas-history (EID)
+        D--&gt;&gt;BE: IFHAS History (5 years)
+        BE--&gt;&gt;SA: Available Packages by Age/Gender
+    and Fetch CMS Content
+        SA-&gt;&gt;BE: Get Landing Content
+        BE-&gt;&gt;ST: GET /ifhas-content
+        ST--&gt;&gt;BE: Benefits, FAQs, Tips, Offerings
+        BE--&gt;&gt;SA: CMS Content
+    end
+
+    SA--&gt;&gt;U: Render Landing Page
+    Note over U,SA: Pending Packages, Upcoming Appointments,&lt;br/&gt;History, Results, Program Info, Facility List
+</div><hr>
+<h2 id="uc3-get-available-ifhas-packages">UC3: Get Available IFHAS Packages </h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant U as User
+    participant SA as Sahatna App
+    participant BE as Sahatna Backend
+    participant D as Daman API
+    participant DB as Package Config DB
+
+    U-&gt;&gt;SA: View Available Packages
+    SA-&gt;&gt;BE: Get Packages for User (EID)
+
+    BE-&gt;&gt;D: GET /member/details (EID)
+    D--&gt;&gt;BE: Age, Gender, Insurance Status
+
+    BE-&gt;&gt;D: GET /member/ifhas-history (EID)
+    D--&gt;&gt;BE: Completed Packages &amp; Dates
+
+    BE-&gt;&gt;DB: Query Package Rules
+    DB--&gt;&gt;BE: Age/Gender/Frequency Rules
+
+    Note over BE: Calculate Eligible Packages:&lt;br/&gt;- Filter by age range&lt;br/&gt;- Filter by gender&lt;br/&gt;- Check frequency (not done in period)
+
+    BE--&gt;&gt;SA: Available Packages List
+    SA--&gt;&gt;U: Display Package Cards
+    Note over U,SA: Major Package, Minor Package,&lt;br/&gt;with descriptions and eligibility status
+</div><hr>
+<h2 id="uc4-view-ifhas-information--history">UC4: View IFHAS Information &amp; History </h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant U as User
+    participant SA as Sahatna App
+    participant BE as Sahatna Backend
+    participant D as Daman API
+    participant ADB as Appointment DB
+
+    U-&gt;&gt;SA: View My IFHAS Info
+
+    par Get Insurance Status
+        SA-&gt;&gt;BE: Get Insurance Details
+        BE-&gt;&gt;D: GET /member/details (EID)
+        D--&gt;&gt;BE: Thiqa Category, Status, Expiry
+        BE--&gt;&gt;SA: Insurance Info
+    and Get IFHAS History
+        SA-&gt;&gt;BE: Get IFHAS History
+        BE-&gt;&gt;D: GET /member/ifhas-history (EID)
+        D--&gt;&gt;BE: Past Packages (5 years)
+        Note over D,BE: Authorization Date, Service Code,&lt;br/&gt;Provider License, Physician License
+        BE--&gt;&gt;SA: Encounter History
+    and Get Upcoming Appointments
+        SA-&gt;&gt;BE: Get Appointments
+        BE-&gt;&gt;ADB: Query IFHAS Appointments
+        ADB--&gt;&gt;BE: Scheduled Appointments
+        BE--&gt;&gt;SA: Upcoming List
+    end
+
+    SA--&gt;&gt;U: Display IFHAS Dashboard
+    Note over U,SA: Insurance Card, History Timeline,&lt;br/&gt;Upcoming Appointments
+</div><hr>
+<h2 id="uc5-view-screening-results">UC5: View Screening Results </h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant U as User
+    participant SA as Sahatna App
+    participant BE as Sahatna Backend
+    participant M as Malaffi HIE
+
+    U-&gt;&gt;SA: View Screening Results
+    SA-&gt;&gt;BE: Get IFHAS Results (EID)
+
+    BE-&gt;&gt;M: GET /patient/encounters (EID)
+    Note over BE,M: Filter: Visit Description = "ICS"&lt;br/&gt;(IFHAS Comprehensive Screening)
+    M--&gt;&gt;BE: IFHAS Encounters List
+
+    loop For Each IFHAS Encounter
+        BE-&gt;&gt;M: GET /encounter/results (Visit ID)
+        M--&gt;&gt;BE: Lab Results, Observations
+    end
+
+    BE--&gt;&gt;SA: Compiled Results
+    SA--&gt;&gt;U: Display Results by Package
+
+    Note over U,SA: Results grouped by:&lt;br/&gt;- CVD Screening&lt;br/&gt;- Cancer Screening&lt;br/&gt;- Mental Health&lt;br/&gt;- Oral Health&lt;br/&gt;- Fertility Health
+
+    alt Results Not Yet Available
+        SA--&gt;&gt;U: "Results pending - check back later"
+    end
+</div><hr>
+<h2 id="uc6-book-ifhas-appointment">UC6: Book IFHAS Appointment </h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant U as User
+    participant SA as Sahatna App
+    participant BE as Sahatna Backend
+    participant D as Daman API
+    participant A as Accela Licensing
+    participant E as Facility EMR
+
+    %% Step 1: Select Package
+    U-&gt;&gt;SA: Select IFHAS Package
+    SA-&gt;&gt;BE: Get Package Details
+    BE--&gt;&gt;SA: Specialties Required, Description
+
+    %% Step 2: Get Facilities
+    U-&gt;&gt;SA: Browse Facilities
+    SA-&gt;&gt;BE: Get IFHAS Facilities
+    BE-&gt;&gt;A: GET /facilities?service=IFHAS
+    A--&gt;&gt;BE: Licensed IFHAS Providers
+    BE--&gt;&gt;SA: Facility List with Details
+    SA--&gt;&gt;U: Display Facility Cards
+
+    %% Step 3: Select Facility &amp; Physician
+    U-&gt;&gt;SA: Select Facility
+    SA-&gt;&gt;BE: Get Physicians (Facility, Specialties)
+    BE-&gt;&gt;E: GET /physicians?specialty={list}
+    E--&gt;&gt;BE: Available Physicians
+    BE--&gt;&gt;SA: Physician List
+    SA--&gt;&gt;U: Display Physician Cards
+
+    %% Step 4: Get Slots
+    U-&gt;&gt;SA: Select Physician
+    SA-&gt;&gt;BE: Get Available Slots
+    BE-&gt;&gt;E: GET /slots?physician={id}&amp;type=in-person
+    E--&gt;&gt;BE: Available Time Slots
+    BE--&gt;&gt;SA: Slot Calendar
+    SA--&gt;&gt;U: Display Available Times
+
+    %% Step 5: Confirm Booking
+    U-&gt;&gt;SA: Select Slot &amp; Confirm
+    SA-&gt;&gt;BE: Create Appointment
+    BE-&gt;&gt;D: POST /authorization (Package Code)
+    D--&gt;&gt;BE: Authorization Approved
+    BE-&gt;&gt;E: POST /appointments
+    E--&gt;&gt;BE: Appointment Confirmed
+    BE--&gt;&gt;SA: Booking Success
+    SA--&gt;&gt;U: Show Confirmation
+    Note over U,SA: Appointment ID, Date/Time,&lt;br/&gt;Facility, Physician, Package
+</div><hr>
+<h2 id="uc7-fill-pre-screening-questionnaire">UC7: Fill Pre-screening Questionnaire </h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant U as User
+    participant SA as Sahatna App
+    participant BE as Sahatna Backend
+    participant ST as Strapi CMS
+    participant M as Malaffi HIE
+
+    Note over U,SA: Triggered after Major Package booking
+
+    SA-&gt;&gt;BE: Get Questionnaire
+    BE-&gt;&gt;ST: GET /ifhas-questionnaire
+    ST--&gt;&gt;BE: Questions (DOH-defined)
+    BE--&gt;&gt;SA: Questionnaire Form
+
+    alt Complete Now
+        SA--&gt;&gt;U: Present Questionnaire
+        U-&gt;&gt;SA: Fill Answers
+        U-&gt;&gt;SA: Submit Questionnaire
+        SA-&gt;&gt;BE: POST /questionnaire/submit
+        BE-&gt;&gt;M: Submit Pre-screening Data
+        Note over BE,M: HL7 ORU Message with&lt;br/&gt;Patient Visit ID (PV1-19)
+        M--&gt;&gt;BE: Submission Confirmed
+        BE--&gt;&gt;SA: Success
+        SA--&gt;&gt;U: "Questionnaire submitted"
+    else Skip for Later
+        U-&gt;&gt;SA: Skip
+        SA-&gt;&gt;BE: Mark as Pending
+        BE--&gt;&gt;SA: Saved as Draft
+        SA--&gt;&gt;U: "Complete before appointment"
+
+        Note over U,SA: Questionnaire accessible from:&lt;br/&gt;- Landing Page&lt;br/&gt;- Appointment Details&lt;br/&gt;- Notifications
+    end
+
+    Note over M: Questionnaire results available&lt;br/&gt;to physician via Malaffi
+</div><hr>
+<h2 id="uc8-view-ifhas-facility-details">UC8: View IFHAS Facility Details </h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant U as User
+    participant SA as Sahatna App
+    participant BE as Sahatna Backend
+    participant A as Accela Licensing
+    participant PDB as Provider DB
+
+    U-&gt;&gt;SA: Explore IFHAS Facilities
+    SA-&gt;&gt;BE: Get Facility List
+
+    BE-&gt;&gt;PDB: Query Cached Facilities
+    Note over BE,PDB: Synced daily from Accela
+    PDB--&gt;&gt;BE: IFHAS Facility List
+
+    BE--&gt;&gt;SA: Facilities with Basic Info
+    SA--&gt;&gt;U: Display Facility Cards
+    Note over U,SA: Name, Location, Distance,&lt;br/&gt;Rating, Services
+
+    U-&gt;&gt;SA: Select Facility
+    SA-&gt;&gt;BE: Get Facility Details (License #)
+
+    BE-&gt;&gt;PDB: Query Facility Profile
+    PDB--&gt;&gt;BE: Full Details
+
+    BE-&gt;&gt;A: GET /facility/{licenseNo}
+    A--&gt;&gt;BE: Current License Status
+
+    BE--&gt;&gt;SA: Facility Profile
+    SA--&gt;&gt;U: Display Details Page
+    Note over U,SA: Address, Contact, Hours,&lt;br/&gt;Services, Physicians, Map,&lt;br/&gt;IFHAS Packages Offered
+
+    opt User is PCF Registered Here
+        SA--&gt;&gt;U: Highlight "Your Primary Care Facility"
+    end
+</div><hr>
+<h2 id="uc9-send-reminders--nudges">UC9: Send Reminders &amp; Nudges </h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant SCH as Scheduler Service
+    participant NE as Nudge Engine
+    participant DB as Appointment DB
+    participant D as Daman API
+    participant NS as Notification Service
+    participant FB as Firebase
+    participant U as User Device
+
+    Note over SCH,U: Scheduled Job runs periodically
+
+    %% Appointment Reminders
+    rect rgb(230, 245, 255)
+        Note over SCH,U: Appointment Reminder Flow
+        SCH-&gt;&gt;DB: Query appointments (next 24H)
+        DB--&gt;&gt;SCH: Upcoming Appointments
+
+        loop Each Appointment
+            SCH-&gt;&gt;NE: Check reminder status
+            alt 24H Reminder Not Sent
+                NE-&gt;&gt;NS: Send 24H Reminder
+                NS-&gt;&gt;FB: Push Notification
+                FB--&gt;&gt;U: "Your IFHAS appointment is tomorrow"
+            else 1H Reminder Not Sent
+                NE-&gt;&gt;NS: Send 1H Reminder
+                NS-&gt;&gt;FB: Push Notification
+                FB--&gt;&gt;U: "Your IFHAS appointment is in 1 hour"
+            end
+        end
+    end
+
+    %% Insurance Status Nudges
+    rect rgb(255, 243, 224)
+        Note over SCH,U: Insurance Status Nudge Flow
+        SCH-&gt;&gt;D: GET /members/status-changes
+        D--&gt;&gt;SCH: Members with status updates
+
+        loop Each Member
+            alt Insurance Expired (C2-C4)
+                NE-&gt;&gt;NS: Send Renewal Nudge
+                NS-&gt;&gt;FB: Push Notification
+                FB--&gt;&gt;U: "Your Thiqa insurance has expired"
+            else Insurance On Hold (C1)
+                NE-&gt;&gt;NS: Send Contact Daman Nudge
+                NS-&gt;&gt;FB: Push Notification
+                FB--&gt;&gt;U: "Your insurance is on hold"
+            else Expiring in 90 Days
+                NE-&gt;&gt;NS: Send Book Before Expiry
+                NS-&gt;&gt;FB: Push Notification
+                FB--&gt;&gt;U: "Book your IFHAS before insurance expires"
+            end
+        end
+    end
+
+    %% Eligibility Nudges
+    rect rgb(232, 245, 233)
+        Note over SCH,U: New Eligibility Nudge Flow
+        SCH-&gt;&gt;NE: Check new eligible users
+        NE-&gt;&gt;D: Query eligible not booked
+        D--&gt;&gt;NE: Eligible Users List
+
+        loop Each Eligible User
+            NE-&gt;&gt;NS: Send Booking Nudge
+            NS-&gt;&gt;FB: Push Notification
+            FB--&gt;&gt;U: "You're eligible for IFHAS screening"
+        end
+    end
+</div><hr>
+<h2 id="uc10-post-appointment-survey">UC10: Post-Appointment Survey </h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant SCH as Scheduler Service
+    participant BE as Sahatna Backend
+    participant M as Malaffi HIE
+    participant NS as Notification Service
+    participant U as User
+    participant SA as Sahatna App
+    participant DB as Survey DB
+
+    Note over SCH,DB: Triggered 7 days after results available
+
+    SCH-&gt;&gt;BE: Check completed IFHAS visits
+    BE-&gt;&gt;M: Query recent IFHAS encounters
+    M--&gt;&gt;BE: Encounters with results
+
+    loop Each Completed Visit
+        BE-&gt;&gt;DB: Check survey status
+        alt Survey Not Sent &amp; 7+ Days Since Results
+            BE-&gt;&gt;NS: Trigger Survey Nudge
+            NS--&gt;&gt;U: Push: "Share your IFHAS experience"
+        end
+    end
+
+    U-&gt;&gt;SA: Open Survey Notification
+    SA-&gt;&gt;BE: Get Survey Questions
+    Note over BE: Questions defined by DOH
+    BE--&gt;&gt;SA: Survey Form
+    SA--&gt;&gt;U: Display Survey
+
+    U-&gt;&gt;SA: Complete Survey
+    SA-&gt;&gt;BE: POST /survey/submit
+    BE-&gt;&gt;DB: Store Survey Response
+    DB--&gt;&gt;BE: Saved
+    BE--&gt;&gt;SA: Thank You
+    SA--&gt;&gt;U: "Thank you for your feedback"
+
+    Note over DB: Survey data available to&lt;br/&gt;DOH Data Team Dashboard
+</div><hr>
+<h2 id="end-to-end-journey-complete-ifhas-flow">End-to-End Journey: Complete IFHAS Flow </h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant U as User
+    participant T as TAMM
+    participant SA as Sahatna
+    participant D as Daman
+    participant A as Accela
+    participant E as EMR
+    participant M as Malaffi
+    participant N as Notifications
+
+    rect rgb(255, 248, 225)
+        Note over U,N: Discovery &amp; Eligibility
+        U-&gt;&gt;T: Open Dashboard
+        T-&gt;&gt;SA: Check IFHAS Eligibility
+        SA-&gt;&gt;D: Verify Thiqa C1-C4
+        D--&gt;&gt;SA: Eligible + History
+        SA--&gt;&gt;T: Show IFHAS Banner
+        T--&gt;&gt;U: Click to proceed
+    end
+
+    rect rgb(225, 245, 254)
+        Note over U,N: Package Selection
+        U-&gt;&gt;SA: Open IFHAS Landing
+        SA-&gt;&gt;D: Get available packages
+        D--&gt;&gt;SA: Pending packages
+        SA--&gt;&gt;U: Display Major/Minor options
+        U-&gt;&gt;SA: Select Major Package
+    end
+
+    rect rgb(232, 245, 233)
+        Note over U,N: Facility &amp; Booking
+        SA-&gt;&gt;A: Get IFHAS facilities
+        A--&gt;&gt;SA: Licensed providers
+        SA--&gt;&gt;U: Show facility list
+        U-&gt;&gt;SA: Select facility
+        SA-&gt;&gt;E: Get physicians &amp; slots
+        E--&gt;&gt;SA: Available options
+        SA--&gt;&gt;U: Show calendar
+        U-&gt;&gt;SA: Confirm booking
+        SA-&gt;&gt;E: Create appointment
+        E--&gt;&gt;SA: Confirmed
+        SA--&gt;&gt;U: Booking success
+    end
+
+    rect rgb(243, 229, 245)
+        Note over U,N: Questionnaire
+        SA--&gt;&gt;U: Present questionnaire
+        U-&gt;&gt;SA: Complete &amp; submit
+        SA-&gt;&gt;M: Send to Malaffi
+        M--&gt;&gt;SA: Stored for physician
+    end
+
+    rect rgb(255, 243, 224)
+        Note over U,N: Reminders
+        N--&gt;&gt;U: 24H reminder
+        N--&gt;&gt;U: 1H reminder
+    end
+
+    rect rgb(252, 228, 236)
+        Note over U,N: Screening &amp; Results
+        Note over U,E: User visits facility
+        E-&gt;&gt;M: Submit results (ICS tag)
+        U-&gt;&gt;SA: Check results
+        SA-&gt;&gt;M: Fetch by Visit ID
+        M--&gt;&gt;SA: Lab results
+        SA--&gt;&gt;U: Display results
+    end
+
+    rect rgb(230, 230, 230)
+        Note over U,N: Feedback
+        N--&gt;&gt;U: Survey nudge (7 days)
+        U-&gt;&gt;SA: Complete survey
+        SA--&gt;&gt;U: Thank you
+    end
+</div><hr>
+<h2 id="legend">Legend </h2>
+<table>
+<thead>
+<tr>
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-&gt;&gt;</code></td>
+<td>Synchronous request</td>
+</tr>
+<tr>
+<td><code>--&gt;&gt;</code></td>
+<td>Response</td>
+</tr>
+<tr>
+<td><code>par</code></td>
+<td>Parallel execution</td>
+</tr>
+<tr>
+<td><code>alt</code></td>
+<td>Alternative paths</td>
+</tr>
+<tr>
+<td><code>loop</code></td>
+<td>Repeated operation</td>
+</tr>
+<tr>
+<td><code>opt</code></td>
+<td>Optional step</td>
+</tr>
+<tr>
+<td><code>rect</code></td>
+<td>Grouped steps</td>
+</tr>
+<tr>
+<td><code>Note</code></td>
+<td>Additional context</td>
+</tr>
+</tbody>
+</table>
+
+      </div>
+      
+      
+    
+    
+    <script type="module">
+// TODO: If ZenUML gets integrated into mermaid in the future,
+//      we can remove the following lines.
+
+
+var MERMAID_CONFIG = ({"startOnLoad":false});
+if (typeof MERMAID_CONFIG !== 'undefined') {
+  MERMAID_CONFIG.startOnLoad = false
+  MERMAID_CONFIG.cloneCssStyles = false
+  MERMAID_CONFIG.theme = "default"
+}
+
+mermaid.initialize(MERMAID_CONFIG || {})
+if (typeof(window['Reveal']) !== 'undefined') {
+  function mermaidRevealHelper(event) {
+    var currentSlide = event.currentSlide
+    var diagrams = currentSlide.querySelectorAll('.mermaid')
+    for (var i = 0; i < diagrams.length; i++) {
+      var diagram = diagrams[i]
+      if (!diagram.hasAttribute('data-processed')) {
+        mermaid.init(null, diagram, ()=> {
+          Reveal.slide(event.indexh, event.indexv)
+        })
+      }
+    }
+  }
+  Reveal.addEventListener('slidetransitionend', mermaidRevealHelper)
+  Reveal.addEventListener('ready', mermaidRevealHelper)
+  await mermaid.run({
+    nodes: document.querySelectorAll('.mermaid')
+  })
+} else {
+  await mermaid.run({
+    nodes: document.querySelectorAll('.mermaid')
+  })
+}
+</script>
+    
+    
+    
+  
+    </body></html>
