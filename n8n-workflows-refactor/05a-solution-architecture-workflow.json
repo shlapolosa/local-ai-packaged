@@ -21,7 +21,9 @@
             { "name": "comments", "value": "={{ $json.comments || null }}", "type": "string" },
             { "name": "ollamaModel", "value": "llama3.1:8b-instruct-q4_K_M", "type": "string" },
             { "name": "ollamaTemperature", "value": 0, "type": "number" },
-            { "name": "ollamaSeed", "value": 42, "type": "number" }
+            { "name": "ollamaSeed", "value": 42, "type": "number" },
+            { "name": "qdrantUrl", "value": "http://qdrant:6333", "type": "string" },
+            { "name": "ollamaUrl", "value": "http://ollama:11434", "type": "string" }
           ]
         },
         "options": {}
@@ -85,7 +87,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT DISTINCT ON (a.type) a.type, a.content FROM architecture.artifacts a WHERE a.project_id = $1 AND a.type IN ('brd', 'business_arch', 'application_arch', 'data_arch', 'infrastructure_arch') ORDER BY a.type, a.version DESC;",
+        "query": "SELECT DISTINCT ON (a.type) a.type, a.content FROM architecture.artifacts a WHERE a.project_id = $1 AND a.type IN ('brd', 'business_arch', 'application_arch', 'data_arch', 'infrastructure_arch', 'sequence_diagrams') ORDER BY a.type, a.version DESC;",
         "options": { "queryReplacement": "={{ [ $json.projectId ] }}" }
       },
       "id": "load-artifacts",
@@ -108,18 +110,99 @@
     },
     {
       "parameters": {
+        "jsCode": "// Extract sequence diagrams from artifacts\nconst ctx = $json;\nconst sequenceDiagrams = ctx.artifacts?.sequence_diagrams?.sequenceDiagrams || [];\n\nif (!sequenceDiagrams.length) {\n  // No sequence diagrams to enrich, pass through\n  return [{ json: { ...ctx, sequenceDiagrams: [], hasSequences: false } }];\n}\n\n// Extract unique participants from all sequences\nconst allParticipants = new Set();\nfor (const seq of sequenceDiagrams) {\n  if (seq.mainFlow) {\n    for (const step of seq.mainFlow) {\n      if (step.from) allParticipants.add(step.from);\n      if (step.to) allParticipants.add(step.to);\n    }\n  }\n  if (seq.participants) {\n    for (const p of seq.participants) {\n      allParticipants.add(p);\n    }\n  }\n}\n\nreturn [{ json: { \n  ...ctx, \n  sequenceDiagrams, \n  participantsToResolve: Array.from(allParticipants),\n  hasSequences: true \n} }];"
+      },
+      "id": "extract-sequences",
+      "name": "Extract Sequence Diagrams",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1920, 304]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare search queries for each participant\nconst ctx = $json;\nconst participants = ctx.participantsToResolve || [];\n\nif (!participants.length) {\n  return [{ json: { ...ctx, componentSearchQueries: [] } }];\n}\n\n// Create search queries with context\nconst brd = ctx.artifacts?.brd || {};\nconst projectContext = brd.projectName || ctx.projectName || '';\n\nconst searchQueries = participants.map(p => ({\n  participant: p,\n  searchText: `${p} ${projectContext} service component API database`.slice(0, 200)\n}));\n\nreturn [{ json: { ...ctx, componentSearchQueries: searchQueries } }];"
+      },
+      "id": "prepare-search",
+      "name": "Prepare Component Search",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2160, 304]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Search Qdrant for each participant - batch embedding and search\nconst ctx = $json;\nconst queries = ctx.componentSearchQueries || [];\nconst ollamaUrl = ctx.ollamaUrl || 'http://ollama:11434';\nconst qdrantUrl = ctx.qdrantUrl || 'http://qdrant:6333';\n\nif (!queries.length) {\n  return [{ json: { ...ctx, componentMatches: {} } }];\n}\n\nconst componentMatches = {};\n\nfor (const q of queries) {\n  try {\n    // Get embedding from Ollama\n    const embResponse = await fetch(`${ollamaUrl}/api/embeddings`, {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ model: 'nomic-embed-text', prompt: q.searchText })\n    });\n    \n    if (!embResponse.ok) {\n      console.log(`Failed to get embedding for ${q.participant}`);\n      componentMatches[q.participant] = [];\n      continue;\n    }\n    \n    const embData = await embResponse.json();\n    const embedding = embData.embedding;\n    \n    // Search Qdrant\n    const searchResponse = await fetch(`${qdrantUrl}/collections/existing-landscape/points/search`, {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({\n        vector: embedding,\n        limit: 5,\n        with_payload: true\n      })\n    });\n    \n    if (!searchResponse.ok) {\n      console.log(`Failed to search Qdrant for ${q.participant}`);\n      componentMatches[q.participant] = [];\n      continue;\n    }\n    \n    const searchData = await searchResponse.json();\n    componentMatches[q.participant] = searchData.result || [];\n    \n  } catch (e) {\n    console.log(`Error searching for ${q.participant}: ${e.message}`);\n    componentMatches[q.participant] = [];\n  }\n}\n\nreturn [{ json: { ...ctx, componentMatches } }];"
+      },
+      "id": "search-qdrant",
+      "name": "Search Existing Landscape",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2400, 304]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Map sequence participants to concrete components\nconst ctx = $json;\nconst sequenceDiagrams = ctx.sequenceDiagrams || [];\nconst componentMatches = ctx.componentMatches || {};\n\nif (!sequenceDiagrams.length) {\n  return [{ json: { ...ctx, enrichedSequences: [] } }];\n}\n\n// Build participant resolution map\nconst participantMap = {};\n\nfor (const [participant, matches] of Object.entries(componentMatches)) {\n  const bestMatch = matches[0]; // Highest score\n  const score = bestMatch?.score || 0;\n  const payload = bestMatch?.payload || {};\n  \n  participantMap[participant] = {\n    abstract: participant,\n    concrete: payload.component_name || participant,\n    type: payload.component_type || 'unknown',\n    isInternal: payload.is_internal !== false,\n    exists: score > 0.65,\n    score: score,\n    port: payload.port || null,\n    healthEndpoint: payload.health_endpoint || null,\n    capabilities: payload.capabilities || [],\n    integrations: payload.integrations || [],\n    databaseSchema: payload.database_schema || null,\n    tables: payload.tables || []\n  };\n}\n\n// Enrich each sequence diagram\nconst enrichedSequences = sequenceDiagrams.map(seq => {\n  // Classify participants\n  const allParticipants = new Set();\n  if (seq.mainFlow) {\n    for (const step of seq.mainFlow) {\n      if (step.from) allParticipants.add(step.from);\n      if (step.to) allParticipants.add(step.to);\n    }\n  }\n  \n  const internal = [];\n  const external = [];\n  \n  for (const p of allParticipants) {\n    const resolved = participantMap[p] || { abstract: p, concrete: p, type: 'unknown', isInternal: true, exists: false };\n    if (resolved.isInternal) {\n      internal.push(resolved);\n    } else {\n      external.push(resolved);\n    }\n  }\n  \n  // Enrich flow steps\n  const enrichedFlow = (seq.mainFlow || []).map((step, idx) => {\n    const fromResolved = participantMap[step.from] || { abstract: step.from, concrete: step.from, type: 'unknown' };\n    const toResolved = participantMap[step.to] || { abstract: step.to, concrete: step.to, type: 'unknown' };\n    \n    return {\n      step: idx + 1,\n      from: {\n        component: fromResolved.concrete,\n        type: fromResolved.type,\n        exists: fromResolved.exists\n      },\n      to: {\n        component: toResolved.concrete,\n        type: toResolved.type,\n        exists: toResolved.exists,\n        endpoint: toResolved.healthEndpoint ? toResolved.healthEndpoint.replace('/actuator/health', '') : null\n      },\n      action: step.action,\n      originalFrom: step.from,\n      originalTo: step.to,\n      // Placeholder for change assessment\n      componentStatus: 'pending_assessment',\n      ticket: null\n    };\n  });\n  \n  return {\n    useCaseId: seq.useCaseId,\n    useCaseName: seq.useCaseName,\n    participants: { internal, external },\n    enrichedFlow,\n    originalFlow: seq.mainFlow,\n    newComponentsRequired: []\n  };\n});\n\nreturn [{ json: { ...ctx, enrichedSequences, participantMap } }];"
+      },
+      "id": "map-components",
+      "name": "Map Sequence to Components",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, 304]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Initialize Parameters').first().json.ollamaUrl || 'http://ollama:11434' }}/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: `You are a solution architect creating Jira-ready tickets for component changes.\n\nFor each sequence step, assess if changes are needed and produce ticket specifications.\n\nOutput JSON with structure:\n{\n  \"assessedSequences\": [{\n    \"useCaseId\": \"string\",\n    \"useCaseName\": \"string\",\n    \"enrichedFlow\": [{\n      \"step\": number,\n      \"from\": { \"component\": \"string\", \"type\": \"string\" },\n      \"to\": { \"component\": \"string\", \"type\": \"string\" },\n      \"action\": \"string\",\n      \"componentStatus\": \"exists\" | \"needs_change\" | \"new_required\",\n      \"ticket\": {\n        \"title\": \"Action-oriented title\",\n        \"type\": \"Story\" | \"Task\" | \"Bug\",\n        \"priority\": \"Critical\" | \"High\" | \"Medium\" | \"Low\",\n        \"component\": \"Affected service/module name\",\n        \"description\": \"User story format\",\n        \"acceptanceCriteria\": [\"GIVEN/WHEN/THEN statements\"],\n        \"technicalRequirements\": [\"Specific implementation tasks\"],\n        \"estimatedEffort\": \"T-shirt size with day range\",\n        \"dependencies\": [\"Prerequisites\"]\n      } | null\n    }],\n    \"newComponentsRequired\": [{ \"ticket\": {...} }],\n    \"ticketSummary\": {\n      \"totalTickets\": number,\n      \"byPriority\": { \"High\": number, \"Medium\": number, \"Low\": number },\n      \"byType\": { \"Story\": number, \"Task\": number },\n      \"totalEffort\": \"estimated range\"\n    }\n  }]\n}\n\nBe specific about:\n- API endpoints (method, path)\n- Database changes (table, column)\n- Integration points\n- Validation and error handling` },\n    { role: 'user', content: 'PROJECT: ' + $json.projectName + '\\n\\nBRD CONTEXT: ' + JSON.stringify($json.artifacts?.brd || {}).slice(0, 4000) + '\\n\\nENRICHED SEQUENCES TO ASSESS: ' + JSON.stringify($json.enrichedSequences).slice(0, 8000) + '\\n\\nPARTICIPANT MAP: ' + JSON.stringify($json.participantMap).slice(0, 4000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['assessedSequences'], properties: { assessedSequences: { type: 'array', items: { type: 'object' } } } },\n  options: { temperature: 0.1, seed: 42 }\n} }}",
+        "options": { "timeout": 300000 }
+      },
+      "id": "assess-changes",
+      "name": "Assess Component Changes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [2880, 304],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse LLM response and merge with enriched sequences\nconst ctx = $('Map Sequence to Components').first().json;\nconst llmResponse = $json;\n\nlet assessedSequences = ctx.enrichedSequences;\n\ntry {\n  const content = llmResponse.message?.content;\n  const parsed = typeof content === 'string' ? JSON.parse(content) : content;\n  \n  if (parsed?.assessedSequences) {\n    assessedSequences = parsed.assessedSequences;\n  }\n} catch (e) {\n  console.log('Failed to parse LLM assessment, using mapped sequences: ' + e.message);\n}\n\n// Calculate overall ticket summary\nlet totalTickets = 0;\nconst byPriority = { Critical: 0, High: 0, Medium: 0, Low: 0 };\nconst byType = { Story: 0, Task: 0, Bug: 0 };\n\nfor (const seq of assessedSequences) {\n  if (seq.ticketSummary) {\n    totalTickets += seq.ticketSummary.totalTickets || 0;\n  }\n  if (seq.enrichedFlow) {\n    for (const step of seq.enrichedFlow) {\n      if (step.ticket) {\n        totalTickets++;\n        if (step.ticket.priority) byPriority[step.ticket.priority] = (byPriority[step.ticket.priority] || 0) + 1;\n        if (step.ticket.type) byType[step.ticket.type] = (byType[step.ticket.type] || 0) + 1;\n      }\n    }\n  }\n  if (seq.newComponentsRequired) {\n    for (const nc of seq.newComponentsRequired) {\n      if (nc.ticket) {\n        totalTickets++;\n        if (nc.ticket.priority) byPriority[nc.ticket.priority] = (byPriority[nc.ticket.priority] || 0) + 1;\n        if (nc.ticket.type) byType[nc.ticket.type] = (byType[nc.ticket.type] || 0) + 1;\n      }\n    }\n  }\n}\n\nconst enrichedSequencesArtifact = {\n  enrichedSequences: assessedSequences,\n  overallSummary: {\n    totalTickets,\n    byPriority,\n    byType,\n    generatedAt: new Date().toISOString()\n  }\n};\n\nreturn [{ json: { ...ctx, enrichedSequencesArtifact } }];"
+      },
+      "id": "merge-assessment",
+      "name": "Merge Change Assessment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3120, 304]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (SELECT COALESCE(MAX(version), 0) + 1 AS v FROM architecture.artifacts WHERE project_id = $1 AND type = 'enriched_sequences') INSERT INTO architecture.artifacts (project_id, type, version, content, meta) SELECT $1, 'enriched_sequences', next_version.v, $2::jsonb, $3::jsonb FROM next_version RETURNING id, version;",
+        "options": { "queryReplacement": "={{ [ $('Pass Context').first().json.projectId, JSON.stringify($json.enrichedSequencesArtifact), JSON.stringify({ jobId: $('Pass Context').first().json.jobId, stage: 'solution-architecture' }) ] }}" }
+      },
+      "id": "store-enriched-sequences",
+      "name": "Store Enriched Sequences",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [3360, 304],
+      "credentials": { "postgres": { "id": "M5eIfNwtZu8y3dOp", "name": "Postgres account" } },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "https://ollama.socrates-hlapolosa.org/api/chat",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Solution Architect producing integration artifacts. Output JSON with: integrationStyle (rest_only|events_only|hybrid), solutionMarkdown (starts with \"# Solution Architecture:\"), openapiYaml (OpenAPI 3.0 spec if REST), asyncapiYaml (AsyncAPI 2.0 spec if events), avroSchemasJson (Avro schemas object if events), cloudEventsMarkdown (Cloud Events documentation if events), sqlSchemaSql (PostgreSQL DDL). Include all relevant artifacts based on integrationStyle. No code fences anywhere.' },\n    { role: 'user', content: 'PROJECT: ' + $json.projectName + '\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($json.artifacts.data_arch || {}).slice(0,4000) + '\\nINFRA_ARCH: ' + JSON.stringify($json.artifacts.infrastructure_arch || {}).slice(0,4000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['integrationStyle','solutionMarkdown','sqlSchemaSql'], properties: { integrationStyle: { type: 'string', enum: ['rest_only','events_only','hybrid'] }, solutionMarkdown: { type: 'string' }, openapiYaml: { type: ['string','null'] }, asyncapiYaml: { type: ['string','null'] }, avroSchemasJson: { type: ['object','null'] }, cloudEventsMarkdown: { type: ['string','null'] }, sqlSchemaSql: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
+        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Solution Architect producing integration artifacts. Output JSON with: integrationStyle (rest_only|events_only|hybrid), solutionMarkdown (starts with \"# Solution Architecture:\"), openapiYaml (OpenAPI 3.0 spec if REST), asyncapiYaml (AsyncAPI 2.0 spec if events), avroSchemasJson (Avro schemas object if events), cloudEventsMarkdown (Cloud Events documentation if events), sqlSchemaSql (PostgreSQL DDL). Include all relevant artifacts based on integrationStyle. No code fences anywhere.' },\n    { role: 'user', content: 'PROJECT: ' + $('Merge Change Assessment').first().json.projectName + '\\nBRD: ' + JSON.stringify($('Merge Change Assessment').first().json.artifacts.brd || {}).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($('Merge Change Assessment').first().json.artifacts.application_arch || {}).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($('Merge Change Assessment').first().json.artifacts.data_arch || {}).slice(0,4000) + '\\nINFRA_ARCH: ' + JSON.stringify($('Merge Change Assessment').first().json.artifacts.infrastructure_arch || {}).slice(0,4000) }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['integrationStyle','solutionMarkdown','sqlSchemaSql'], properties: { integrationStyle: { type: 'string', enum: ['rest_only','events_only','hybrid'] }, solutionMarkdown: { type: 'string' }, openapiYaml: { type: ['string','null'] }, asyncapiYaml: { type: ['string','null'] }, avroSchemasJson: { type: ['object','null'] }, cloudEventsMarkdown: { type: ['string','null'] }, sqlSchemaSql: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
         "options": { "timeout": 300000 }
       },
       "id": "gen-solution",
       "name": "Generate Solution Package",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
-      "position": [1920, 304],
+      "position": [3600, 304],
       "retryOnFail": true
     },
     {
@@ -130,7 +213,7 @@
       "name": "Validate Solution",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2160, 304]
+      "position": [3840, 304]
     },
     {
       "parameters": {
@@ -140,7 +223,7 @@
       "name": "Explode Solution Artifacts",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2400, 304]
+      "position": [4080, 304]
     },
     {
       "parameters": {
@@ -152,18 +235,18 @@
       "name": "Store Solution Artifacts",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
-      "position": [2640, 304],
+      "position": [4320, 304],
       "credentials": { "postgres": { "id": "M5eIfNwtZu8y3dOp", "name": "Postgres account" } }
     },
     {
       "parameters": {
-        "jsCode": "const ctx = $('Pass Context').first().json;\nconst sol = $('Validate Solution').first().json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\n// Helper to safely escape heredoc content\nconst safeHeredoc = (content, marker) => {\n  if (!content) return '';\n  return String(content).replace(new RegExp(marker, 'g'), marker + '_ESCAPED');\n};\n\nlet sh = `set -e\nmkdir -p /opt/workspace\n\nif [ ! -d '${repoDir}/.git' ]; then\n  git clone '${remote}' '${repoDir}'\nfi\ncd '${repoDir}'\ngit fetch origin --prune\n\ngit checkout -B '${projectSlug}' 'origin/${projectSlug}' 2>/dev/null || git checkout -B '${projectSlug}'\nmkdir -p '${projectDir}/docs' '${projectDir}/api' '${projectDir}/db'\n`;\n\n// Solution Architecture markdown\nsh += `cat > '${projectDir}/docs/solution-architecture.md' <<'EOFSOL_${jobId}'\n${safeHeredoc(sol.solutionMarkdown, 'EOFSOL_' + jobId)}\nEOFSOL_${jobId}\n`;\n\n// REST API spec\nif (sol.openapiYaml) {\n  sh += `cat > '${projectDir}/api/openapi.yaml' <<'EOFAPI_${jobId}'\n${safeHeredoc(sol.openapiYaml, 'EOFAPI_' + jobId)}\nEOFAPI_${jobId}\n`;\n}\n\n// Event-driven specs\nif (sol.asyncapiYaml) {\n  sh += `cat > '${projectDir}/api/asyncapi.yaml' <<'EOFASYNC_${jobId}'\n${safeHeredoc(sol.asyncapiYaml, 'EOFASYNC_' + jobId)}\nEOFASYNC_${jobId}\n`;\n}\n\nif (sol.avroSchemasJson) {\n  sh += `cat > '${projectDir}/api/avro-schemas.json' <<'EOFAVRO_${jobId}'\n${safeHeredoc(JSON.stringify(sol.avroSchemasJson, null, 2), 'EOFAVRO_' + jobId)}\nEOFAVRO_${jobId}\n`;\n}\n\nif (sol.cloudEventsMarkdown) {\n  sh += `cat > '${projectDir}/docs/cloud-events.md' <<'EOFCE_${jobId}'\n${safeHeredoc(sol.cloudEventsMarkdown, 'EOFCE_' + jobId)}\nEOFCE_${jobId}\n`;\n}\n\n// Database schema\nif (sol.sqlSchemaSql) {\n  sh += `cat > '${projectDir}/db/schema.sql' <<'EOFSQL_${jobId}'\n${safeHeredoc(sol.sqlSchemaSql, 'EOFSQL_' + jobId)}\nEOFSQL_${jobId}\n`;\n}\n\nsh += `\ngit add '${projectSlug}-docs'\ngit commit -m 'Add solution architecture for ${projectSlug} (job ${jobId})' || true\ngit push -u origin '${projectSlug}'\n`;\n\nreturn [{ json: { ...ctx, integrationStyle: sol.integrationStyle, gitScript: sh } }];"
+        "jsCode": "const ctx = $('Pass Context').first().json;\nconst sol = $('Validate Solution').first().json;\nconst enrichedSeq = $('Merge Change Assessment').first().json.enrichedSequencesArtifact || {};\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\n// Helper to safely escape heredoc content\nconst safeHeredoc = (content, marker) => {\n  if (!content) return '';\n  return String(content).replace(new RegExp(marker, 'g'), marker + '_ESCAPED');\n};\n\nlet sh = `set -e\nmkdir -p /opt/workspace\n\nif [ ! -d '${repoDir}/.git' ]; then\n  git clone '${remote}' '${repoDir}'\nfi\ncd '${repoDir}'\ngit fetch origin --prune\n\ngit checkout -B '${projectSlug}' 'origin/${projectSlug}' 2>/dev/null || git checkout -B '${projectSlug}'\nmkdir -p '${projectDir}/docs' '${projectDir}/api' '${projectDir}/db'\n`;\n\n// Solution Architecture markdown\nsh += `cat > '${projectDir}/docs/solution-architecture.md' <<'EOFSOL_${jobId}'\n${safeHeredoc(sol.solutionMarkdown, 'EOFSOL_' + jobId)}\nEOFSOL_${jobId}\n`;\n\n// Enriched Sequences JSON\nif (enrichedSeq.enrichedSequences) {\n  sh += `cat > '${projectDir}/docs/enriched-sequences.json' <<'EOFSEQ_${jobId}'\n${safeHeredoc(JSON.stringify(enrichedSeq, null, 2), 'EOFSEQ_' + jobId)}\nEOFSEQ_${jobId}\n`;\n}\n\n// REST API spec\nif (sol.openapiYaml) {\n  sh += `cat > '${projectDir}/api/openapi.yaml' <<'EOFAPI_${jobId}'\n${safeHeredoc(sol.openapiYaml, 'EOFAPI_' + jobId)}\nEOFAPI_${jobId}\n`;\n}\n\n// Event-driven specs\nif (sol.asyncapiYaml) {\n  sh += `cat > '${projectDir}/api/asyncapi.yaml' <<'EOFASYNC_${jobId}'\n${safeHeredoc(sol.asyncapiYaml, 'EOFASYNC_' + jobId)}\nEOFASYNC_${jobId}\n`;\n}\n\nif (sol.avroSchemasJson) {\n  sh += `cat > '${projectDir}/api/avro-schemas.json' <<'EOFAVRO_${jobId}'\n${safeHeredoc(JSON.stringify(sol.avroSchemasJson, null, 2), 'EOFAVRO_' + jobId)}\nEOFAVRO_${jobId}\n`;\n}\n\nif (sol.cloudEventsMarkdown) {\n  sh += `cat > '${projectDir}/docs/cloud-events.md' <<'EOFCE_${jobId}'\n${safeHeredoc(sol.cloudEventsMarkdown, 'EOFCE_' + jobId)}\nEOFCE_${jobId}\n`;\n}\n\n// Database schema\nif (sol.sqlSchemaSql) {\n  sh += `cat > '${projectDir}/db/schema.sql' <<'EOFSQL_${jobId}'\n${safeHeredoc(sol.sqlSchemaSql, 'EOFSQL_' + jobId)}\nEOFSQL_${jobId}\n`;\n}\n\nsh += `\ngit add '${projectSlug}-docs'\ngit commit -m 'Add solution architecture for ${projectSlug} (job ${jobId})' || true\ngit push -u origin '${projectSlug}'\n`;\n\nreturn [{ json: { ...ctx, integrationStyle: sol.integrationStyle, enrichedSequences: enrichedSeq, gitScript: sh } }];"
       },
       "id": "build-git-script",
       "name": "Build Git Script",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2880, 304]
+      "position": [4560, 304]
     },
     {
       "parameters": {
@@ -174,7 +257,7 @@
       "name": "SSH: Commit Solution Files",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
-      "position": [3120, 304],
+      "position": [4800, 304],
       "credentials": { "sshPrivateKey": { "id": "SxKNiry9nQQ96pnU", "name": "SSH Private Key account" } }
     },
     {
@@ -187,18 +270,18 @@
       "name": "Update Job Status",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
-      "position": [3360, 304],
+      "position": [5040, 304],
       "credentials": { "postgres": { "id": "M5eIfNwtZu8y3dOp", "name": "Postgres account" } }
     },
     {
       "parameters": {
-        "jsCode": "const ctx = $('Pass Context').first().json;\nconst sol = $('Validate Solution').first().json;\nreturn [{ json: {\n  success: true,\n  jobId: ctx.jobId,\n  projectSlug: ctx.projectSlug,\n  stage: 'solution-architecture',\n  integrationStyle: sol.integrationStyle,\n  artifacts: {\n    solutionArch: ctx.projectSlug + '-docs/docs/solution-architecture.md',\n    openapi: sol.openapiYaml ? ctx.projectSlug + '-docs/api/openapi.yaml' : null,\n    asyncapi: sol.asyncapiYaml ? ctx.projectSlug + '-docs/api/asyncapi.yaml' : null,\n    avroSchemas: sol.avroSchemasJson ? ctx.projectSlug + '-docs/api/avro-schemas.json' : null,\n    cloudEvents: sol.cloudEventsMarkdown ? ctx.projectSlug + '-docs/docs/cloud-events.md' : null,\n    sqlSchema: sol.sqlSchemaSql ? ctx.projectSlug + '-docs/db/schema.sql' : null\n  }\n} }];"
+        "jsCode": "const ctx = $('Pass Context').first().json;\nconst sol = $('Validate Solution').first().json;\nconst enrichedSeq = $('Merge Change Assessment').first().json.enrichedSequencesArtifact || {};\nreturn [{ json: {\n  success: true,\n  jobId: ctx.jobId,\n  projectSlug: ctx.projectSlug,\n  stage: 'solution-architecture',\n  integrationStyle: sol.integrationStyle,\n  enrichedSequences: {\n    totalTickets: enrichedSeq.overallSummary?.totalTickets || 0,\n    byPriority: enrichedSeq.overallSummary?.byPriority || {},\n    byType: enrichedSeq.overallSummary?.byType || {}\n  },\n  artifacts: {\n    solutionArch: ctx.projectSlug + '-docs/docs/solution-architecture.md',\n    enrichedSequences: ctx.projectSlug + '-docs/docs/enriched-sequences.json',\n    openapi: sol.openapiYaml ? ctx.projectSlug + '-docs/api/openapi.yaml' : null,\n    asyncapi: sol.asyncapiYaml ? ctx.projectSlug + '-docs/api/asyncapi.yaml' : null,\n    avroSchemas: sol.avroSchemasJson ? ctx.projectSlug + '-docs/api/avro-schemas.json' : null,\n    cloudEvents: sol.cloudEventsMarkdown ? ctx.projectSlug + '-docs/docs/cloud-events.md' : null,\n    sqlSchema: sol.sqlSchemaSql ? ctx.projectSlug + '-docs/db/schema.sql' : null\n  }\n} }];"
       },
       "id": "return-result",
       "name": "Return Result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3600, 304]
+      "position": [5280, 304]
     }
   ],
   "connections": {
@@ -209,7 +292,14 @@
     "Create Solution Arch Job": { "main": [[{ "node": "Pass Context", "type": "main", "index": 0 }]] },
     "Pass Context": { "main": [[{ "node": "Load Architecture Artifacts", "type": "main", "index": 0 }]] },
     "Load Architecture Artifacts": { "main": [[{ "node": "Collect Artifacts", "type": "main", "index": 0 }]] },
-    "Collect Artifacts": { "main": [[{ "node": "Generate Solution Package", "type": "main", "index": 0 }]] },
+    "Collect Artifacts": { "main": [[{ "node": "Extract Sequence Diagrams", "type": "main", "index": 0 }]] },
+    "Extract Sequence Diagrams": { "main": [[{ "node": "Prepare Component Search", "type": "main", "index": 0 }]] },
+    "Prepare Component Search": { "main": [[{ "node": "Search Existing Landscape", "type": "main", "index": 0 }]] },
+    "Search Existing Landscape": { "main": [[{ "node": "Map Sequence to Components", "type": "main", "index": 0 }]] },
+    "Map Sequence to Components": { "main": [[{ "node": "Assess Component Changes", "type": "main", "index": 0 }]] },
+    "Assess Component Changes": { "main": [[{ "node": "Merge Change Assessment", "type": "main", "index": 0 }]] },
+    "Merge Change Assessment": { "main": [[{ "node": "Store Enriched Sequences", "type": "main", "index": 0 }]] },
+    "Store Enriched Sequences": { "main": [[{ "node": "Generate Solution Package", "type": "main", "index": 0 }]] },
     "Generate Solution Package": { "main": [[{ "node": "Validate Solution", "type": "main", "index": 0 }]] },
     "Validate Solution": { "main": [[{ "node": "Explode Solution Artifacts", "type": "main", "index": 0 }]] },
     "Explode Solution Artifacts": { "main": [[{ "node": "Store Solution Artifacts", "type": "main", "index": 0 }]] },
