@@ -36,6 +36,7 @@ x-n8n: &service-n8n
     - AZURE_DEVOPS_PROJECT=${AZURE_DEVOPS_PROJECT:-}
     - AZURE_DEVOPS_REPO=${AZURE_DEVOPS_REPO:-}
     - AZURE_DEVOPS_PAT=${AZURE_DEVOPS_PAT:-}
+    - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
 
 x-ollama: &service-ollama
   image: ollama/ollama:latest
