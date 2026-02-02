@@ -17,7 +17,7 @@ volumes:
   opencode_data:
 
 x-n8n: &service-n8n
-  image: n8nio/n8n:latest
+  build: ./n8n
   environment:
     - DB_TYPE=postgresdb
     - DB_POSTGRESDB_HOST=db
@@ -126,6 +126,9 @@ services:
       - n8n_storage:/home/node/.n8n
       - ./n8n/backup:/backup
       - ./shared:/data/shared
+      - /var/run/docker.sock:/var/run/docker.sock
+    group_add:
+      - "1000"  # Docker group GID (verify with: getent group docker | cut -d: -f3)
     depends_on:
       n8n-import:
         condition: service_started
