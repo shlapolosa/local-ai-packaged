@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Convert sahatna-knowledge-seed.json to individual markdown files
-in the existing-landscape folder for automatic Qdrant seeding.
+Convert sahatna-knowledge-seed.json to:
+1. Individual markdown files with YAML frontmatter (for manual review)
+2. A consolidated JSON file for the Knowledge Loader n8n workflow
 
-Each document becomes a markdown file with YAML frontmatter containing
-component metadata for sequence diagram enrichment.
+Each document becomes a markdown file with component metadata for
+sequence diagram enrichment, plus a JSON file for Qdrant seeding.
 """
 
 import json
@@ -16,6 +17,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).parent
 SEED_FILE = SCRIPT_DIR / "sahatna-knowledge-seed.json"
 OUTPUT_DIR = SCRIPT_DIR / "existing-landscape"
+JSON_OUTPUT = OUTPUT_DIR / "existing_landscape.json"
 
 
 def extract_port_from_content(content: str) -> int | None:
@@ -68,7 +70,7 @@ def is_internal_component(doc: dict) -> bool:
 
 
 def convert_to_markdown():
-    """Convert seed documents to markdown files."""
+    """Convert seed documents to markdown files and JSON for Knowledge Loader."""
 
     # Load the seed file
     with open(SEED_FILE, 'r', encoding='utf-8') as f:
@@ -80,6 +82,7 @@ def convert_to_markdown():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     created_count = 0
+    json_documents = []  # For Knowledge Loader workflow
 
     for doc in documents:
         doc_id = doc.get('id')
@@ -154,10 +157,47 @@ def convert_to_markdown():
         print(f"  Created: {filename} ({component_type})")
         created_count += 1
 
-    print(f"\nCompleted! {created_count} files created in {OUTPUT_DIR}")
-    print("\nNext steps:")
-    print("  1. Run: python scripts/embed-documents.py --collection existing-landscape --source shared/knowledge/existing-landscape/")
-    print("  2. Or use the knowledge pipe to reload the collection")
+        # Build JSON document for Knowledge Loader workflow
+        json_doc = {
+            "text": content,
+            "metadata": {
+                "doc_id": doc_id,
+                "component_name": frontmatter.get('component_name'),
+                "component_type": component_type,
+                "is_internal": is_internal,
+                "document_type": frontmatter.get('document_type'),
+                "project": frontmatter.get('project'),
+                "source": f"existing-landscape/{filename}",
+            }
+        }
+        # Add optional metadata
+        if frontmatter.get('service'):
+            json_doc['metadata']['service'] = frontmatter['service']
+        if frontmatter.get('integration'):
+            json_doc['metadata']['integration'] = frontmatter['integration']
+        if frontmatter.get('port'):
+            json_doc['metadata']['port'] = frontmatter['port']
+        if frontmatter.get('health_endpoint'):
+            json_doc['metadata']['health_endpoint'] = frontmatter['health_endpoint']
+        if frontmatter.get('database_schema'):
+            json_doc['metadata']['database_schema'] = frontmatter['database_schema']
+        if frontmatter.get('capabilities'):
+            json_doc['metadata']['capabilities'] = frontmatter['capabilities']
+        if frontmatter.get('integrations'):
+            json_doc['metadata']['integrations'] = frontmatter['integrations']
+
+        json_documents.append(json_doc)
+
+    # Write consolidated JSON for Knowledge Loader workflow
+    with open(JSON_OUTPUT, 'w', encoding='utf-8') as f:
+        json.dump(json_documents, f, indent=2, ensure_ascii=False)
+
+    print(f"\nCompleted!")
+    print(f"  - {created_count} markdown files created in {OUTPUT_DIR}")
+    print(f"  - JSON file created: {JSON_OUTPUT}")
+    print("\nTo seed Qdrant, run one of:")
+    print("  1. curl -X POST http://localhost:5678/webhook/knowledge-loader -H 'Content-Type: application/json' -d '{\"collection\": \"existing-landscape\"}'")
+    print("  2. Or manually trigger 'Knowledge Loader - Generic' in n8n UI with collection='existing-landscape'")
 
 
 if __name__ == '__main__':

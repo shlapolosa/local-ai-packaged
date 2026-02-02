@@ -1,0 +1,702 @@
+[
+  {
+    "text": "# Sahatna Super App Overview\n\nThe Sahatna Super App is a Digital Front Door (DFD) healthcare application developed by Core42 for the Abu Dhabi Department of Health (DOH). Version 1.3, dated 11.05.2025.\n\n## Purpose\nProvides unified access to healthcare services for UAE residents including:\n- Appointment booking and management\n- Teleconsultation (video conferencing)\n- Patient Health Records (PHR) access\n- Symptoms checking with AI\n- Wearables and wellness data integration\n- AI-powered chatbot assistance\n- Genomics data access\n- Payment processing\n\n## Target Users\n- Patients (UAE residents and citizens)\n- Healthcare providers (physicians, facilities)\n- Healthcare administrators\n\n## Key Stakeholders\n- Abu Dhabi Department of Health (DOH)\n- Core42 (developer)\n- M42 (AI/genomics partner)\n- Healthcare facilities across Abu Dhabi",
+    "metadata": {
+      "doc_id": "sahatna-overview",
+      "component_name": "sahatna-overview",
+      "component_type": "overview",
+      "is_internal": true,
+      "document_type": "project-overview",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-overview.md",
+      "capabilities": [
+        "appointment booking",
+        "teleconsultation",
+        "patient health records",
+        "PHR",
+        "symptoms checking",
+        "wearables",
+        "chatbot",
+        "genomics",
+        "payments"
+      ],
+      "integrations": [
+        "DOH",
+        "Core42",
+        "M42"
+      ]
+    }
+  },
+  {
+    "text": "# Sahatna Architectural Principles\n\n## 1. Incremental and Iterative Approach\nStart with baseline architecture and evolve candidate architectures by iterative testing to improve the architecture.\n\n## 2. Separation of Concerns\nDivide system components into specific features with no overlapping functionalities. This provides:\n- High cohesion\n- Low coupling\n- Easy maintenance\n- Avoids interdependency\n\n## 3. Define Communication Protocol between Components\nUnderstand how components will communicate, requiring complete knowledge of deployment scenarios and production environment.\n\n## 4. Buy vs Build\nPrefer to reuse existing functionality if it provides necessary support to address business needs.\n\n## 5. Design Exceptions and Exception Handling\nDefine exceptions in advance to help components manage errors elegantly. Exception management is consistent throughout the system.\n\n## 6. Regulation Requirements Compliant\nThe software solution must be compliant with all regulation requirements applicable within the UAE healthcare jurisdiction.",
+    "metadata": {
+      "doc_id": "sahatna-architectural-principles",
+      "component_name": "sahatna-architectural-principles",
+      "component_type": "principles",
+      "is_internal": true,
+      "document_type": "architectural-principles",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-architectural-principles.md",
+      "capabilities": [
+        "architecture",
+        "design principles",
+        "separation of concerns",
+        "exception handling",
+        "compliance"
+      ]
+    }
+  },
+  {
+    "text": "# Sahatna Core System Requirements\n\n## Scalability\nThe system must quickly and automatically cater to an increasing number of users.\n\n## Availability\nThe system must be highly available to fulfill ongoing customer needs and available to integrate with other 3rd party systems.\n\n## Elasticity\nThe system must quickly and automatically cater to bursts in incoming requests. Scalability is required for elasticity, but not the other way around.\n\n## Extensibility\nThe level of extensibility reflects how easy it is to extend or enhance the software system. Software systems designed to be extensible consider future growth by anticipating the need to add new functionality. Enables quick experiments. Different integration points should be easily extendible for future needs (new integration point, new engagement model, etc.)\n\n## Reliability\nThe system deals with patient, hospital staff, and patient medical data within patient treatment. System should be reliable with provided services and ensure stability and consistency in recommendations and services.\n\n## Configurability\nIntegrated systems should be easily configurable to adjust business needs and demands. For example, Notification system should allow different channels like email, SMS, PUSH notifications.\n\n## App Usability\nDifferent versions of the app should provide user experience that appeals to target user population. Using UX design techniques and providing high levels of customization are goals.",
+    "metadata": {
+      "doc_id": "sahatna-core-requirements",
+      "component_name": "sahatna-core-requirements",
+      "component_type": "requirements",
+      "is_internal": true,
+      "document_type": "system-requirements",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-core-requirements.md",
+      "capabilities": [
+        "scalability",
+        "availability",
+        "elasticity",
+        "extensibility",
+        "reliability",
+        "configurability",
+        "usability"
+      ]
+    }
+  },
+  {
+    "text": "# Identity Service Module\n\n## Overview\nApplication component developed in Java, deployed in Docker container format within Kubernetes cluster.\n\n## Main Features\n- [Patient] Login Using UAE Pass\n- [Guest] Login - Anonymously\n- [Patient] Logout Using UAE Pass\n- Token Management: issuing, encryption and validation of security tokens for securing communication between Mobile App and backend services\n- Language Preference (En/Ar)\n\n## Technical Specifications\n- **Deployment**: Container Image / K8s\n- **Language**: Java 17\n- **Port**: 8090\n- **Health Endpoint**: /identity/actuator/health\n- **Communication**: REST/HTTP, gRPC\n- **Data Persistence**: Azure MS SQL\n- **Source Code**: https://bitbucket.org/injazat-workspace/identity-service/src/main/\n\n## Database Schema: identity_dbo\n- password_history\n- temp_locked_user\n- token\n- otp\n- flyway_schema_history\n\n## Dependencies\n- Notification Service Module\n- UAE Pass (external)\n\n## Functional Scope\n- FR-001-001: Patient Login Using UAE Pass (UaePassMobileController)\n- FR-001-002: Guest Login Using UAE Pass (GuestAuthMobileController)\n- FR-001-003: Patient Logout\n- FR-001-004: Token Management\n- FR-001-005: Language Preference\n\n## Component Dependencies\n- Azure: API Gateway, NAT Gateway\n- External: UAE PASS\n- Internal: Notification Service Module\n- Database: MS SQL, Redis (Pub/Sub), Redis (Cache)\n- K8s: etcd DB (secrets storage)",
+    "metadata": {
+      "doc_id": "sahatna-identity-service",
+      "component_name": "Identity Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-identity-service.md",
+      "service": "Identity Service",
+      "port": 8090,
+      "health_endpoint": "/identity/actuator/health",
+      "database_schema": "identity_dbo",
+      "capabilities": [
+        "authentication",
+        "login",
+        "logout",
+        "token management",
+        "UAE Pass login",
+        "guest login",
+        "language preference"
+      ],
+      "integrations": [
+        "UAE Pass",
+        "Notification Service"
+      ]
+    }
+  },
+  {
+    "text": "# Patient Service Module\n\n## Overview\nApplication component developed in Java, deployed in Docker container format within Kubernetes cluster.\n\n## Main Features\n- Getting personal patient information from DOH via SOAP API (DOH has internal integration with MOI database)\n- Managing patient's Communication Preferences (SMS/Email/Push)\n- Managing feedback: pop-up with title, questions, star ratings, free input text for user experience rating\n- Managing Surveys: triggered by Malaffi upon health-related actions (encounter, laboratory test)\n  - Sending survey notifications per preferred notification preference\n  - Processing and persisting survey questions/answers for DOH Data Analytics team\n\n## Technical Specifications\n- **Deployment**: Container\n- **Language**: Java\n- **Port**: 8091\n- **Health Endpoint**: /patient/actuator/health\n- **Communication**: REST/HTTP, gRPC\n- **Data Persistence**: Azure MS SQL\n\n## Database Schema: patient_dbo\n- patient, deleted_patient, pilot_patient\n- device, patient_associated_to_device\n- location\n- notification_preferences\n- feedback, feedback_question\n- otp, password_history, temp_locked_user\n- dependant_associated_to_guardian, shared_accounts_association, unlink_dependant_history\n- phc_details, phc_history, phc_notification_delivery, phc_reason\n- support, deletion_reason\n- flyway_schema_history\n\n## Dependencies\n- Notification Service Module\n- Reference Service Module\n- Appointment Service Module\n- PHR Service Module\n- External: UAE PASS DB, MOI DB (via DOH Integration Hub)\n\n## Component Dependencies\n- Azure: API Gateway, NAT Gateway\n- Database: MS SQL, Redis (Pub/Sub), Redis (Cache)\n- K8s: etcd DB (secrets storage)",
+    "metadata": {
+      "doc_id": "sahatna-patient-service",
+      "component_name": "Patient Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-patient-service.md",
+      "service": "Patient Service",
+      "port": 8091,
+      "health_endpoint": "/patient/actuator/health",
+      "database_schema": "patient_dbo",
+      "capabilities": [
+        "patient information",
+        "personal data",
+        "communication preferences",
+        "feedback management",
+        "surveys",
+        "dependants management"
+      ],
+      "integrations": [
+        "DOH",
+        "MOI",
+        "UAE Pass",
+        "Malaffi",
+        "Notification Service",
+        "Reference Service",
+        "Appointment Service",
+        "PHR Service"
+      ]
+    }
+  },
+  {
+    "text": "# Provider Service Module\n\n## Overview\nApplication component developed in Java, deployed in Docker container format within Kubernetes cluster.\n\n## Main Features\n- Validation of License ID of Physicians and Facilities against DOH database\n- Physicians and facilities data management within Provider Portal web application\n- Daily basis synchronization with DOH database within batch-worker service module\n\n## Technical Specifications\n- **Deployment**: Container / Jar\n- **Language**: Java\n- **Port**: 8092\n- **Health Endpoint**: /provider/actuator/health\n- **Communication**: REST/HTTP, gRPC\n- **Data Persistence**: Azure MS SQL\n\n## Database Schema: provider_dbo\n- administrator, admins_status_history\n- facility, doh_facility, facility_type\n- facility_associated_to_provider_admin\n- facility_payment_method, payment_method\n- facility_physician, facility_speciality_association\n- physician, doh_physician, doh_history\n- speciality, sub_speciality\n- education, experience, language, physician_language\n- favourite_physician\n- working_day\n- invitation_link, custom_header\n- flyway_schema_history\n\n## Dependencies\n- Notification Service Module\n- Reference Service Module\n- Appointment Service Module\n- Batch-worker Service Module\n- External: DOH DB\n\n## Component Dependencies\n- Azure: API Gateway, NAT Gateway, WAF (Web Application Firewall), Object Storage\n- External: Mobile App (iOS, Android), Web Application (Provider Portal), DOH DB\n- Database: MS SQL, Redis (Pub/Sub), Redis (Cache)\n- K8s: etcd DB (secrets storage)",
+    "metadata": {
+      "doc_id": "sahatna-provider-service",
+      "component_name": "Provider Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-provider-service.md",
+      "service": "Provider Service",
+      "port": 8092,
+      "health_endpoint": "/provider/actuator/health",
+      "database_schema": "provider_dbo",
+      "capabilities": [
+        "license validation",
+        "physician management",
+        "facility management",
+        "provider data sync",
+        "DOH synchronization"
+      ],
+      "integrations": [
+        "DOH",
+        "Notification Service",
+        "Reference Service",
+        "Appointment Service",
+        "Batch-worker Service"
+      ]
+    }
+  },
+  {
+    "text": "# Symptoms-Checker Service Module\n\n## Overview\nApplication component developed in Java, deployed in Docker container format within Kubernetes cluster.\n\n## Main Features\n- Checking symptoms data provided by patients against Isabella Service database (https://arscstsandbox.isabelhealthcare.com/)\n- AI-powered symptom analysis and diagnosis suggestions\n\n## Technical Specifications\n- **Deployment**: Container / Jar\n- **Language**: Java\n- **Port**: 8095\n- **Health Endpoint**: /symptomschecker/actuator/health\n- **Communication**: REST/HTTP, gRPC\n- **Data Persistence**: Azure MongoDB (Cosmos DB)\n\n## MongoDB Collections\n- symptoms collection containing:\n  - ageGroup\n  - country\n  - pregnancy\n  - predictivetexts\n\n## Dependencies\n- Isabella Service (external)\n- Batch-worker Service Module\n\n## Component Dependencies\n- Azure: API Gateway, NAT Gateway\n- External: Mobile App (iOS, Android), Isabella Service\n- Database: Azure MongoDB (Cosmos DB), Redis (Cache)\n\n## About Isabella Service\nIsabella is an AI-powered clinical decision support system and symptom checker used by healthcare professionals worldwide since 2001. It analyzes multiple symptoms simultaneously to suggest potential diagnoses for both common and rare conditions, helping reduce diagnostic errors and improve patient safety through advanced artificial intelligence algorithms.",
+    "metadata": {
+      "doc_id": "sahatna-symptoms-checker-service",
+      "component_name": "Symptoms-Checker Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-symptoms-checker-service.md",
+      "service": "Symptoms-Checker Service",
+      "port": 8095,
+      "health_endpoint": "/symptomschecker/actuator/health",
+      "capabilities": [
+        "symptom checking",
+        "symptom analysis",
+        "AI diagnosis",
+        "clinical decision support"
+      ],
+      "integrations": [
+        "Isabella Service",
+        "Isabella",
+        "Batch-worker Service"
+      ]
+    }
+  },
+  {
+    "text": "# PHR Service Module (Patient Health Records)\n\n## Overview\nApplication component developed in Java, deployed in Docker container format within Kubernetes cluster.\n\n## Main Features\n- Getting Patient Health Records from HIE database handled by Malaffi (https://services.malaffi.ae/v1)\n- Validation of emirates_id against Patient Service Module\n- Works with sensitive personal data obtained from Malaffi DB\n\n## Technical Specifications\n- **Deployment**: Container Image / Jar\n- **Language**: Java\n- **Port**: 8100\n- **Health Endpoint**: /phr/actuator/health\n- **Communication**: REST/HTTP, gRPC\n- **Data Persistence**: N/A (no MS SQL or MongoDB - uses Redis Cache only)\n\n## Data Handling\n- PHR Service Module is NOT backed by MS SQL or MongoDB for data persistence because it works with sensitive personal data obtained from Malaffi DB\n- Uses Azure Redis Cache Instance only for temporary safe patient data storage in JSON format\n\n## Dependencies\n- Patient Service Module\n- Malaffi Service (external)\n\n## Component Dependencies\n- Azure: API Gateway, NAT Gateway\n- External: Mobile App (iOS, Android), Malaffi Service\n- Database: Redis (Cache Instance) - temporary storage only\n\n## About Malaffi\nADHDS Malaffi System is Abu Dhabi Health Data Services' health information exchange platform that connects healthcare providers across Abu Dhabi. Malaffi enables secure sharing of patient health records between hospitals, clinics, and healthcare facilities to improve care coordination and clinical decision-making.",
+    "metadata": {
+      "doc_id": "sahatna-phr-service",
+      "component_name": "PHR Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-phr-service.md",
+      "service": "PHR Service",
+      "port": 8100,
+      "health_endpoint": "/phr/actuator/health",
+      "capabilities": [
+        "health records",
+        "PHR",
+        "patient health records",
+        "HIE access",
+        "Malaffi integration",
+        "emirates ID validation"
+      ],
+      "integrations": [
+        "Malaffi",
+        "ADHDS",
+        "Patient Service"
+      ]
+    }
+  },
+  {
+    "text": "# Notification Service Module\n\n## Overview\nApplication component developed in Java, deployed in Docker container format within Kubernetes cluster.\n\n## Main Features\n- Notification of events happening within patient data processing workflow\n- Three communication channels for patient notifications:\n  1. Relay SMTP Server (email)\n  2. SMS Global Service (SMS)\n  3. Google Firebase (push notifications)\n- Template management of notification messages within Provider Portal web application\n\n## Technical Specifications\n- **Deployment**: Container Images / Jar\n- **Language**: Java\n- **Port**: 8104\n- **Health Endpoint**: /notification/actuator/health\n- **Communication**: REST/HTTP, gRPC\n- **Data Persistence**: Azure Cosmos DB\n\n## MongoDB Collections\n- templates collection containing JSON notification templates\n\n## Dependencies\n- External Systems: SMS Gateway, Email Gateway, Push notification provider\n- All other Super App Service Modules\n\n## Component Dependencies\n- Azure: API Gateway, NAT Gateway\n- External: Mobile App (iOS, Android), Provider Portal (Web Application)\n- External Services: Firebase (PUSH), Relay SMTP (email), Global SMS (SMS)\n- Database: Azure MongoDB (Cosmos DB), Redis (Pub/Sub Instance)\n\n## Notification Channels\n- **Firebase**: Google's platform for push notifications to mobile devices\n- **SMS Global**: Third-party SMS gateway service\n- **Relay SMTP**: Email server for sending email notifications",
+    "metadata": {
+      "doc_id": "sahatna-notification-service",
+      "component_name": "Notification Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-notification-service.md",
+      "service": "Notification Service",
+      "port": 8104,
+      "health_endpoint": "/notification/actuator/health",
+      "capabilities": [
+        "notifications",
+        "email notifications",
+        "SMS notifications",
+        "push notifications",
+        "notification templates",
+        "SMTP",
+        "Firebase"
+      ],
+      "integrations": [
+        "Firebase",
+        "SMS Global",
+        "SMTP",
+        "Relay SMTP",
+        "Google Firebase"
+      ]
+    }
+  },
+  {
+    "text": "# Integration Service Module\n\n## Overview\nApplication component developed in Java, deployed in Docker container format within Kubernetes cluster. Works closely with Appointment Service Module.\n\n## Main Features\n- REST-based Service backing communication between Sahatna Super App backend and:\n  - EHR aggregator (Okadoc)\n  - HIE (Malaffi)\n  - Facility's EHR/EMR within Appointment arrangement workflow\n- Validation and transformation of incoming data in FHIR/JSON format into internal Sahatna Super App data format\n- Validation of provider requests (signature check of provider tokens by public key)\n- Handling/routing connections between Super App backend and provider information systems\n\n## Technical Specifications\n- **Deployment**: Container Image / Jar\n- **Language**: Java\n- **Port**: 8107\n- **Health Endpoint**: /integration/actuator/health\n- **Communication**: REST/HTTP, gRPC\n- **Data Persistence**: Redis (Cache Instance), Redis (Pub/Sub Instance)\n\n## Data Handling\n- NOT backed by MS SQL or MongoDB for persistence\n- Uses Azure Redis Cache Instance to temporarily store provider state data (base URL, custom headers, etc.)\n\n## Dependencies\n- Appointment Service Module\n- Provider Service Module\n- External: Providers (EHR/EMR systems), Okadoc, Malaffi\n\n## Component Dependencies\n- Azure: API Gateway, NAT Gateway\n- External: Mobile App (iOS, Android), Providers\n- Database: Azure MS SQL, Azure MongoDB, Redis (Cache), Redis (Pub/Sub)\n\n## FHIR Integration\nFHIR (Fast Healthcare Interoperability Resources) is the healthcare data interchange format used for communication with external EHR/EMR systems and HIE platforms.",
+    "metadata": {
+      "doc_id": "sahatna-integration-service",
+      "component_name": "Integration Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-integration-service.md",
+      "service": "Integration Service",
+      "port": 8107,
+      "health_endpoint": "/integration/actuator/health",
+      "capabilities": [
+        "FHIR transformation",
+        "data validation",
+        "provider integration",
+        "EHR integration",
+        "EMR integration",
+        "token validation",
+        "signature verification"
+      ],
+      "integrations": [
+        "Okadoc",
+        "Malaffi",
+        "FHIR",
+        "EHR",
+        "EMR",
+        "Appointment Service",
+        "Provider Service"
+      ]
+    }
+  },
+  {
+    "text": "# Appointment Service Module\n\n## Overview\nApplication component developed in Java, deployed in Docker container format within Kubernetes cluster. Works closely with Integration Service Module.\n\n## Main Features\n- Handling Patient Appointment lifecycle:\n  - Create appointments\n  - Update appointments (rescheduling)\n  - Cancel appointments (delete)\n- Synchronization with source of Appointment data:\n  - Aggregator EHR/EMR DB\n  - Facilities EHR/EMR DB\n- Providing all appointments to user (view all appointments)\n\n## Technical Specifications\n- **Deployment**: Container Image / Jar\n- **Language**: Java\n- **Port**: 8094\n- **Health Endpoint**: /appointment/actuator/health\n- **Communication**: REST/HTTP, gRPC\n- **Data Persistence**: Azure MS SQL, Azure MongoDB (Cosmos DB)\n\n## Database Schema: appointment_dbo (MS SQL)\n- appointment, appointment_history\n- appointment_type, service_type\n- slot_associated_to_appointment, new_slot_associated_to_appointment\n- flyway_schema_history\n\n## MongoDB Collections (Cosmos DB)\n- schedules collection\n- slots collection\n\n## Dependencies\n- Integration Service Module\n- Provider Service Module\n\n## Key Workflows\n1. Appointment Creation (from Mobile App)\n2. Appointment Cancellation (sync mode from Mobile App)\n3. Appointment Rescheduling (sync mode from Mobile App)",
+    "metadata": {
+      "doc_id": "sahatna-appointment-service",
+      "component_name": "Appointment Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-appointment-service.md",
+      "service": "Appointment Service",
+      "port": 8094,
+      "health_endpoint": "/appointment/actuator/health",
+      "database_schema": "appointment_dbo",
+      "capabilities": [
+        "appointment booking",
+        "appointment creation",
+        "appointment cancellation",
+        "appointment rescheduling",
+        "schedule management",
+        "slot management"
+      ],
+      "integrations": [
+        "Integration Service",
+        "Provider Service",
+        "EHR",
+        "EMR"
+      ]
+    }
+  },
+  {
+    "text": "# Teleconsultation Service Module\n\n## Overview\nApplication component developed in Java, deployed in Docker container format within Kubernetes cluster.\n\n## Main Features\n- Video conference capability between Patient and Physician\n- Video recording of video conferences between Patient and Physician\n- Secure chatting between Patient and Physician\n- Backed by Vidyo Platform solution for video capabilities\n\n## Technical Specifications\n- **Deployment**: Container Image / Jar\n- **Language**: Java\n- **Port**: 8097\n- **Health Endpoint**: /teleconsultation/actuator/health\n- **Communication**: REST/HTTP, gRPC\n- **Data Persistence**: Azure MS SQL Instance, Azure Redis (Pub/Sub Instance)\n\n## Database Schema: teleconsultation_dbo (MS SQL)\n- call, call_session\n- record\n- feedback\n- notification\n- physician\n- room\n- appointment\n- patient\n- flyway_schema_history\n\n## Dependencies\n- Appointment Service Module\n- Integration Service Module\n- Web Application Teleconsultation Module (Web Page)\n- Vidyo Platform (external)\n\n## Component Dependencies\n- Azure: API Gateway, NAT Gateway, WAF/ALB\n- External: Mobile App (iOS, Android), Providers, Vidyo Platform\n- Database: Azure MS SQL, Redis (Cache), Redis (Pub/Sub)\n\n## About Vidyo Platform\nA video conferencing and telemedicine platform that enables secure video communications for healthcare consultations, remote patient monitoring, and virtual care delivery. It provides HIPAA-compliant video solutions specifically designed for healthcare environments.",
+    "metadata": {
+      "doc_id": "sahatna-teleconsultation-service",
+      "component_name": "Teleconsultation Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-teleconsultation-service.md",
+      "service": "Teleconsultation Service",
+      "port": 8097,
+      "health_endpoint": "/teleconsultation/actuator/health",
+      "database_schema": "teleconsultation_dbo",
+      "capabilities": [
+        "video conferencing",
+        "teleconsultation",
+        "video calls",
+        "video recording",
+        "secure chat",
+        "telemedicine",
+        "remote consultation"
+      ],
+      "integrations": [
+        "Vidyo",
+        "Vidyo Platform",
+        "Appointment Service",
+        "Integration Service"
+      ]
+    }
+  },
+  {
+    "text": "# Payment Service\n\n## Overview\nResponsible for handling payment features for patients.\n\n## Main Features\n- Payment processing for teleconsultation services\n- Integration with ADPay (Abu Dhabi Payment Gateway)\n\n## ADPay Integration\nADPay is the Abu Dhabi payment gateway used for processing payments within the Sahatna Super App, particularly for teleconsultation services.\n\n## Data Source\n- ADPay: External REST API integration\n- Type: Payment gateway",
+    "metadata": {
+      "doc_id": "sahatna-payment-service",
+      "component_name": "Payment Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-payment-service.md",
+      "service": "Payment Service",
+      "capabilities": [
+        "payment processing",
+        "payments",
+        "teleconsultation payments"
+      ],
+      "integrations": [
+        "ADPay",
+        "Abu Dhabi Payment Gateway"
+      ]
+    }
+  },
+  {
+    "text": "# Chatbot Service\n\n## Overview\nResponsible for handling requests/responses from M42 patient LLM and providing the required format for the frontend.\n\n## Main Features\n- Integration with M42 Patient LLM (Med42)\n- Request/response handling for AI chatbot functionality\n- Formatting responses for mobile frontend\n\n## M42 Patient LLM (Med42)\nDesigned to transform AI applications in healthcare and improve patient care outcomes. Med42 LLM acts as the backbone for Sahatna's AI Chatbot module.\n\n## Data Source\n- M42: External REST API\n- Purpose: LLM for chatbot functionality",
+    "metadata": {
+      "doc_id": "sahatna-chatbot-service",
+      "component_name": "Chatbot Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-chatbot-service.md",
+      "service": "Chatbot Service",
+      "capabilities": [
+        "chatbot",
+        "AI chatbot",
+        "LLM integration",
+        "conversational AI"
+      ],
+      "integrations": [
+        "M42",
+        "Med42",
+        "Patient LLM"
+      ]
+    }
+  },
+  {
+    "text": "# Genomics Service\n\n## Overview\nResponsible for getting Patient Genome Records from Genomics database handled by M42.\n\n## Main Features\n- Retrieval of patient genome records\n- Integration with M42 genomics platforms\n\n## M42 Genomics Platforms\n\n### Emirati Genome Programme (EGP)\nA national project which aims to use genomic data to improve the health of the Emirati population.\n\n### Gensense by M42\nThe platform provides personalized health insights through comprehensive genetic analysis, allowing individuals to gain a deeper understanding of their genetic predispositions, health risks, and microbiome composition from the convenience of their home.",
+    "metadata": {
+      "doc_id": "sahatna-genomics-service",
+      "component_name": "Genomics Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-genomics-service.md",
+      "service": "Genomics Service",
+      "capabilities": [
+        "genomics",
+        "genome records",
+        "genetic analysis",
+        "personalized health"
+      ],
+      "integrations": [
+        "M42",
+        "EGP",
+        "Emirati Genome Programme",
+        "Gensense"
+      ]
+    }
+  },
+  {
+    "text": "# Wearables Service Module\n\n## Overview\nApplication component developed in Java, deployed in Docker container format within Kubernetes cluster.\n\n## Main Features\n- Integration with native aggregators:\n  - Apple HealthKit (iOS)\n  - Google Fit / Health Connect (Android)\n- Tracking wellness data: steps, nutrition, sleep, heart rate\n- Smart Goals incorporation via Fractal AI integration\n\n## Technical Specifications\n- **Deployment**: Container Image / Jar\n- **Language**: Java\n- **Port**: 8111\n- **Health Endpoint**: /wearables/actuator/health\n- **Communication**: REST/HTTP, gRPC\n- **Data Persistence**: Azure Cosmos DB Instance, Azure Redis (Pub/Sub Instance)\n\n## Dependencies\n- Patient Service Module\n- Fractal AI (external system)\n\n## Fractal AI Integration\nFractal AI analyzes patient health insights (vital signs) using fractal algorithms and mathematical models to set/predicate 'steps' smart goals based on historical data.\n\n## Design Decisions\n\n### 1. Limited Data Sync Points (24 per day)\n- Higher granularity requires significant bandwidth increase\n- For 300K users at 5% daily active (15K DAU):\n  - Hourly sync: 4.167 QPS\n  - Minute sync: 250 QPS (60x increase)\n- Service scaling cost not justified by business value\n\n### 2. Foreground Sync Only (No Background)\n- Background sync requires elevated user permissions\n- System limitations affect background data delivery:\n  - Disabled Background App Refresh\n  - Focus mode or power-intensive app restrictions\n  - Low battery or power-saving mode blocks HealthKit updates\n- Background processing increases power consumption\n- Impacts user experience negatively\n\n## Data Storage\n- Cosmos DB: Wellness data storage\n- Redis: Temporary dependent info caching (ID, EID, list of dependents)",
+    "metadata": {
+      "doc_id": "sahatna-wearables-service",
+      "component_name": "Wearables Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-wearables-service.md",
+      "service": "Wearables Service",
+      "port": 8111,
+      "health_endpoint": "/wearables/actuator/health",
+      "capabilities": [
+        "wearables",
+        "wellness tracking",
+        "steps tracking",
+        "nutrition tracking",
+        "sleep tracking",
+        "heart rate monitoring",
+        "smart goals",
+        "health data sync"
+      ],
+      "integrations": [
+        "Apple Health",
+        "Apple HealthKit",
+        "HealthKit",
+        "Google Fit",
+        "Health Connect",
+        "Fractal AI",
+        "Patient Service"
+      ]
+    }
+  },
+  {
+    "text": "# Reference Data Service Module\n\n## Overview\nResponsible for providing lookup values for Sahatna mobile app.\n\n## Main Features\n- FAQs\n- Country lists\n- State/city lists\n- Document types\n- Reasons\n- Mobile language support\n\n## Database Schema: reference_data_dbo (MS SQL)\n- country, state, city\n- faq, faq_topic\n- document_type\n- mobile_language\n- reason\n- flyway_schema_history",
+    "metadata": {
+      "doc_id": "sahatna-reference-service",
+      "component_name": "Reference Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-reference-service.md",
+      "service": "Reference Service",
+      "database_schema": "reference_data_dbo",
+      "capabilities": [
+        "reference data",
+        "lookup values",
+        "FAQs",
+        "country lists",
+        "document types"
+      ]
+    }
+  },
+  {
+    "text": "# Batch Worker Service\n\n## Overview\nResponsible for scheduling and triggering background cron jobs.\n\n## Main Features\n- Daily syncing of facilities/physicians data from DOH licensing system\n- Scheduled background job execution\n- Cron job management\n\n## Key Jobs\n- Daily facilities data sync from DOH\n- Daily physicians data sync from DOH\n\n## Dependencies\n- Provider Service Module\n- DOH Licenses Info System (external)",
+    "metadata": {
+      "doc_id": "sahatna-batch-worker-service",
+      "component_name": "Batch Worker Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-batch-worker-service.md",
+      "service": "Batch Worker Service",
+      "capabilities": [
+        "batch processing",
+        "cron jobs",
+        "scheduled jobs",
+        "data synchronization",
+        "DOH sync"
+      ],
+      "integrations": [
+        "DOH",
+        "Provider Service"
+      ]
+    }
+  },
+  {
+    "text": "# CMS Service\n\n## Overview\nActs as a wrapper layer exposing APIs to allow 3rd parties to push media content to Sahatna's CMS.\n\n## Main Features\n- API wrapper for Strapi CMS\n- Allows AD360 to push media content\n- Content types: news, articles, events, etc.\n- Content rendered on Sahatna mobile app\n\n## Strapi CMS\nAn open-source headless content management system that provides APIs for managing and delivering digital content. It allows developers to create, manage, and distribute content across multiple channels and applications through customizable APIs and administrative interfaces.",
+    "metadata": {
+      "doc_id": "sahatna-cms-service",
+      "component_name": "CMS Service",
+      "component_type": "api",
+      "is_internal": true,
+      "document_type": "service-architecture",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-cms-service.md",
+      "service": "CMS Service",
+      "capabilities": [
+        "content management",
+        "CMS",
+        "media content",
+        "news",
+        "articles",
+        "events"
+      ],
+      "integrations": [
+        "Strapi",
+        "Strapi CMS",
+        "AD360"
+      ]
+    }
+  },
+  {
+    "text": "# UAE Pass Integration\n\n## Overview\nUAE Pass is a unified digital identity platform for UAE residents and citizens that provides secure access to government and private sector services.\n\n## Features\n- Single sign-on solution\n- Biometric verification\n- Smart ID cards support\n- Mobile credentials\n- Unified digital identity across multiple platforms\n\n## Integration Type\n- External REST API\n- Used by Identity Service Module\n\n## Usage in Sahatna\n- Patient authentication and login\n- Patient logout\n- Guest login\n- Identity verification",
+    "metadata": {
+      "doc_id": "sahatna-uaepass-integration",
+      "component_name": "UAE Pass",
+      "component_type": "external",
+      "is_internal": false,
+      "document_type": "external-integration",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-uaepass-integration.md",
+      "integration": "UAE Pass",
+      "capabilities": [
+        "authentication",
+        "login",
+        "identity verification"
+      ],
+      "integrations": [
+        "UAE Pass",
+        "UAEPass"
+      ]
+    }
+  },
+  {
+    "text": "# Department of Health (DOH) Integrations\n\n## DoH Patient Info System\nCentralized patient information management system that stores and manages comprehensive patient medical records, demographics, and health data. Enables healthcare providers to access patient information across the healthcare network for continuity of care.\n- Integration: SOAP API\n- Internal connection to MOI (Ministry of Interior)\n- Used by: Patient Service Module\n\n## DoH Licenses Info System\nDatabase system that manages and tracks professional licenses for healthcare providers, facilities, and medical practitioners.\n- Maintains licensing status and renewals\n- Tracks qualifications and regulatory compliance\n- Information for all healthcare entities within jurisdiction\n- Integration: SOAP API\n- Used by: Provider Service Module, Batch-worker Service\n\n## Data Types\n- Patient personal information\n- Physician license data\n- Facility license data\n- Healthcare provider qualifications",
+    "metadata": {
+      "doc_id": "sahatna-doh-integration",
+      "component_name": "DOH",
+      "component_type": "external",
+      "is_internal": false,
+      "document_type": "external-integration",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-doh-integration.md",
+      "integration": "DOH",
+      "capabilities": [
+        "patient data retrieval",
+        "license validation",
+        "provider verification"
+      ],
+      "integrations": [
+        "DOH",
+        "Department of Health",
+        "DOH Patient Info System",
+        "DOH Licenses Info System",
+        "MOI",
+        "Ministry of Interior"
+      ]
+    }
+  },
+  {
+    "text": "# ADHDS Malaffi Integration\n\n## Overview\nAbu Dhabi Health Data Services' health information exchange (HIE) platform that connects healthcare providers across Abu Dhabi.\n\n## Features\n- Secure sharing of patient health records\n- Connection between hospitals, clinics, and healthcare facilities\n- Improved care coordination\n- Clinical decision-making support\n\n## API Endpoint\nhttps://services.malaffi.ae/v1\n\n## Integration Type\nExternal REST API\n\n## Data Types\n- Appointments data\n- Patient Health Records (PHR)\n\n## ADHDS PHR (Patient Health Records)\nPatient-controlled digital health record system managed by Abu Dhabi Health Data Services. Allows individuals to:\n- Access personal health information\n- Manage health records\n- Share health data with providers\n- View medical history, test results, appointments, and medications\n\n## Usage in Sahatna\n- PHR Service Module: Retrieves Patient Health Records\n- Integration Service Module: Appointment data exchange\n- Patient Service Module: Survey triggers on health events",
+    "metadata": {
+      "doc_id": "sahatna-malaffi-integration",
+      "component_name": "Malaffi",
+      "component_type": "external",
+      "is_internal": false,
+      "document_type": "external-integration",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-malaffi-integration.md",
+      "integration": "Malaffi",
+      "capabilities": [
+        "health records",
+        "PHR",
+        "HIE",
+        "health information exchange"
+      ],
+      "integrations": [
+        "Malaffi",
+        "ADHDS",
+        "ADHDS Malaffi",
+        "ADHDS PHR",
+        "Abu Dhabi Health Data Services"
+      ]
+    }
+  },
+  {
+    "text": "# Sahatna Technology Stack\n\n## Cloud Platform\n- Microsoft Azure\n\n## Container Orchestration\n- Kubernetes\n- Dapr (Sidecar pattern implementation)\n\n## API Management\n- Oracle API Gateway 11g\n- Azure API Gateway\n- NAT Gateway\n\n## Programming Languages & Frameworks\n- **Backend**: Java 17 + Spring Boot + Dapr\n- **Frontend Web**: React JS\n- **Frontend Mobile**: React Native\n\n## Databases & Storage\n- Azure SQL (MSSQL) - Structured data\n- Cosmos DB (MongoDB) - Document database for unstructured data\n- Azure Cache for Redis - In-memory caching and Pub/Sub\n- Azure Object Storage - File storage\n- Log Analytics Workspace - Log management\n\n## Content Management\n- Strapi CMS - Headless CMS for dynamic mobile content\n\n## Configuration Management\n- K8s ConfigMap & Secrets (backed by Azure KeyVault)\n- etcd DB (secrets storage in Kubernetes)\n\n## Security\n- WAF (Web Application Firewall)\n- Azure KeyVault\n\n## Communication Protocols\n- REST/HTTP - Primary API protocol\n- gRPC - Inter-service communication\n- FHIR/JSON - Healthcare data interchange\n- SOAP - Legacy DOH integrations",
+    "metadata": {
+      "doc_id": "sahatna-technology-stack",
+      "component_name": "sahatna-technology-stack",
+      "component_type": "infrastructure",
+      "is_internal": true,
+      "document_type": "technology-stack",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-technology-stack.md",
+      "capabilities": [
+        "database",
+        "caching",
+        "container orchestration",
+        "service mesh",
+        "API management",
+        "secrets management",
+        "monitoring",
+        "logging",
+        "security"
+      ],
+      "integrations": [
+        "Microsoft Azure",
+        "Oracle API Gateway",
+        "Strapi"
+      ]
+    }
+  },
+  {
+    "text": "# Sidecar Pattern (Dapr Implementation)\n\n## Overview\nSidecar is a reverse proxy component that runs beside the application and facilitates communication with other services or the outside world.\n\n## Implementation in Sahatna\n- Dapr is used as the sidecar technology\n- Both containers run side by side in the same Kubernetes cluster\n- Scale individually\n\n## Benefits\n- **Language Independence**: Sidecar is independent from primary application's runtime environment and programming language\n- **Resource Access**: Sidecar can access same resources as primary application, can monitor system resources\n- **Low Latency**: Proximity to primary application means no significant communication latency\n- **Extensibility**: Can extend functionality even for applications without extensibility mechanisms\n\n## Deployment\n- Components deployed as separate process or container\n- Provides isolation and encapsulation\n- Enables heterogeneous components and technologies\n- Shares lifecycle with parent application\n\n## Service-to-Service Communication\nDapr handles service-to-service communication within the sidecar template, managing:\n- Service discovery\n- Request routing\n- Load balancing\n- Retries and circuit breaking",
+    "metadata": {
+      "doc_id": "sahatna-sidecar-pattern",
+      "component_name": "sahatna-sidecar-pattern",
+      "component_type": "pattern",
+      "is_internal": true,
+      "document_type": "architecture-pattern",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-sidecar-pattern.md",
+      "capabilities": [
+        "sidecar pattern",
+        "service mesh",
+        "service communication",
+        "reverse proxy"
+      ]
+    }
+  },
+  {
+    "text": "# Sahatna Resiliency Patterns\n\n## Overview\nDistributed applications with many microservices face potential system failures. Dapr provides fault tolerance resiliency policies.\n\n## Timeout Pattern\nConfigurable timeouts for all service calls to prevent indefinite waiting.\n\n## Retry Pattern with Back-off\nHandles transient failures in cloud environments:\n\n### Retry Strategies\n1. **Cancel**: For non-recoverable errors (e.g., invalid credentials) - don't retry\n2. **Retry Immediately**: For rare/unusual failures (e.g., corrupted network packets) - retry same request\n3. **Retry After Delay**: For connectivity or busy failures - wait suitable time before retry\n\n### Transient Faults\n- Momentary loss of network connectivity\n- Temporary service unavailability\n- Timeouts when service is busy\n- Database throttling under load\n\n## Circuit Breaker Pattern\nHandles faults that may take variable time to recover. Prevents cascading failures.\n\n### States\n1. **Closed**: Normal operation\n   - Routes requests to operation\n   - Counts recent failures\n   - Switches to Open when threshold exceeded\n\n2. **Open**: Fail-fast mode\n   - Returns exception immediately\n   - Starts timeout timer\n   - Switches to Half-Open when timer expires\n\n3. **Half-Open**: Recovery testing\n   - Limited requests allowed through\n   - If successful, switches to Closed (failure counter reset)\n   - If fails, reverts to Open\n\n### Benefits\n- Prevents resource exhaustion (memory, threads, DB connections)\n- Allows system time to recover\n- Protects against cascading failures\n- Prevents flooding recovering services",
+    "metadata": {
+      "doc_id": "sahatna-resiliency-patterns",
+      "component_name": "sahatna-resiliency-patterns",
+      "component_type": "pattern",
+      "is_internal": true,
+      "document_type": "architecture-pattern",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-resiliency-patterns.md",
+      "capabilities": [
+        "resiliency",
+        "fault tolerance",
+        "circuit breaker",
+        "retries",
+        "timeouts",
+        "error handling"
+      ]
+    }
+  },
+  {
+    "text": "# Sahatna Application Health Checks\n\n## Overview\nApplications can become unresponsive due to:\n- Being too busy to accept new work\n- Crashes\n- Deadlock states\n\nDapr provides capability for monitoring app health through probes.\n\n## Health Endpoints by Service\n\n| Service | Port | Health Endpoint |\n|---------|------|----------------|\n| Identity Service | 8090 | /identity/actuator/health |\n| Patient Service | 8091 | /patient/actuator/health |\n| Provider Service | 8092 | /provider/actuator/health |\n| Appointment Service | 8094 | /appointment/actuator/health |\n| Symptoms-Checker | 8095 | /symptomschecker/actuator/health |\n| Teleconsultation | 8097 | /teleconsultation/actuator/health |\n| PHR Service | 8100 | /phr/actuator/health |\n| Notification Service | 8104 | /notification/actuator/health |\n| Integration Service | 8107 | /integration/actuator/health |\n| Wearables Service | 8111 | /wearables/actuator/health |\n\n## Dapr Health Monitoring\n- Detects unresponsive applications\n- Stops accepting new work for unhealthy apps\n- Reacts to status changes automatically",
+    "metadata": {
+      "doc_id": "sahatna-health-checks",
+      "component_name": "sahatna-health-checks",
+      "component_type": "operations",
+      "is_internal": true,
+      "document_type": "operations",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-health-checks.md",
+      "capabilities": [
+        "health checks",
+        "monitoring",
+        "probes",
+        "actuator"
+      ]
+    }
+  },
+  {
+    "text": "# Sahatna Glossary & Abbreviations\n\n## Healthcare Terms\n| Term | Definition |\n|------|------------|\n| DFD | Digital Front Door |\n| EMR | Electronic Medical Records |\n| EHR | Electronic Health Record |\n| HIE | Health Information Exchange |\n| PHR | Patient Health Records |\n| FHIR | Fast Healthcare Interoperability Resources |\n\n## Technical Terms\n| Term | Definition |\n|------|------------|\n| API | Application Programming Interface |\n| REST | Representational State Transfer |\n| HTTP | Hypertext Transfer Protocol |\n| gRPC | Google Remote Procedure Call |\n| Pub/Sub | Publish Subscribe architectural messaging pattern |\n| API Gateway | Infrastructure component for API lifecycle management |\n| Open API (Swagger) | Open standard for defining RESTful APIs |\n| Access Token | Cryptographic string with security credentials for login session |\n\n## Organizations\n| Term | Definition |\n|------|------------|\n| DOH | Abu Dhabi Department of Health |\n| MOI | Ministry of Interior |\n| ADHDS | Abu Dhabi Health Data Services |\n| M42 | Healthcare technology company (genomics, AI) |\n| Core42 | Technology company, developer of Sahatna |\n\n## External Systems\n| Term | Definition |\n|------|------------|\n| UAE Pass | UAE unified digital identity platform |\n| Malaffi | Abu Dhabi health information exchange |\n| Okadoc | EHR aggregator platform |\n| Isabella | AI-powered symptom checker |\n| Vidyo | HIPAA-compliant video conferencing platform |\n| ADPay | Abu Dhabi payment gateway |\n| Med42 | M42's healthcare AI LLM |",
+    "metadata": {
+      "doc_id": "sahatna-glossary",
+      "component_name": "sahatna-glossary",
+      "component_type": "reference",
+      "is_internal": true,
+      "document_type": "glossary",
+      "project": "Sahatna Super App",
+      "source": "existing-landscape/sahatna-glossary.md",
+      "integrations": [
+        "DOH",
+        "MOI",
+        "ADHDS",
+        "M42",
+        "Core42",
+        "UAE Pass",
+        "Malaffi",
+        "Okadoc",
+        "Isabella",
+        "Vidyo",
+        "ADPay",
+        "Med42"
+      ]
+    }
+  }
+]
