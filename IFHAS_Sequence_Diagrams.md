@@ -12,15 +12,30 @@ sequenceDiagram
 
     U->>T: Open TAMM Dashboard
     T->>S: Request IFHAS Status (EID)
-    S->>D: GET /member/eligibility (EID)
-    D-->>S: Member Details Response
+
+    %% Step 1: Thiqa Category Check (Yes/No)
+    S->>D: GET /member/thiqa-status (EID)
+    D-->>S: Thiqa Status Response
     Note over D,S: Card Number, Thiqa Category,<br/>Enrollment Date, Expiry Date,<br/>Member Status
 
-    alt Thiqa C1-C4 & Active
-        S-->>T: Eligible = true
-        T-->>U: Display IFHAS Banner & Quick Tool
-    else Not C1-C4 or Inactive
-        S-->>T: Eligible = false
+    alt Is Thiqa Patient (C1-C4) & Active
+        Note over S: User IS a Thiqa patient
+
+        %% Step 2: Get Pending Screenings (separate step)
+        S->>D: GET /member/pending-screenings (EID)
+        D-->>S: Pending IFHAS Packages
+
+        alt Has Pending Screenings
+            S-->>T: Thiqa = true, HasPending = true
+            T-->>U: Display IFHAS Banner + Quick Tool Tile
+            Note over T,U: Banner shows pending screenings<br/>Tile always visible for Thiqa users
+        else No Pending Screenings
+            S-->>T: Thiqa = true, HasPending = false
+            T-->>U: Display Quick Tool Tile only (no Banner)
+            Note over T,U: Tile always visible for Thiqa users<br/>Banner only when pending screenings exist
+        end
+    else Not Thiqa (C1-C4) or Inactive
+        S-->>T: Thiqa = false
         T-->>U: Hide IFHAS Components
     end
 ```
@@ -40,15 +55,19 @@ sequenceDiagram
 
     U->>SA: Navigate to IFHAS Landing
 
-    par Fetch User Data
+    Note over SA,D: TRANSACTIONAL Experience (NEW)<br/>Previously: Informational only via CMS<br/>Now: User-specific eligibility, packages, results
+
+    par Fetch User Data (Transactional - from Daman)
         SA->>BE: Get Pending Packages
         BE->>D: GET /member/ifhas-history (EID)
         D-->>BE: IFHAS History (5 years)
+        Note over D,BE: User-specific pending screenings<br/>tailored to THIS user's status
         BE-->>SA: Available Packages by Age/Gender
-    and Fetch CMS Content
+    and Fetch CMS Content (Informational - static)
         SA->>BE: Get Landing Content
         BE->>ST: GET /ifhas-content
         ST-->>BE: Benefits, FAQs, Tips, Offerings
+        Note over ST,BE: Static content for display only
         BE-->>SA: CMS Content
     end
 
@@ -67,7 +86,8 @@ sequenceDiagram
     participant SA as Sahatna App
     participant BE as Sahatna Backend
     participant D as Daman API
-    participant DB as Package Config DB
+    participant PP as Provider Portal Config
+    participant ST as Strapi CMS
 
     U->>SA: View Available Packages
     SA->>BE: Get Packages for User (EID)
@@ -76,16 +96,31 @@ sequenceDiagram
     D-->>BE: Age, Gender, Insurance Status
 
     BE->>D: GET /member/ifhas-history (EID)
-    D-->>BE: Completed Packages & Dates
+    D-->>BE: Eligible Bundle IDs (e.g., 5221, 5223)
+    Note over D,BE: Daman returns Bundle ID codes<br/>e.g., "5221" = Comprehensive Screening Major
 
-    BE->>DB: Query Package Rules
-    DB-->>BE: Age/Gender/Frequency Rules
+    %% CPT Code Mapping (two scenarios)
+    alt Scenario A: Daman sends Bundle ID + CPT Codes (PREFERRED)
+        Note over D,BE: If Daman agrees to send CPT codes<br/>with bundle IDs → Dynamic mapping
+        BE->>ST: Map CPT codes to descriptions
+        ST-->>BE: Package names, descriptions (AR/EN)
+    else Scenario B: Daman sends Bundle ID only (CURRENT)
+        Note over D,BE: If Daman only sends bundle ID<br/>→ Manual mapping required
+        BE->>PP: GET /bundle-cpt-mapping
+        PP-->>BE: Bundle ID → CPT codes mapping
+        Note over PP,BE: Mapping maintained by business<br/>in Provider Portal (like Azure Admin)
+        BE->>ST: Map CPT codes to descriptions
+        ST-->>BE: Package names, descriptions (AR/EN)
+    end
 
-    Note over BE: Calculate Eligible Packages:<br/>- Filter by age range<br/>- Filter by gender<br/>- Check frequency (not done in period)
+    BE->>PP: Query Package Rules
+    PP-->>BE: Age/Gender/Frequency Rules, Specialty Mappings
+
+    Note over BE: Calculate Eligible Packages:<br/>- Filter by age range<br/>- Filter by gender<br/>- Check frequency (not done in period)<br/>- Group by specialty for bundling
 
     BE-->>SA: Available Packages List
     SA-->>U: Display Package Cards
-    Note over U,SA: Major Package, Minor Package,<br/>with descriptions and eligibility status
+    Note over U,SA: Major AND Minor Packages can be selected together<br/>(bundled if same specialty)<br/>with descriptions and eligibility status
 ```
 
 ---
@@ -103,18 +138,21 @@ sequenceDiagram
 
     U->>SA: View My IFHAS Info
 
-    par Get Insurance Status
+    Note over SA,D: Daman is SOURCE OF TRUTH<br/>Data fetched fresh every time<br/>(eligibility can change daily)
+
+    par Get Insurance Status (fresh from Daman)
         SA->>BE: Get Insurance Details
         BE->>D: GET /member/details (EID)
         D-->>BE: Thiqa Category, Status, Expiry
+        Note over D,BE: Always fetch fresh -<br/>status can change daily
         BE-->>SA: Insurance Info
-    and Get IFHAS History
+    and Get IFHAS History (fresh from Daman)
         SA->>BE: Get IFHAS History
         BE->>D: GET /member/ifhas-history (EID)
         D-->>BE: Past Packages (5 years)
         Note over D,BE: Authorization Date, Service Code,<br/>Provider License, Physician License
         BE-->>SA: Encounter History
-    and Get Upcoming Appointments
+    and Get Upcoming Appointments (local)
         SA->>BE: Get Appointments
         BE->>ADB: Query IFHAS Appointments
         ADB-->>BE: Scheduled Appointments
@@ -140,14 +178,20 @@ sequenceDiagram
     U->>SA: View Screening Results
     SA->>BE: Get IFHAS Results (EID)
 
+    Note over BE,M: ⚠️ MECHANISM TBD<br/>Exact approach for retrieving results<br/>by Visit ID needs alignment with<br/>Malaffi Clinical & Data teams
+
     BE->>M: GET /patient/encounters (EID)
-    Note over BE,M: Filter: Visit Description = "ICS"<br/>(IFHAS Comprehensive Screening)
+    Note over BE,M: Filter: Visit Description = "ICS"<br/>(IFHAS Comprehensive Screening)<br/><br/>Challenge: Need mechanism to identify<br/>which results belong to which package/visit
+
     M-->>BE: IFHAS Encounters List
 
     loop For Each IFHAS Encounter
         BE->>M: GET /encounter/results (Visit ID)
+        Note over BE,M: Grouping mechanism TBD:<br/>How to map results to specific<br/>packages within a visit
         M-->>BE: Lab Results, Observations
     end
+
+    Note over BE: Depends on facilities sending<br/>results back to Malaffi
 
     BE-->>SA: Compiled Results
     SA-->>U: Display Results by Package
@@ -170,20 +214,34 @@ sequenceDiagram
     participant SA as Sahatna App
     participant BE as Sahatna Backend
     participant D as Daman API
+    participant PP as Provider Portal Config
     participant A as Accela Licensing
     participant E as Facility EMR
 
+    %% Step 0: Re-verify Eligibility (required every time - can change daily)
+    SA->>BE: Verify Current Eligibility
+    BE->>D: GET /member/pending-screenings (EID)
+    D-->>BE: Current Eligible Packages
+    Note over D,BE: Eligibility checked on EVERY interaction<br/>Daman is source of truth (can change daily)
+
     %% Step 1: Select Package
-    U->>SA: Select IFHAS Package
+    U->>SA: Select IFHAS Package(s)
+    Note over U,SA: User can select Major AND Minor<br/>packages together (bundled by specialty)
     SA->>BE: Get Package Details
+    BE->>PP: Get Package Configuration
+    PP-->>BE: Specialties, Facility Mappings
+    Note over PP,BE: Provider Portal defines:<br/>- Specialty-to-Package mapping<br/>- Facility-to-Package mapping
     BE-->>SA: Specialties Required, Description
 
-    %% Step 2: Get Facilities
+    %% Step 2: Get Facilities (filtered by selected package)
     U->>SA: Browse Facilities
-    SA->>BE: Get IFHAS Facilities
+    SA->>BE: Get IFHAS Facilities for Package
     BE->>A: GET /facilities?service=IFHAS
     A-->>BE: Licensed IFHAS Providers
-    BE-->>SA: Facility List with Details
+    BE->>PP: Get Facility-Package Mapping
+    PP-->>BE: Facilities offering this Package
+    Note over BE,PP: Not all packages available at all facilities<br/>(e.g., cancer screening needs special equipment)
+    BE-->>SA: Filtered Facility List
     SA-->>U: Display Facility Cards
 
     %% Step 3: Select Facility & Physician
@@ -224,36 +282,46 @@ sequenceDiagram
     participant U as User
     participant SA as Sahatna App
     participant BE as Sahatna Backend
+    participant PP as Provider Portal Config
     participant ST as Strapi CMS
     participant M as Malaffi HIE
 
-    Note over U,SA: Triggered after Major Package booking
+    Note over U,SA: Triggered after booking - if package requires questionnaire
 
-    SA->>BE: Get Questionnaire
-    BE->>ST: GET /ifhas-questionnaire
-    ST-->>BE: Questions (DOH-defined)
-    BE-->>SA: Questionnaire Form
+    %% Check if questionnaire required (configurable per package)
+    SA->>BE: Check Questionnaire Requirement
+    BE->>PP: GET /package/{id}/config
+    PP-->>BE: Package Config (questionnaire_required: true/false)
+    Note over PP,BE: Questionnaire requirement is CONFIGURABLE<br/>per package (not hardcoded to Major only)<br/>Allows future flexibility
 
-    alt Complete Now
-        SA-->>U: Present Questionnaire
-        U->>SA: Fill Answers
-        U->>SA: Submit Questionnaire
-        SA->>BE: POST /questionnaire/submit
-        BE->>M: Submit Pre-screening Data
-        Note over BE,M: HL7 ORU Message with<br/>Patient Visit ID (PV1-19)
-        M-->>BE: Submission Confirmed
-        BE-->>SA: Success
-        SA-->>U: "Questionnaire submitted"
-    else Skip for Later
-        U->>SA: Skip
-        SA->>BE: Mark as Pending
-        BE-->>SA: Saved as Draft
-        SA-->>U: "Complete before appointment"
+    alt Questionnaire Required for this Package
+        SA->>BE: Get Questionnaire
+        BE->>ST: GET /ifhas-questionnaire
+        ST-->>BE: Questions (DOH-defined)
+        BE-->>SA: Questionnaire Form
 
-        Note over U,SA: Questionnaire accessible from:<br/>- Landing Page<br/>- Appointment Details<br/>- Notifications
+        alt Complete Now
+            SA-->>U: Present Questionnaire
+            U->>SA: Fill Answers
+            U->>SA: Submit Questionnaire
+            SA->>BE: POST /questionnaire/submit
+            BE->>M: Submit Pre-screening Data
+            Note over BE,M: HL7 ORU Message with<br/>Patient Visit ID (PV1-19)
+            M-->>BE: Submission Confirmed
+            BE-->>SA: Success
+            SA-->>U: "Questionnaire submitted"
+        else Skip for Later
+            U->>SA: Skip
+            SA->>BE: Mark as Pending
+            BE-->>SA: Saved as Draft
+            SA-->>U: "Complete before appointment"
+            Note over U,SA: Valid from appointment confirmation<br/>until MINUTES before appointment<br/><br/>Accessible from:<br/>- Landing Page<br/>- Appointment Details<br/>- Reminder Notifications
+        end
+
+        Note over M: Questionnaire results available<br/>to physician via Malaffi
+    else No Questionnaire Required
+        SA-->>U: Proceed without questionnaire
     end
-
-    Note over M: Questionnaire results available<br/>to physician via Malaffi
 ```
 
 ---
@@ -308,6 +376,7 @@ sequenceDiagram
     participant SCH as Scheduler Service
     participant NE as Nudge Engine
     participant DB as Appointment DB
+    participant QDB as Questionnaire DB
     participant D as Daman API
     participant NS as Notification Service
     participant FB as Firebase
@@ -315,20 +384,42 @@ sequenceDiagram
 
     Note over SCH,U: Scheduled Job runs periodically
 
-    %% Appointment Reminders
+    %% Questionnaire Completion Reminders (NEW)
+    rect rgb(255, 240, 245)
+        Note over SCH,U: Questionnaire Reminder Flow (NEW)<br/>Reminders to complete pre-screening questionnaire
+        SCH->>DB: Query appointments (next 24H)
+        DB-->>SCH: Upcoming Appointments
+        SCH->>QDB: Check questionnaire completion status
+        QDB-->>SCH: Pending Questionnaires
+
+        loop Each Appointment with Pending Questionnaire
+            SCH->>NE: Check questionnaire reminder status
+            alt 24H Reminder Not Sent & Questionnaire Incomplete
+                NE->>NS: Send 24H Questionnaire Reminder
+                NS->>FB: Push Notification
+                FB-->>U: "Complete your pre-screening questionnaire before tomorrow's appointment"
+            else 1H Reminder Not Sent & Questionnaire Incomplete
+                NE->>NS: Send 1H Questionnaire Reminder
+                NS->>FB: Push Notification
+                FB-->>U: "Your appointment is in 1 hour - please complete your questionnaire now"
+            end
+        end
+    end
+
+    %% Appointment Reminders (EXISTING - already implemented)
     rect rgb(230, 245, 255)
-        Note over SCH,U: Appointment Reminder Flow
+        Note over SCH,U: Appointment Reminder Flow (EXISTING)
         SCH->>DB: Query appointments (next 24H)
         DB-->>SCH: Upcoming Appointments
 
         loop Each Appointment
-            SCH->>NE: Check reminder status
-            alt 24H Reminder Not Sent
-                NE->>NS: Send 24H Reminder
+            SCH->>NE: Check appointment reminder status
+            alt 24H Appointment Reminder Not Sent
+                NE->>NS: Send 24H Appointment Reminder
                 NS->>FB: Push Notification
                 FB-->>U: "Your IFHAS appointment is tomorrow"
-            else 1H Reminder Not Sent
-                NE->>NS: Send 1H Reminder
+            else 1H Appointment Reminder Not Sent
+                NE->>NS: Send 1H Appointment Reminder
                 NS->>FB: Push Notification
                 FB-->>U: "Your IFHAS appointment is in 1 hour"
             end
@@ -428,6 +519,7 @@ sequenceDiagram
     participant U as User
     participant T as TAMM
     participant SA as Sahatna
+    participant PP as Provider Portal
     participant D as Daman
     participant A as Accela
     participant E as EMR
@@ -435,29 +527,42 @@ sequenceDiagram
     participant N as Notifications
 
     rect rgb(255, 248, 225)
-        Note over U,N: Discovery & Eligibility
+        Note over U,N: Discovery & Eligibility (2-step check)
         U->>T: Open Dashboard
         T->>SA: Check IFHAS Eligibility
-        SA->>D: Verify Thiqa C1-C4
-        D-->>SA: Eligible + History
-        SA-->>T: Show IFHAS Banner
+        SA->>D: Step 1: Is Thiqa patient? (Yes/No)
+        D-->>SA: Thiqa Status
+        SA->>D: Step 2: Get pending screenings
+        D-->>SA: Pending packages (if Thiqa=Yes)
+        alt Has Pending Screenings
+            SA-->>T: Show IFHAS Banner + Tile
+        else Thiqa but No Pending
+            SA-->>T: Show Tile only (no Banner)
+        end
         T-->>U: Click to proceed
     end
 
     rect rgb(225, 245, 254)
         Note over U,N: Package Selection
         U->>SA: Open IFHAS Landing
-        SA->>D: Get available packages
-        D-->>SA: Pending packages
-        SA-->>U: Display Major/Minor options
-        U->>SA: Select Major Package
+        SA->>D: Get available packages (Bundle IDs)
+        D-->>SA: Bundle IDs (e.g., 5221)
+        SA->>PP: Map to CPT codes & descriptions
+        PP-->>SA: Package details
+        SA-->>U: Display Major AND Minor options
+        U->>SA: Select packages (can select both)
+        Note over U,SA: Bundled by specialty
     end
 
     rect rgb(232, 245, 233)
         Note over U,N: Facility & Booking
+        SA->>D: Re-verify eligibility (every time)
+        D-->>SA: Current status
         SA->>A: Get IFHAS facilities
         A-->>SA: Licensed providers
-        SA-->>U: Show facility list
+        SA->>PP: Filter by package-facility mapping
+        PP-->>SA: Facilities offering selected package
+        SA-->>U: Show filtered facility list
         U->>SA: Select facility
         SA->>E: Get physicians & slots
         E-->>SA: Available options
@@ -469,17 +574,22 @@ sequenceDiagram
     end
 
     rect rgb(243, 229, 245)
-        Note over U,N: Questionnaire
-        SA-->>U: Present questionnaire
-        U->>SA: Complete & submit
-        SA->>M: Send to Malaffi
-        M-->>SA: Stored for physician
+        Note over U,N: Questionnaire (if package requires)
+        SA->>PP: Check if questionnaire required
+        PP-->>SA: Required = true/false (configurable)
+        alt Questionnaire Required
+            SA-->>U: Present questionnaire
+            U->>SA: Complete & submit (valid until minutes before appt)
+            SA->>M: Send to Malaffi
+            M-->>SA: Stored for physician
+        end
     end
 
     rect rgb(255, 243, 224)
         Note over U,N: Reminders
-        N-->>U: 24H reminder
-        N-->>U: 1H reminder
+        N-->>U: 24H questionnaire reminder (NEW)
+        N-->>U: 1H questionnaire reminder (NEW)
+        N-->>U: Appointment reminders (EXISTING)
     end
 
     rect rgb(252, 228, 236)
@@ -487,7 +597,7 @@ sequenceDiagram
         Note over U,E: User visits facility
         E->>M: Submit results (ICS tag)
         U->>SA: Check results
-        SA->>M: Fetch by Visit ID
+        SA->>M: Fetch by Visit ID (mechanism TBD)
         M-->>SA: Lab results
         SA-->>U: Display results
     end
