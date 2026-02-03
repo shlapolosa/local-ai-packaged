@@ -401,7 +401,8 @@
           "id": "M5eIfNwtZu8y3dOp",
           "name": "Postgres account"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -419,7 +420,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT DISTINCT ON (a.type) a.type, a.content FROM architecture.artifacts a WHERE a.project_id = $1 AND a.type IN ('brd', 'business_arch', 'application_arch', 'data_arch', 'infrastructure_arch', 'risk_assessment_md', 'solution_arch_md', 'test_strategy_md', 'test_scenarios_md') ORDER BY a.type, a.version DESC;",
+        "query": "SELECT DISTINCT ON (a.type) a.type, a.content FROM architecture.artifacts a WHERE a.project_id = $1 AND a.type IN ('brd', 'business_arch', 'application_arch', 'data_arch', 'infrastructure_arch', 'risk_assessment_md', 'solution_arch_md', 'test_strategy_md', 'test_scenarios_md', 'enriched_sequences') ORDER BY a.type, a.version DESC;",
         "options": {
           "queryReplacement": "={{ [ $json.projectId ] }}"
         }
@@ -455,13 +456,26 @@
     },
     {
       "parameters": {
+        "jsCode": "// Build Capability Tree from enriched sequences\nconst ctx = $json;\nconst enrichedSeq = ctx.artifacts?.enriched_sequences || {};\nconst sequences = enrichedSeq.enrichedSequences || [];\n\nlet capabilityTree = '## Capability Tree\\n\\n';\n\nfor (const seq of sequences) {\n  const ucId = seq.useCaseId || `UC-${sequences.indexOf(seq) + 1}`;\n  capabilityTree += `### Capability: ${ucId} ${seq.useCaseName || 'Unnamed'}\\n`;\n  capabilityTree += `Phase 0 - ${seq.useCaseName || 'Implementation'}\\n\\n`;\n\n  let prevFeatureId = null;\n  const flow = seq.enrichedFlow || [];\n  for (let i = 0; i < flow.length; i++) {\n    const step = flow[i];\n    if (step.componentStatus === 'exists') continue;\n\n    const featureId = `${ucId}.${i + 1}`;\n    capabilityTree += `#### Feature: ${step.action || 'Action'}\\n`;\n    capabilityTree += `- **Description**: ${step.from?.component || 'Source'} → ${step.to?.component || 'Target'}: ${step.action || 'N/A'}\\n`;\n    capabilityTree += `- **Inputs**: Request from ${step.from?.component || 'Source'} (${step.from?.type || 'unknown'})\\n`;\n    capabilityTree += `- **Outputs**: Response to ${step.to?.component || 'Target'} (${step.to?.type || 'unknown'})\\n`;\n    capabilityTree += `- **Behavior**: ${step.action || 'N/A'}\\n`;\n    capabilityTree += `- **Depends on**: ${prevFeatureId ? `[${prevFeatureId}]` : 'None'}\\n`;\n    capabilityTree += `- **Priority**: ${step.ticket?.priority || 'Medium'}\\n`;\n    capabilityTree += `- **Status**: ${step.componentStatus || 'unknown'}\\n\\n`;\n\n    prevFeatureId = featureId;\n  }\n}\n\nreturn [{ json: { ...ctx, capabilityTree, hasEnrichedSequences: sequences.length > 0 } }];"
+      },
+      "id": "build-capability-tree",
+      "name": "Build Capability Tree",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        304
+      ]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "http://ollama:11434/api/chat",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a Business Analyst writing a PRD using the RPG (Repository Planning Graph) Method. Output JSON with {\"markdown\": \"...\"} only. First line of markdown MUST be: # PRD: <Project Name>. Include sections: Problem Statement, Target Users, Success Metrics, Capability Tree, Repository Structure, Module Definitions, Dependency Chain, Development Phases, Test Pyramid, Coverage Requirements, Critical Test Scenarios, System Components, Data Models, Technology Stack, Technical Risks, Open Questions.'\n    },\n    {\n      role: 'user',\n      content: 'PROJECT_NAME: ' + $json.projectName + '\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,8000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($json.artifacts.business_arch || {}).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($json.artifacts.data_arch || {}).slice(0,4000) + '\\nINFRA_ARCH: ' + JSON.stringify($json.artifacts.infrastructure_arch || {}).slice(0,4000) + '\\nRISK_MD: ' + String($json.artifacts.risk_assessment_md?.markdown || '').slice(0,4000) + '\\nSOLUTION_MD: ' + String($json.artifacts.solution_arch_md?.markdown || '').slice(0,4000) + '\\nTEST_STRATEGY: ' + String($json.artifacts.test_strategy_md?.markdown || '').slice(0,4000) + '\\nTEST_SCENARIOS: ' + String($json.artifacts.test_scenarios_md?.markdown || '').slice(0,4000)\n    }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['markdown'], properties: { markdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
+        "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a Business Analyst writing a PRD using the RPG (Repository Planning Graph) Method. Output JSON with {\"markdown\": \"...\"} only. First line of markdown MUST be: # PRD: <Project Name>. Include sections: Problem Statement, Target Users, Success Metrics, Capability Tree, Repository Structure, Module Definitions, Dependency Chain, Development Phases, Test Pyramid, Coverage Requirements, Critical Test Scenarios, System Components, Data Models, Technology Stack, Technical Risks, Open Questions.\\n\\nIMPORTANT: If a CAPABILITY_TREE section is provided, it was generated from enriched use case sequences. Each ### Capability: maps to a main task. Each #### Feature: maps to a subtask. Preserve the dependency chain (Depends on: [...]) and include ALL capabilities and features in the output PRD Capability Tree section.'\n    },\n    {\n      role: 'user',\n      content: 'PROJECT_NAME: ' + $json.projectName + '\\n\\nCAPABILITY_TREE (from enriched sequences):\\n' + ($json.capabilityTree || 'No enriched sequences available') + '\\n\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,8000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($json.artifacts.business_arch || {}).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($json.artifacts.data_arch || {}).slice(0,4000) + '\\nINFRA_ARCH: ' + JSON.stringify($json.artifacts.infrastructure_arch || {}).slice(0,4000) + '\\nSOLUTION_MD: ' + String($json.artifacts.solution_arch_md?.markdown || '').slice(0,4000) + ($json.artifacts.risk_assessment_md ? '\\nRISK_MD: ' + String($json.artifacts.risk_assessment_md?.markdown || '').slice(0,4000) : '') + ($json.artifacts.test_strategy_md ? '\\nTEST_STRATEGY: ' + String($json.artifacts.test_strategy_md?.markdown || '').slice(0,4000) : '') + ($json.artifacts.test_scenarios_md ? '\\nTEST_SCENARIOS: ' + String($json.artifacts.test_scenarios_md?.markdown || '').slice(0,4000) : '')\n    }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['markdown'], properties: { markdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
         "options": {
-          "timeout": 180000
+          "timeout": 600000
         }
       },
       "id": "generate-prd",
@@ -545,6 +559,281 @@
     },
     {
       "parameters": {
+        "jsCode": "// Build Taskmaster execution script - uses shared volume accessible to both n8n and taskmaster\nconst ctx = $('Pass Context').first().json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\nconst artifacts = $('Build Capability Tree').first().json.artifacts || {};\nconst prdMarkdown = $('Validate PRD').first().json.prdMarkdown || '';\n\n// Path in shared volume (mounted as /data/shared in n8n and taskmaster)\nconst sharedDir = `/data/shared/taskmaster/${projectSlug}`;\n\nreturn [{ json: { ...ctx, sharedDir, prdMarkdown, artifacts } }];"
+      },
+      "id": "build-taskmaster-script",
+      "name": "Build Taskmaster Script",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        554
+      ]
+    },
+    {
+      "parameters": {
+        "command": "={{ 'mkdir -p ' + $json.sharedDir + '/docs && cat > ' + $json.sharedDir + '/docs/PRD.md << ' + \"'PRDEOF'\" + '\\n' + $json.prdMarkdown + '\\nPRDEOF' }}"
+      },
+      "id": "write-prd-to-shared",
+      "name": "Write PRD to Shared",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        3000,
+        554
+      ]
+    },
+    {
+      "parameters": {
+        "command": "={{ 'docker exec -w /data/shared/taskmaster/' + $('Build Taskmaster Script').first().json.projectSlug + ' taskmaster task-master init -y 2>&1 || true' }}"
+      },
+      "id": "taskmaster-init",
+      "name": "Taskmaster: Init",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        554
+      ]
+    },
+    {
+      "parameters": {
+        "command": "={{ 'docker exec -w /data/shared/taskmaster/' + $('Build Taskmaster Script').first().json.projectSlug + ' taskmaster task-master parse-prd --input=docs/PRD.md --num-tasks=20 2>&1' }}"
+      },
+      "id": "taskmaster-parse",
+      "name": "Taskmaster: Parse PRD",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        3240,
+        554
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "command": "={{ 'docker exec -w /data/shared/taskmaster/' + $('Build Taskmaster Script').first().json.projectSlug + ' taskmaster cat .taskmaster/tasks/tasks.json 2>&1 || echo {\\\"tasks\\\":[]}' }}"
+      },
+      "id": "taskmaster-read",
+      "name": "Taskmaster: Read Tasks",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        3360,
+        554
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Taskmaster output from executeCommand\nconst ctx = $('Build Taskmaster Script').first().json;\nconst cmdOutput = $json.stdout || '';\n\nlet tasks = { tasks: [] };\ntry {\n  tasks = JSON.parse(cmdOutput.trim());\n} catch (e) {\n  console.log('Failed to parse tasks.json:', e.message);\n}\n\nreturn [{ json: { ...ctx, taskmasterTasks: tasks, taskmasterSuccess: tasks.tasks.length > 0 } }];"
+      },
+      "id": "parse-taskmaster-output",
+      "name": "Parse Taskmaster Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3480,
+        554
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build ADO Stories from Taskmaster tasks and enriched sequences\nconst ctx = $input.first().json;\nconst tasks = (ctx.taskmasterTasks && ctx.taskmasterTasks.tasks) || [];\nconst enrichedSeq = (ctx.artifacts && ctx.artifacts.enriched_sequences) || {};\nconst sequences = enrichedSeq.enrichedSequences || [];\n\n// Complexity to story points mapping\nconst toStoryPoints = (complexity) => {\n  if (!complexity || complexity <= 3) return 3;\n  if (complexity <= 5) return 5;\n  if (complexity <= 7) return 8;\n  return 13;\n};\n\n// Priority to ADO priority mapping\nconst toAdoPriority = (p) => {\n  const map = { 'Critical': 1, 'High': 2, 'Medium': 3, 'Low': 4 };\n  return map[p] || 3;\n};\n\nconst workItems = [];\n\n// Create Epics from use cases\nfor (const seq of sequences) {\n  workItems.push({\n    type: 'Epic',\n    title: `${seq.useCaseId}: ${seq.useCaseName}`,\n    description: `Implementation of use case: ${seq.useCaseName}`,\n    tags: ['auto-generated', ctx.projectSlug],\n    areaPath: ctx.projectSlug,\n    tempId: seq.useCaseId\n  });\n}\n\n// Create Features from flow steps that need work\nfor (const seq of sequences) {\n  for (const step of seq.enrichedFlow || []) {\n    if (step.componentStatus !== 'exists' && step.ticket) {\n      workItems.push({\n        type: 'Feature',\n        title: step.ticket.title || step.action,\n        description: `From: ${(step.from && step.from.component) || 'Source'} → To: ${(step.to && step.to.component) || 'Target'}\\n\\nAction: ${step.action}`,\n        priority: toAdoPriority(step.ticket.priority),\n        parentTempId: seq.useCaseId,\n        tags: ['auto-generated', step.componentStatus]\n      });\n    }\n  }\n}\n\n// Create User Stories from Taskmaster tasks\nfor (const task of tasks) {\n  workItems.push({\n    type: 'User Story',\n    title: task.title,\n    description: task.description + '\\n\\n**Details:**\\n' + (task.details || ''),\n    storyPoints: toStoryPoints(task.complexityScore),\n    acceptanceCriteria: task.testStrategy || '',\n    priority: task.priority === 'high' ? 2 : (task.priority === 'low' ? 4 : 3),\n    tags: ['taskmaster', ...(task.tags || [])]\n  });\n\n  // Create Tasks from subtasks\n  for (const sub of task.subtasks || []) {\n    workItems.push({\n      type: 'Task',\n      title: sub.title,\n      description: sub.description,\n      remainingWork: toStoryPoints(sub.complexityScore),\n      parentTaskId: task.id\n    });\n  }\n}\n\nreturn [{ json: { ...ctx, adoWorkItems: workItems, workItemCount: workItems.length } }];"
+      },
+      "id": "build-ado-stories",
+      "name": "Build ADO Stories",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3600,
+        554
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "ado-work-items-enabled",
+              "leftValue": "={{ $env.AZURE_DEVOPS_ORG }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "ado-create-enabled",
+              "leftValue": "={{ $env.AZURE_DEVOPS_CREATE_WORK_ITEMS }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-ado-work-items",
+      "name": "If: ADO Work Items Enabled",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3840,
+        554
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "split-work-items",
+      "name": "Split Work Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        4080,
+        474
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/wit/workitems/${{ $json.type }}?api-version=7.1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json-patch+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ [\n  { \"op\": \"add\", \"path\": \"/fields/System.Title\", \"value\": $json.title },\n  { \"op\": \"add\", \"path\": \"/fields/System.Description\", \"value\": $json.description || '' },\n  { \"op\": \"add\", \"path\": \"/fields/Microsoft.VSTS.Scheduling.StoryPoints\", \"value\": $json.storyPoints || 0 },\n  { \"op\": \"add\", \"path\": \"/fields/Microsoft.VSTS.Common.Priority\", \"value\": $json.priority || 3 },\n  { \"op\": \"add\", \"path\": \"/fields/System.Tags\", \"value\": ($json.tags || []).join('; ') }\n] }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false
+            }
+          }
+        }
+      },
+      "id": "ado-create-work-item",
+      "name": "ADO: Create Work Item",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4320,
+        474
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "kck9Sr0DATIIbF3R",
+          "name": "Unnamed credential"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect created work item IDs\nconst items = $input.all();\nconst createdIds = items.map(i => ({\n  tempId: i.json.tempId,\n  adoId: i.json.id,\n  title: i.json.fields?.['System.Title'] || i.json.title,\n  type: i.json.fields?.['System.WorkItemType'] || i.json.type\n}));\nreturn [{ json: { createdWorkItems: createdIds, count: createdIds.length } }];"
+      },
+      "id": "collect-work-item-ids",
+      "name": "Collect Work Item IDs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4560,
+        474
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "noop-ado-work-items",
+      "name": "ADO Work Items Disabled",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        4080,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "jobId",
+              "field2": "jobId"
+            }
+          ]
+        },
+        "options": {
+          "fuzzyCompare": false
+        }
+      },
+      "id": "merge-ado-results",
+      "name": "Merge ADO Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        4800,
+        554
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare Taskmaster artifact for storage\nconst ctx = $('Parse Taskmaster Output').first().json;\nconst adoResults = $json.createdWorkItems || [];\nconst tasks = ctx.taskmasterTasks || { tasks: [] };\n\n// Calculate hash for deduplication\nconst fnv1a = (s) => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };\nconst tasksHash = fnv1a(JSON.stringify(tasks));\n\nreturn [{ json: { \n  projectId: ctx.projectId,\n  jobId: ctx.jobId,\n  projectSlug: ctx.projectSlug,\n  taskmasterTasks: tasks,\n  tasksHash,\n  adoWorkItems: adoResults,\n  taskmasterSuccess: ctx.taskmasterSuccess || false\n} }];"
+      },
+      "id": "prepare-taskmaster-artifact",
+      "name": "Prepare Taskmaster Artifact",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5040,
+        554
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (SELECT COALESCE(MAX(version), 0) + 1 AS v FROM architecture.artifacts WHERE project_id = $1 AND type = 'taskmaster_tasks') INSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta) SELECT $1, 'taskmaster_tasks', next_version.v, $2::jsonb, $3, $4::jsonb FROM next_version RETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $json.projectId, JSON.stringify($json.taskmasterTasks), $json.tasksHash, JSON.stringify({ jobId: $json.jobId, stage: 'project-management', adoWorkItems: $json.adoWorkItems, success: $json.taskmasterSuccess }) ] }}"
+        }
+      },
+      "id": "store-taskmaster-artifact",
+      "name": "Store Taskmaster Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5280,
+        554
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
         "operation": "executeQuery",
         "query": "UPDATE architecture.jobs SET status = 'completed', completed_at = now() WHERE id = $1 RETURNING id, status;",
         "options": {
@@ -568,7 +857,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const ctx = $('Pass Context').first().json;\nreturn [{ json: { success: true, jobId: ctx.jobId, projectSlug: ctx.projectSlug, stage: 'project-management', prdPath: ctx.projectSlug + '-docs/docs/PRD.md' } }];"
+        "jsCode": "const ctx = $('Pass Context').first().json;\n\n// Safely get data from nodes that may not have executed\nlet tmArtifact = {};\nlet tmTasks = { tasks: [] };\nlet adoStories = [];\nlet adoCreatedCount = 0;\n\ntry { tmArtifact = $('Store Taskmaster Artifact').first().json || {}; } catch(e) {}\ntry { \n  const parsed = $('Parse Taskmaster Output').first().json;\n  tmTasks = (parsed && parsed.taskmasterTasks) || { tasks: [] };\n} catch(e) {}\ntry {\n  const stories = $('Build ADO Stories').first().json;\n  adoStories = (stories && stories.adoWorkItems) || [];\n} catch(e) {}\ntry {\n  const collected = $('Collect Work Item IDs').first().json;\n  adoCreatedCount = (collected && collected.count) || 0;\n} catch(e) {}\n\nreturn [{ json: { \n  success: true, \n  jobId: ctx.jobId, \n  projectSlug: ctx.projectSlug, \n  stage: 'project-management', \n  prdPath: ctx.projectSlug + '-docs/docs/PRD.md',\n  taskmaster: {\n    tasksCount: (tmTasks.tasks && tmTasks.tasks.length) || 0,\n    artifactId: tmArtifact.id,\n    artifactVersion: tmArtifact.version\n  },\n  ado: {\n    workItemsGenerated: adoStories.length,\n    workItemsCreated: adoCreatedCount\n  }\n} }];"
       },
       "id": "return-result",
       "name": "Return Result",
@@ -1001,7 +1290,9 @@
             "node": "Pass Context",
             "type": "main",
             "index": 0
-          },
+          }
+        ],
+        [
           {
             "node": "Entry: Respond Exec",
             "type": "main",
@@ -1033,6 +1324,17 @@
       ]
     },
     "Collect Artifacts": {
+      "main": [
+        [
+          {
+            "node": "Build Capability Tree",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Capability Tree": {
       "main": [
         [
           {
@@ -1099,6 +1401,190 @@
             "node": "Merge Git Results",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Build Taskmaster Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Taskmaster Script": {
+      "main": [
+        [
+          {
+            "node": "Write PRD to Shared",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write PRD to Shared": {
+      "main": [
+        [
+          {
+            "node": "Taskmaster: Init",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Taskmaster: Init": {
+      "main": [
+        [
+          {
+            "node": "Taskmaster: Parse PRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Taskmaster: Parse PRD": {
+      "main": [
+        [
+          {
+            "node": "Taskmaster: Read Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Taskmaster: Read Tasks": {
+      "main": [
+        [
+          {
+            "node": "Parse Taskmaster Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Taskmaster Output": {
+      "main": [
+        [
+          {
+            "node": "Build ADO Stories",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build ADO Stories": {
+      "main": [
+        [
+          {
+            "node": "If: ADO Work Items Enabled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: ADO Work Items Enabled": {
+      "main": [
+        [
+          {
+            "node": "Split Work Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ADO Work Items Disabled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Work Items": {
+      "main": [
+        [
+          {
+            "node": "ADO: Create Work Item",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Collect Work Item IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ADO: Create Work Item": {
+      "main": [
+        [
+          {
+            "node": "Split Work Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Work Item IDs": {
+      "main": [
+        [
+          {
+            "node": "Merge ADO Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ADO Work Items Disabled": {
+      "main": [
+        [
+          {
+            "node": "Merge ADO Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge ADO Results": {
+      "main": [
+        [
+          {
+            "node": "Prepare Taskmaster Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Taskmaster Artifact": {
+      "main": [
+        [
+          {
+            "node": "Store Taskmaster Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Taskmaster Artifact": {
+      "main": [
+        [
+          {
+            "node": "Merge Git Results",
+            "type": "main",
+            "index": 2
           }
         ]
       ]
@@ -1687,7 +2173,8 @@
             "id": "M5eIfNwtZu8y3dOp",
             "name": "Postgres account"
           }
-        }
+        },
+        "onError": "continueErrorOutput"
       },
       {
         "parameters": {
@@ -1705,7 +2192,7 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "SELECT DISTINCT ON (a.type) a.type, a.content FROM architecture.artifacts a WHERE a.project_id = $1 AND a.type IN ('brd', 'business_arch', 'application_arch', 'data_arch', 'infrastructure_arch', 'risk_assessment_md', 'solution_arch_md', 'test_strategy_md', 'test_scenarios_md') ORDER BY a.type, a.version DESC;",
+          "query": "SELECT DISTINCT ON (a.type) a.type, a.content FROM architecture.artifacts a WHERE a.project_id = $1 AND a.type IN ('brd', 'business_arch', 'application_arch', 'data_arch', 'infrastructure_arch', 'risk_assessment_md', 'solution_arch_md', 'test_strategy_md', 'test_scenarios_md', 'enriched_sequences') ORDER BY a.type, a.version DESC;",
           "options": {
             "queryReplacement": "={{ [ $json.projectId ] }}"
           }
@@ -1741,13 +2228,26 @@
       },
       {
         "parameters": {
+          "jsCode": "// Build Capability Tree from enriched sequences\nconst ctx = $json;\nconst enrichedSeq = ctx.artifacts?.enriched_sequences || {};\nconst sequences = enrichedSeq.enrichedSequences || [];\n\nlet capabilityTree = '## Capability Tree\\n\\n';\n\nfor (const seq of sequences) {\n  const ucId = seq.useCaseId || `UC-${sequences.indexOf(seq) + 1}`;\n  capabilityTree += `### Capability: ${ucId} ${seq.useCaseName || 'Unnamed'}\\n`;\n  capabilityTree += `Phase 0 - ${seq.useCaseName || 'Implementation'}\\n\\n`;\n\n  let prevFeatureId = null;\n  const flow = seq.enrichedFlow || [];\n  for (let i = 0; i < flow.length; i++) {\n    const step = flow[i];\n    if (step.componentStatus === 'exists') continue;\n\n    const featureId = `${ucId}.${i + 1}`;\n    capabilityTree += `#### Feature: ${step.action || 'Action'}\\n`;\n    capabilityTree += `- **Description**: ${step.from?.component || 'Source'} → ${step.to?.component || 'Target'}: ${step.action || 'N/A'}\\n`;\n    capabilityTree += `- **Inputs**: Request from ${step.from?.component || 'Source'} (${step.from?.type || 'unknown'})\\n`;\n    capabilityTree += `- **Outputs**: Response to ${step.to?.component || 'Target'} (${step.to?.type || 'unknown'})\\n`;\n    capabilityTree += `- **Behavior**: ${step.action || 'N/A'}\\n`;\n    capabilityTree += `- **Depends on**: ${prevFeatureId ? `[${prevFeatureId}]` : 'None'}\\n`;\n    capabilityTree += `- **Priority**: ${step.ticket?.priority || 'Medium'}\\n`;\n    capabilityTree += `- **Status**: ${step.componentStatus || 'unknown'}\\n\\n`;\n\n    prevFeatureId = featureId;\n  }\n}\n\nreturn [{ json: { ...ctx, capabilityTree, hasEnrichedSequences: sequences.length > 0 } }];"
+        },
+        "id": "build-capability-tree",
+        "name": "Build Capability Tree",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1800,
+          304
+        ]
+      },
+      {
+        "parameters": {
           "method": "POST",
           "url": "http://ollama:11434/api/chat",
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a Business Analyst writing a PRD using the RPG (Repository Planning Graph) Method. Output JSON with {\"markdown\": \"...\"} only. First line of markdown MUST be: # PRD: <Project Name>. Include sections: Problem Statement, Target Users, Success Metrics, Capability Tree, Repository Structure, Module Definitions, Dependency Chain, Development Phases, Test Pyramid, Coverage Requirements, Critical Test Scenarios, System Components, Data Models, Technology Stack, Technical Risks, Open Questions.'\n    },\n    {\n      role: 'user',\n      content: 'PROJECT_NAME: ' + $json.projectName + '\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,8000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($json.artifacts.business_arch || {}).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($json.artifacts.data_arch || {}).slice(0,4000) + '\\nINFRA_ARCH: ' + JSON.stringify($json.artifacts.infrastructure_arch || {}).slice(0,4000) + '\\nRISK_MD: ' + String($json.artifacts.risk_assessment_md?.markdown || '').slice(0,4000) + '\\nSOLUTION_MD: ' + String($json.artifacts.solution_arch_md?.markdown || '').slice(0,4000) + '\\nTEST_STRATEGY: ' + String($json.artifacts.test_strategy_md?.markdown || '').slice(0,4000) + '\\nTEST_SCENARIOS: ' + String($json.artifacts.test_scenarios_md?.markdown || '').slice(0,4000)\n    }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['markdown'], properties: { markdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
+          "jsonBody": "={{ {\n  model: $('Initialize Parameters').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a Business Analyst writing a PRD using the RPG (Repository Planning Graph) Method. Output JSON with {\"markdown\": \"...\"} only. First line of markdown MUST be: # PRD: <Project Name>. Include sections: Problem Statement, Target Users, Success Metrics, Capability Tree, Repository Structure, Module Definitions, Dependency Chain, Development Phases, Test Pyramid, Coverage Requirements, Critical Test Scenarios, System Components, Data Models, Technology Stack, Technical Risks, Open Questions.\\n\\nIMPORTANT: If a CAPABILITY_TREE section is provided, it was generated from enriched use case sequences. Each ### Capability: maps to a main task. Each #### Feature: maps to a subtask. Preserve the dependency chain (Depends on: [...]) and include ALL capabilities and features in the output PRD Capability Tree section.'\n    },\n    {\n      role: 'user',\n      content: 'PROJECT_NAME: ' + $json.projectName + '\\n\\nCAPABILITY_TREE (from enriched sequences):\\n' + ($json.capabilityTree || 'No enriched sequences available') + '\\n\\nBRD: ' + JSON.stringify($json.artifacts.brd || {}).slice(0,8000) + '\\nBUSINESS_ARCH: ' + JSON.stringify($json.artifacts.business_arch || {}).slice(0,6000) + '\\nAPP_ARCH: ' + JSON.stringify($json.artifacts.application_arch || {}).slice(0,6000) + '\\nDATA_ARCH: ' + JSON.stringify($json.artifacts.data_arch || {}).slice(0,4000) + '\\nINFRA_ARCH: ' + JSON.stringify($json.artifacts.infrastructure_arch || {}).slice(0,4000) + '\\nSOLUTION_MD: ' + String($json.artifacts.solution_arch_md?.markdown || '').slice(0,4000) + ($json.artifacts.risk_assessment_md ? '\\nRISK_MD: ' + String($json.artifacts.risk_assessment_md?.markdown || '').slice(0,4000) : '') + ($json.artifacts.test_strategy_md ? '\\nTEST_STRATEGY: ' + String($json.artifacts.test_strategy_md?.markdown || '').slice(0,4000) : '') + ($json.artifacts.test_scenarios_md ? '\\nTEST_SCENARIOS: ' + String($json.artifacts.test_scenarios_md?.markdown || '').slice(0,4000) : '')\n    }\n  ],\n  stream: false,\n  format: { type: 'object', required: ['markdown'], properties: { markdown: { type: 'string' } } },\n  options: { temperature: $('Initialize Parameters').first().json.ollamaTemperature, seed: $('Initialize Parameters').first().json.ollamaSeed }\n} }}",
           "options": {
-            "timeout": 180000
+            "timeout": 600000
           }
         },
         "id": "generate-prd",
@@ -1831,6 +2331,281 @@
       },
       {
         "parameters": {
+          "jsCode": "// Build Taskmaster execution script - uses shared volume accessible to both n8n and taskmaster\nconst ctx = $('Pass Context').first().json;\nconst projectSlug = ctx.projectSlug;\nconst jobId = ctx.jobId;\nconst artifacts = $('Build Capability Tree').first().json.artifacts || {};\nconst prdMarkdown = $('Validate PRD').first().json.prdMarkdown || '';\n\n// Path in shared volume (mounted as /data/shared in n8n and taskmaster)\nconst sharedDir = `/data/shared/taskmaster/${projectSlug}`;\n\nreturn [{ json: { ...ctx, sharedDir, prdMarkdown, artifacts } }];"
+        },
+        "id": "build-taskmaster-script",
+        "name": "Build Taskmaster Script",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2880,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "command": "={{ 'mkdir -p ' + $json.sharedDir + '/docs && cat > ' + $json.sharedDir + '/docs/PRD.md << ' + \"'PRDEOF'\" + '\\n' + $json.prdMarkdown + '\\nPRDEOF' }}"
+        },
+        "id": "write-prd-to-shared",
+        "name": "Write PRD to Shared",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          3000,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "command": "={{ 'docker exec -w /data/shared/taskmaster/' + $('Build Taskmaster Script').first().json.projectSlug + ' taskmaster task-master init -y 2>&1 || true' }}"
+        },
+        "id": "taskmaster-init",
+        "name": "Taskmaster: Init",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          3120,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "command": "={{ 'docker exec -w /data/shared/taskmaster/' + $('Build Taskmaster Script').first().json.projectSlug + ' taskmaster task-master parse-prd --input=docs/PRD.md --num-tasks=20 2>&1' }}"
+        },
+        "id": "taskmaster-parse",
+        "name": "Taskmaster: Parse PRD",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          3240,
+          554
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "command": "={{ 'docker exec -w /data/shared/taskmaster/' + $('Build Taskmaster Script').first().json.projectSlug + ' taskmaster cat .taskmaster/tasks/tasks.json 2>&1 || echo {\\\"tasks\\\":[]}' }}"
+        },
+        "id": "taskmaster-read",
+        "name": "Taskmaster: Read Tasks",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          3360,
+          554
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Parse Taskmaster output from executeCommand\nconst ctx = $('Build Taskmaster Script').first().json;\nconst cmdOutput = $json.stdout || '';\n\nlet tasks = { tasks: [] };\ntry {\n  tasks = JSON.parse(cmdOutput.trim());\n} catch (e) {\n  console.log('Failed to parse tasks.json:', e.message);\n}\n\nreturn [{ json: { ...ctx, taskmasterTasks: tasks, taskmasterSuccess: tasks.tasks.length > 0 } }];"
+        },
+        "id": "parse-taskmaster-output",
+        "name": "Parse Taskmaster Output",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3480,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Build ADO Stories from Taskmaster tasks and enriched sequences\nconst ctx = $input.first().json;\nconst tasks = (ctx.taskmasterTasks && ctx.taskmasterTasks.tasks) || [];\nconst enrichedSeq = (ctx.artifacts && ctx.artifacts.enriched_sequences) || {};\nconst sequences = enrichedSeq.enrichedSequences || [];\n\n// Complexity to story points mapping\nconst toStoryPoints = (complexity) => {\n  if (!complexity || complexity <= 3) return 3;\n  if (complexity <= 5) return 5;\n  if (complexity <= 7) return 8;\n  return 13;\n};\n\n// Priority to ADO priority mapping\nconst toAdoPriority = (p) => {\n  const map = { 'Critical': 1, 'High': 2, 'Medium': 3, 'Low': 4 };\n  return map[p] || 3;\n};\n\nconst workItems = [];\n\n// Create Epics from use cases\nfor (const seq of sequences) {\n  workItems.push({\n    type: 'Epic',\n    title: `${seq.useCaseId}: ${seq.useCaseName}`,\n    description: `Implementation of use case: ${seq.useCaseName}`,\n    tags: ['auto-generated', ctx.projectSlug],\n    areaPath: ctx.projectSlug,\n    tempId: seq.useCaseId\n  });\n}\n\n// Create Features from flow steps that need work\nfor (const seq of sequences) {\n  for (const step of seq.enrichedFlow || []) {\n    if (step.componentStatus !== 'exists' && step.ticket) {\n      workItems.push({\n        type: 'Feature',\n        title: step.ticket.title || step.action,\n        description: `From: ${(step.from && step.from.component) || 'Source'} → To: ${(step.to && step.to.component) || 'Target'}\\n\\nAction: ${step.action}`,\n        priority: toAdoPriority(step.ticket.priority),\n        parentTempId: seq.useCaseId,\n        tags: ['auto-generated', step.componentStatus]\n      });\n    }\n  }\n}\n\n// Create User Stories from Taskmaster tasks\nfor (const task of tasks) {\n  workItems.push({\n    type: 'User Story',\n    title: task.title,\n    description: task.description + '\\n\\n**Details:**\\n' + (task.details || ''),\n    storyPoints: toStoryPoints(task.complexityScore),\n    acceptanceCriteria: task.testStrategy || '',\n    priority: task.priority === 'high' ? 2 : (task.priority === 'low' ? 4 : 3),\n    tags: ['taskmaster', ...(task.tags || [])]\n  });\n\n  // Create Tasks from subtasks\n  for (const sub of task.subtasks || []) {\n    workItems.push({\n      type: 'Task',\n      title: sub.title,\n      description: sub.description,\n      remainingWork: toStoryPoints(sub.complexityScore),\n      parentTaskId: task.id\n    });\n  }\n}\n\nreturn [{ json: { ...ctx, adoWorkItems: workItems, workItemCount: workItems.length } }];"
+        },
+        "id": "build-ado-stories",
+        "name": "Build ADO Stories",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3600,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "ado-work-items-enabled",
+                "leftValue": "={{ $env.AZURE_DEVOPS_ORG }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty"
+                }
+              },
+              {
+                "id": "ado-create-enabled",
+                "leftValue": "={{ $env.AZURE_DEVOPS_CREATE_WORK_ITEMS }}",
+                "rightValue": "true",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "if-ado-work-items",
+        "name": "If: ADO Work Items Enabled",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          3840,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "batchSize": 1,
+          "options": {}
+        },
+        "id": "split-work-items",
+        "name": "Split Work Items",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          4080,
+          474
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://dev.azure.com/{{ $env.AZURE_DEVOPS_ORG }}/{{ $env.AZURE_DEVOPS_PROJECT }}/_apis/wit/workitems/${{ $json.type }}?api-version=7.1",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json-patch+json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ [\n  { \"op\": \"add\", \"path\": \"/fields/System.Title\", \"value\": $json.title },\n  { \"op\": \"add\", \"path\": \"/fields/System.Description\", \"value\": $json.description || '' },\n  { \"op\": \"add\", \"path\": \"/fields/Microsoft.VSTS.Scheduling.StoryPoints\", \"value\": $json.storyPoints || 0 },\n  { \"op\": \"add\", \"path\": \"/fields/Microsoft.VSTS.Common.Priority\", \"value\": $json.priority || 3 },\n  { \"op\": \"add\", \"path\": \"/fields/System.Tags\", \"value\": ($json.tags || []).join('; ') }\n] }}",
+          "options": {
+            "response": {
+              "response": {
+                "fullResponse": false
+              }
+            }
+          }
+        },
+        "id": "ado-create-work-item",
+        "name": "ADO: Create Work Item",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          4320,
+          474
+        ],
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "kck9Sr0DATIIbF3R",
+            "name": "Unnamed credential"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "// Collect created work item IDs\nconst items = $input.all();\nconst createdIds = items.map(i => ({\n  tempId: i.json.tempId,\n  adoId: i.json.id,\n  title: i.json.fields?.['System.Title'] || i.json.title,\n  type: i.json.fields?.['System.WorkItemType'] || i.json.type\n}));\nreturn [{ json: { createdWorkItems: createdIds, count: createdIds.length } }];"
+        },
+        "id": "collect-work-item-ids",
+        "name": "Collect Work Item IDs",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          4560,
+          474
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "noop-ado-work-items",
+        "name": "ADO Work Items Disabled",
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          4080,
+          704
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "append",
+          "mergeByFields": {
+            "values": [
+              {
+                "field1": "jobId",
+                "field2": "jobId"
+              }
+            ]
+          },
+          "options": {
+            "fuzzyCompare": false
+          }
+        },
+        "id": "merge-ado-results",
+        "name": "Merge ADO Results",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3,
+        "position": [
+          4800,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Prepare Taskmaster artifact for storage\nconst ctx = $('Parse Taskmaster Output').first().json;\nconst adoResults = $json.createdWorkItems || [];\nconst tasks = ctx.taskmasterTasks || { tasks: [] };\n\n// Calculate hash for deduplication\nconst fnv1a = (s) => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };\nconst tasksHash = fnv1a(JSON.stringify(tasks));\n\nreturn [{ json: { \n  projectId: ctx.projectId,\n  jobId: ctx.jobId,\n  projectSlug: ctx.projectSlug,\n  taskmasterTasks: tasks,\n  tasksHash,\n  adoWorkItems: adoResults,\n  taskmasterSuccess: ctx.taskmasterSuccess || false\n} }];"
+        },
+        "id": "prepare-taskmaster-artifact",
+        "name": "Prepare Taskmaster Artifact",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          5040,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH next_version AS (SELECT COALESCE(MAX(version), 0) + 1 AS v FROM architecture.artifacts WHERE project_id = $1 AND type = 'taskmaster_tasks') INSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta) SELECT $1, 'taskmaster_tasks', next_version.v, $2::jsonb, $3, $4::jsonb FROM next_version RETURNING id, version;",
+          "options": {
+            "queryReplacement": "={{ [ $json.projectId, JSON.stringify($json.taskmasterTasks), $json.tasksHash, JSON.stringify({ jobId: $json.jobId, stage: 'project-management', adoWorkItems: $json.adoWorkItems, success: $json.taskmasterSuccess }) ] }}"
+          }
+        },
+        "id": "store-taskmaster-artifact",
+        "name": "Store Taskmaster Artifact",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          5280,
+          554
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "M5eIfNwtZu8y3dOp",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
           "operation": "executeQuery",
           "query": "UPDATE architecture.jobs SET status = 'completed', completed_at = now() WHERE id = $1 RETURNING id, status;",
           "options": {
@@ -1854,7 +2629,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const ctx = $('Pass Context').first().json;\nreturn [{ json: { success: true, jobId: ctx.jobId, projectSlug: ctx.projectSlug, stage: 'project-management', prdPath: ctx.projectSlug + '-docs/docs/PRD.md' } }];"
+          "jsCode": "const ctx = $('Pass Context').first().json;\n\n// Safely get data from nodes that may not have executed\nlet tmArtifact = {};\nlet tmTasks = { tasks: [] };\nlet adoStories = [];\nlet adoCreatedCount = 0;\n\ntry { tmArtifact = $('Store Taskmaster Artifact').first().json || {}; } catch(e) {}\ntry { \n  const parsed = $('Parse Taskmaster Output').first().json;\n  tmTasks = (parsed && parsed.taskmasterTasks) || { tasks: [] };\n} catch(e) {}\ntry {\n  const stories = $('Build ADO Stories').first().json;\n  adoStories = (stories && stories.adoWorkItems) || [];\n} catch(e) {}\ntry {\n  const collected = $('Collect Work Item IDs').first().json;\n  adoCreatedCount = (collected && collected.count) || 0;\n} catch(e) {}\n\nreturn [{ json: { \n  success: true, \n  jobId: ctx.jobId, \n  projectSlug: ctx.projectSlug, \n  stage: 'project-management', \n  prdPath: ctx.projectSlug + '-docs/docs/PRD.md',\n  taskmaster: {\n    tasksCount: (tmTasks.tasks && tmTasks.tasks.length) || 0,\n    artifactId: tmArtifact.id,\n    artifactVersion: tmArtifact.version\n  },\n  ado: {\n    workItemsGenerated: adoStories.length,\n    workItemsCreated: adoCreatedCount\n  }\n} }];"
         },
         "id": "return-result",
         "name": "Return Result",
@@ -2287,7 +3062,9 @@
               "node": "Pass Context",
               "type": "main",
               "index": 0
-            },
+            }
+          ],
+          [
             {
               "node": "Entry: Respond Exec",
               "type": "main",
@@ -2319,6 +3096,17 @@
         ]
       },
       "Collect Artifacts": {
+        "main": [
+          [
+            {
+              "node": "Build Capability Tree",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Capability Tree": {
         "main": [
           [
             {
@@ -2385,6 +3173,190 @@
               "node": "Merge Git Results",
               "type": "main",
               "index": 0
+            },
+            {
+              "node": "Build Taskmaster Script",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Taskmaster Script": {
+        "main": [
+          [
+            {
+              "node": "Write PRD to Shared",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Write PRD to Shared": {
+        "main": [
+          [
+            {
+              "node": "Taskmaster: Init",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Taskmaster: Init": {
+        "main": [
+          [
+            {
+              "node": "Taskmaster: Parse PRD",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Taskmaster: Parse PRD": {
+        "main": [
+          [
+            {
+              "node": "Taskmaster: Read Tasks",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Taskmaster: Read Tasks": {
+        "main": [
+          [
+            {
+              "node": "Parse Taskmaster Output",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Taskmaster Output": {
+        "main": [
+          [
+            {
+              "node": "Build ADO Stories",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build ADO Stories": {
+        "main": [
+          [
+            {
+              "node": "If: ADO Work Items Enabled",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If: ADO Work Items Enabled": {
+        "main": [
+          [
+            {
+              "node": "Split Work Items",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "ADO Work Items Disabled",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Work Items": {
+        "main": [
+          [
+            {
+              "node": "ADO: Create Work Item",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Collect Work Item IDs",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "ADO: Create Work Item": {
+        "main": [
+          [
+            {
+              "node": "Split Work Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Collect Work Item IDs": {
+        "main": [
+          [
+            {
+              "node": "Merge ADO Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "ADO Work Items Disabled": {
+        "main": [
+          [
+            {
+              "node": "Merge ADO Results",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge ADO Results": {
+        "main": [
+          [
+            {
+              "node": "Prepare Taskmaster Artifact",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Taskmaster Artifact": {
+        "main": [
+          [
+            {
+              "node": "Store Taskmaster Artifact",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Store Taskmaster Artifact": {
+        "main": [
+          [
+            {
+              "node": "Merge Git Results",
+              "type": "main",
+              "index": 2
             }
           ]
         ]
