@@ -526,7 +526,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const ctx = $('Pass Context').first().json;\nconst prdMd = $('Validate PRD').first().json.prdMarkdown;\nconst jobId = ctx.jobId;\nconst projectSlug = ctx.projectSlug;\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\nlet sh = 'set -e\\n';\nsh += 'mkdir -p /opt/workspace\\n';\nsh += \"if [ ! -d '\" + repoDir + \"/.git' ]; then git clone '\" + remote + \"' '\" + repoDir + \"'; fi\\n\";\nsh += \"cd '\" + repoDir + \"'\\ngit fetch origin\\n\";\nsh += \"git checkout -B '\" + projectSlug + \"' 'origin/\" + projectSlug + \"' 2>/dev/null || git checkout -B '\" + projectSlug + \"'\\n\";\nsh += \"mkdir -p '\" + projectDir + \"/docs'\\n\";\nsh += \"cat > '\" + projectDir + \"/docs/PRD.md' <<'EOF_\" + jobId + \"'\\n\" + prdMd + \"\\nEOF_\" + jobId + \"\\n\";\nsh += \"git add '\" + projectSlug + \"-docs/docs/PRD.md'\\n\";\nsh += \"git commit -m 'Add PRD for \" + projectSlug + \" (job \" + jobId + \")' || true\\n\";\nsh += \"git push -u origin '\" + projectSlug + \"'\\n\";\n\nreturn [{ json: { ...ctx, gitScript: sh, prdMarkdown: prdMd } }];"
+        "jsCode": "// Build Git Script - prepares data for docker exec git operations\nconst ctx = $('Pass Context').first().json;\nconst prdMd = $('Validate PRD').first().json.prdMarkdown;\nconst jobId = ctx.jobId;\nconst projectSlug = ctx.projectSlug;\n\n// Use shared volume accessible to both n8n and taskmaster\nconst repoDir = '/data/shared/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\nreturn [{ json: { ...ctx, repoDir, projectDir, remote, prdMarkdown: prdMd } }];"
       },
       "id": "build-git-script",
       "name": "Build Git Script",
@@ -539,23 +539,85 @@
     },
     {
       "parameters": {
-        "authentication": "privateKey",
-        "command": "={{ $json.gitScript }}"
+        "command": "={{ 'docker exec taskmaster sh -c \"mkdir -p ' + $json.repoDir + ' && if [ ! -d ' + $json.repoDir + '/.git ]; then git clone ' + $json.remote + ' ' + $json.repoDir + '; fi\"' }}"
       },
-      "id": "ssh-commit",
-      "name": "SSH: Commit PRD",
-      "type": "n8n-nodes-base.ssh",
+      "id": "git-clone",
+      "name": "Git: Clone Repo",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2760,
+        304
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "command": "={{ 'docker exec -w ' + $('Build Git Script').first().json.repoDir + ' taskmaster sh -c \"git fetch origin && git checkout -B ' + $('Build Git Script').first().json.projectSlug + ' origin/' + $('Build Git Script').first().json.projectSlug + ' 2>/dev/null || git checkout -B ' + $('Build Git Script').first().json.projectSlug + '\"' }}"
+      },
+      "id": "git-checkout",
+      "name": "Git: Checkout Branch",
+      "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
         2880,
         304
       ],
-      "credentials": {
-        "sshPrivateKey": {
-          "id": "SxKNiry9nQQ96pnU",
-          "name": "SSH Private Key account"
-        }
-      }
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "command": "={{ 'docker exec taskmaster mkdir -p ' + $('Build Git Script').first().json.projectDir + '/docs' }}"
+      },
+      "id": "git-mkdir",
+      "name": "Git: Create Dirs",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        3000,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "command": "={{ 'docker exec taskmaster sh -c \"echo ' + Buffer.from($('Build Git Script').first().json.prdMarkdown).toString('base64') + ' | base64 -d > ' + $('Build Git Script').first().json.projectDir + '/docs/PRD.md\"' }}"
+      },
+      "id": "git-write-prd",
+      "name": "Git: Write PRD",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "command": "={{ 'docker exec -w ' + $('Build Git Script').first().json.repoDir + ' taskmaster sh -c \"git add ' + $('Build Git Script').first().json.projectSlug + '-docs/docs/PRD.md && git commit -m \\\"Add PRD for ' + $('Build Git Script').first().json.projectSlug + ' (job ' + $('Build Git Script').first().json.jobId + ')\\\" || true\"' }}"
+      },
+      "id": "git-commit",
+      "name": "Git: Commit",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        3240,
+        304
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "command": "={{ 'docker exec -w ' + $('Build Git Script').first().json.repoDir + ' taskmaster git push -u origin ' + $('Build Git Script').first().json.projectSlug + ' 2>&1 || echo \"Push skipped - no remote access\"' }}"
+      },
+      "id": "git-push",
+      "name": "Git: Push",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        3360,
+        304
+      ],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1382,7 +1444,7 @@
       "main": [
         [
           {
-            "node": "SSH: Commit PRD",
+            "node": "Git: Clone Repo",
             "type": "main",
             "index": 0
           },
@@ -1394,7 +1456,62 @@
         ]
       ]
     },
-    "SSH: Commit PRD": {
+    "Git: Clone Repo": {
+      "main": [
+        [
+          {
+            "node": "Git: Checkout Branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Git: Checkout Branch": {
+      "main": [
+        [
+          {
+            "node": "Git: Create Dirs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Git: Create Dirs": {
+      "main": [
+        [
+          {
+            "node": "Git: Write PRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Git: Write PRD": {
+      "main": [
+        [
+          {
+            "node": "Git: Commit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Git: Commit": {
+      "main": [
+        [
+          {
+            "node": "Git: Push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Git: Push": {
       "main": [
         [
           {
@@ -2298,7 +2415,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const ctx = $('Pass Context').first().json;\nconst prdMd = $('Validate PRD').first().json.prdMarkdown;\nconst jobId = ctx.jobId;\nconst projectSlug = ctx.projectSlug;\nconst repoDir = '/opt/workspace/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\nlet sh = 'set -e\\n';\nsh += 'mkdir -p /opt/workspace\\n';\nsh += \"if [ ! -d '\" + repoDir + \"/.git' ]; then git clone '\" + remote + \"' '\" + repoDir + \"'; fi\\n\";\nsh += \"cd '\" + repoDir + \"'\\ngit fetch origin\\n\";\nsh += \"git checkout -B '\" + projectSlug + \"' 'origin/\" + projectSlug + \"' 2>/dev/null || git checkout -B '\" + projectSlug + \"'\\n\";\nsh += \"mkdir -p '\" + projectDir + \"/docs'\\n\";\nsh += \"cat > '\" + projectDir + \"/docs/PRD.md' <<'EOF_\" + jobId + \"'\\n\" + prdMd + \"\\nEOF_\" + jobId + \"\\n\";\nsh += \"git add '\" + projectSlug + \"-docs/docs/PRD.md'\\n\";\nsh += \"git commit -m 'Add PRD for \" + projectSlug + \" (job \" + jobId + \")' || true\\n\";\nsh += \"git push -u origin '\" + projectSlug + \"'\\n\";\n\nreturn [{ json: { ...ctx, gitScript: sh, prdMarkdown: prdMd } }];"
+          "jsCode": "// Build Git Script - prepares data for docker exec git operations\nconst ctx = $('Pass Context').first().json;\nconst prdMd = $('Validate PRD').first().json.prdMarkdown;\nconst jobId = ctx.jobId;\nconst projectSlug = ctx.projectSlug;\n\n// Use shared volume accessible to both n8n and taskmaster\nconst repoDir = '/data/shared/software-delivery';\nconst projectDir = repoDir + '/' + projectSlug + '-docs';\nconst remote = 'git@github.com:shlapolosa/software-delivery.git';\n\nreturn [{ json: { ...ctx, repoDir, projectDir, remote, prdMarkdown: prdMd } }];"
         },
         "id": "build-git-script",
         "name": "Build Git Script",
@@ -2311,23 +2428,85 @@
       },
       {
         "parameters": {
-          "authentication": "privateKey",
-          "command": "={{ $json.gitScript }}"
+          "command": "={{ 'docker exec taskmaster sh -c \"mkdir -p ' + $json.repoDir + ' && if [ ! -d ' + $json.repoDir + '/.git ]; then git clone ' + $json.remote + ' ' + $json.repoDir + '; fi\"' }}"
         },
-        "id": "ssh-commit",
-        "name": "SSH: Commit PRD",
-        "type": "n8n-nodes-base.ssh",
+        "id": "git-clone",
+        "name": "Git: Clone Repo",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          2760,
+          304
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "command": "={{ 'docker exec -w ' + $('Build Git Script').first().json.repoDir + ' taskmaster sh -c \"git fetch origin && git checkout -B ' + $('Build Git Script').first().json.projectSlug + ' origin/' + $('Build Git Script').first().json.projectSlug + ' 2>/dev/null || git checkout -B ' + $('Build Git Script').first().json.projectSlug + '\"' }}"
+        },
+        "id": "git-checkout",
+        "name": "Git: Checkout Branch",
+        "type": "n8n-nodes-base.executeCommand",
         "typeVersion": 1,
         "position": [
           2880,
           304
         ],
-        "credentials": {
-          "sshPrivateKey": {
-            "id": "SxKNiry9nQQ96pnU",
-            "name": "SSH Private Key account"
-          }
-        }
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "command": "={{ 'docker exec taskmaster mkdir -p ' + $('Build Git Script').first().json.projectDir + '/docs' }}"
+        },
+        "id": "git-mkdir",
+        "name": "Git: Create Dirs",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          3000,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "command": "={{ 'docker exec taskmaster sh -c \"echo ' + Buffer.from($('Build Git Script').first().json.prdMarkdown).toString('base64') + ' | base64 -d > ' + $('Build Git Script').first().json.projectDir + '/docs/PRD.md\"' }}"
+        },
+        "id": "git-write-prd",
+        "name": "Git: Write PRD",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          3120,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "command": "={{ 'docker exec -w ' + $('Build Git Script').first().json.repoDir + ' taskmaster sh -c \"git add ' + $('Build Git Script').first().json.projectSlug + '-docs/docs/PRD.md && git commit -m \\\"Add PRD for ' + $('Build Git Script').first().json.projectSlug + ' (job ' + $('Build Git Script').first().json.jobId + ')\\\" || true\"' }}"
+        },
+        "id": "git-commit",
+        "name": "Git: Commit",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          3240,
+          304
+        ],
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "command": "={{ 'docker exec -w ' + $('Build Git Script').first().json.repoDir + ' taskmaster git push -u origin ' + $('Build Git Script').first().json.projectSlug + ' 2>&1 || echo \"Push skipped - no remote access\"' }}"
+        },
+        "id": "git-push",
+        "name": "Git: Push",
+        "type": "n8n-nodes-base.executeCommand",
+        "typeVersion": 1,
+        "position": [
+          3360,
+          304
+        ],
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
@@ -3154,7 +3333,7 @@
         "main": [
           [
             {
-              "node": "SSH: Commit PRD",
+              "node": "Git: Clone Repo",
               "type": "main",
               "index": 0
             },
@@ -3166,7 +3345,62 @@
           ]
         ]
       },
-      "SSH: Commit PRD": {
+      "Git: Clone Repo": {
+        "main": [
+          [
+            {
+              "node": "Git: Checkout Branch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Git: Checkout Branch": {
+        "main": [
+          [
+            {
+              "node": "Git: Create Dirs",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Git: Create Dirs": {
+        "main": [
+          [
+            {
+              "node": "Git: Write PRD",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Git: Write PRD": {
+        "main": [
+          [
+            {
+              "node": "Git: Commit",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Git: Commit": {
+        "main": [
+          [
+            {
+              "node": "Git: Push",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Git: Push": {
         "main": [
           [
             {
