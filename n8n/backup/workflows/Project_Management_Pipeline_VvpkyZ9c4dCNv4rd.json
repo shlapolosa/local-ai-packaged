@@ -292,7 +292,7 @@
           "assignments": [
             {
               "name": "projectSlug",
-              "value": "={{ $json.extractedProjectSlug || $json.projectSlug }}",
+              "value": "={{ $json.projectSlug || $json.extractedProjectSlug }}",
               "type": "string"
             },
             {
@@ -580,14 +580,27 @@
     },
     {
       "parameters": {
-        "command": "={{ 'docker exec taskmaster sh -c \"echo ' + Buffer.from($('Build Git Script').first().json.prdMarkdown).toString('base64') + ' | base64 -d > ' + $('Build Git Script').first().json.projectDir + '/docs/PRD.md\"' }}"
+        "jsCode": "const ctx = $('Build Git Script').first().json;\nconst prdMd = ctx.prdMarkdown;\nconst base64Content = Buffer.from(prdMd).toString('base64');\nreturn [{ json: { ...ctx, prdBase64: base64Content } }];"
+      },
+      "id": "encode-prd-base64",
+      "name": "Encode PRD Base64",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3060,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "command": "={{ 'docker exec taskmaster sh -c \"echo ' + $('Encode PRD Base64').first().json.prdBase64 + ' | base64 -d > ' + $('Encode PRD Base64').first().json.projectDir + '/docs/PRD.md\"' }}"
       },
       "id": "git-write-prd",
       "name": "Git: Write PRD",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        3120,
+        3180,
         304
       ]
     },
@@ -1482,6 +1495,17 @@
       "main": [
         [
           {
+            "node": "Encode PRD Base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encode PRD Base64": {
+      "main": [
+        [
+          {
             "node": "Git: Write PRD",
             "type": "main",
             "index": 0
@@ -2181,7 +2205,7 @@
             "assignments": [
               {
                 "name": "projectSlug",
-                "value": "={{ $json.extractedProjectSlug || $json.projectSlug }}",
+                "value": "={{ $json.projectSlug || $json.extractedProjectSlug }}",
                 "type": "string"
               },
               {
@@ -2469,14 +2493,27 @@
       },
       {
         "parameters": {
-          "command": "={{ 'docker exec taskmaster sh -c \"echo ' + Buffer.from($('Build Git Script').first().json.prdMarkdown).toString('base64') + ' | base64 -d > ' + $('Build Git Script').first().json.projectDir + '/docs/PRD.md\"' }}"
+          "jsCode": "const ctx = $('Build Git Script').first().json;\nconst prdMd = ctx.prdMarkdown;\nconst base64Content = Buffer.from(prdMd).toString('base64');\nreturn [{ json: { ...ctx, prdBase64: base64Content } }];"
+        },
+        "id": "encode-prd-base64",
+        "name": "Encode PRD Base64",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3060,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "command": "={{ 'docker exec taskmaster sh -c \"echo ' + $('Encode PRD Base64').first().json.prdBase64 + ' | base64 -d > ' + $('Encode PRD Base64').first().json.projectDir + '/docs/PRD.md\"' }}"
         },
         "id": "git-write-prd",
         "name": "Git: Write PRD",
         "type": "n8n-nodes-base.executeCommand",
         "typeVersion": 1,
         "position": [
-          3120,
+          3180,
           304
         ]
       },
@@ -3368,6 +3405,17 @@
         ]
       },
       "Git: Create Dirs": {
+        "main": [
+          [
+            {
+              "node": "Encode PRD Base64",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Encode PRD Base64": {
         "main": [
           [
             {
