@@ -647,14 +647,27 @@
     },
     {
       "parameters": {
-        "command": "={{ 'mkdir -p ' + $json.sharedDir + '/docs && cat > ' + $json.sharedDir + '/docs/PRD.md << ' + \"'PRDEOF'\" + '\\n' + $json.prdMarkdown + '\\nPRDEOF' }}"
+        "jsCode": "const ctx = $json;\nconst prdMd = ctx.prdMarkdown;\nconst base64Content = Buffer.from(prdMd).toString('base64');\nreturn [{ json: { ...ctx, prdBase64: base64Content } }];"
+      },
+      "id": "encode-taskmaster-prd",
+      "name": "Encode Taskmaster PRD",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2940,
+        554
+      ]
+    },
+    {
+      "parameters": {
+        "command": "={{ 'docker exec taskmaster sh -c \"mkdir -p ' + $json.sharedDir + '/docs && echo ' + $json.prdBase64 + ' | base64 -d > ' + $json.sharedDir + '/docs/PRD.md\"' }}"
       },
       "id": "write-prd-to-shared",
       "name": "Write PRD to Shared",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        3000,
+        3060,
         554
       ]
     },
@@ -1552,6 +1565,17 @@
       ]
     },
     "Build Taskmaster Script": {
+      "main": [
+        [
+          {
+            "node": "Encode Taskmaster PRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Encode Taskmaster PRD": {
       "main": [
         [
           {
@@ -2560,14 +2584,27 @@
       },
       {
         "parameters": {
-          "command": "={{ 'mkdir -p ' + $json.sharedDir + '/docs && cat > ' + $json.sharedDir + '/docs/PRD.md << ' + \"'PRDEOF'\" + '\\n' + $json.prdMarkdown + '\\nPRDEOF' }}"
+          "jsCode": "const ctx = $json;\nconst prdMd = ctx.prdMarkdown;\nconst base64Content = Buffer.from(prdMd).toString('base64');\nreturn [{ json: { ...ctx, prdBase64: base64Content } }];"
+        },
+        "id": "encode-taskmaster-prd",
+        "name": "Encode Taskmaster PRD",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2940,
+          554
+        ]
+      },
+      {
+        "parameters": {
+          "command": "={{ 'docker exec taskmaster sh -c \"mkdir -p ' + $json.sharedDir + '/docs && echo ' + $json.prdBase64 + ' | base64 -d > ' + $json.sharedDir + '/docs/PRD.md\"' }}"
         },
         "id": "write-prd-to-shared",
         "name": "Write PRD to Shared",
         "type": "n8n-nodes-base.executeCommand",
         "typeVersion": 1,
         "position": [
-          3000,
+          3060,
           554
         ]
       },
@@ -3465,6 +3502,17 @@
         ]
       },
       "Build Taskmaster Script": {
+        "main": [
+          [
+            {
+              "node": "Encode Taskmaster PRD",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Encode Taskmaster PRD": {
         "main": [
           [
             {
