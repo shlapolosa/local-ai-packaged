@@ -38,6 +38,13 @@ x-n8n: &service-n8n
     - AZURE_DEVOPS_REPO=${AZURE_DEVOPS_REPO:-}
     - AZURE_DEVOPS_PAT=${AZURE_DEVOPS_PAT:-}
     - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+    # Proxy settings
+    - HTTP_PROXY=http://proxy.internal.adhie.ae:8080
+    - HTTPS_PROXY=http://proxy.internal.adhie.ae:8080
+    - NO_PROXY=localhost,127.0.0.1,.internal.adhie.ae,ollama,db,qdrant,neo4j,searxng,redis,clickhouse,minio,postgres,testgen
+    - http_proxy=http://proxy.internal.adhie.ae:8080
+    - https_proxy=http://proxy.internal.adhie.ae:8080
+    - no_proxy=localhost,127.0.0.1,.internal.adhie.ae,ollama,db,qdrant,neo4j,searxng,redis,clickhouse,minio,postgres,testgen
 
 x-ollama: &service-ollama
   image: ollama/ollama:latest
@@ -603,3 +610,22 @@ services:
     image: ollama/ollama:rocm
     depends_on:
      - ollama-gpu-amd
+
+  testgen:
+    build:
+      context: ./testgen
+      dockerfile: Dockerfile
+    container_name: testgen
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5-coder:32b}
+      - AZURE_DEVOPS_ORGANIZATION_URL=${AZURE_DEVOPS_ORGANIZATION_URL}
+      - AZURE_DEVOPS_PERSONAL_ACCESS_TOKEN=${AZURE_DEVOPS_PERSONAL_ACCESS_TOKEN}
+      - AZURE_DEVOPS_PROJECT=${AZURE_DEVOPS_PROJECT}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./testgen/workdir:/app/workdir
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    stdin_open: true
+    tty: true
