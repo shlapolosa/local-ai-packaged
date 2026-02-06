@@ -612,9 +612,7 @@ services:
      - ollama-gpu-amd
 
   testgen:
-    build:
-      context: ./testgen
-      dockerfile: Dockerfile
+    image: testgen:latest
     container_name: testgen
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
