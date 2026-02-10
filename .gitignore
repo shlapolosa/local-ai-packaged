@@ -41,4 +41,16 @@ node_modules/
 
 # Task files
 tasks.json
-tasks/ 
+tasks/
+
+# CC Observability
+cc-observability/data/
+cc-observability/client/dist/
+cc-observability/server/node_modules/
+cc-observability/client/node_modules/
+
+# Backstage build artifacts
+backstage/node_modules/
+backstage/dist-types/
+backstage/.yarn/cache/
+backstage/.yarn/install-state.gz

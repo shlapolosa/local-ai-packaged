@@ -49,6 +49,10 @@ services:
     ports:
       - 127.0.0.1:6379:6379
 
+  cc-observability:
+    ports:
+      - 127.0.0.1:4000:4000
+
   searxng:
     ports:
       - 127.0.0.1:8081:8080
@@ -64,3 +68,7 @@ services:
   ollama-gpu-amd:
     ports:
       - 127.0.0.1:11434:11434
+
+  backstage:
+    ports:
+      - 127.0.0.1:7007:7007
