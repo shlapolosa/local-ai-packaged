@@ -1,0 +1,181 @@
+{
+  "name": "Marketplace Agent Deploy",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "marketplace/deploy-agent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - Deploy Agent",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-code-review",
+              "leftValue": "={{ $json.body.agentType }}",
+              "rightValue": "code-review",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "switch-agent-type",
+      "name": "Switch Agent Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body;\n\nconst workflowPayload = {\n  name: `[Marketplace] ${input.agentName || 'Code Review Agent'}`,\n  nodes: [\n    {\n      parameters: {\n        httpMethod: 'POST',\n        path: `marketplace/agent/${input.agentName || 'code-review'}/trigger`,\n        responseMode: 'lastNode',\n        options: {}\n      },\n      name: 'Webhook Trigger',\n      type: 'n8n-nodes-base.webhook',\n      typeVersion: 2,\n      position: [250, 300]\n    },\n    {\n      parameters: {\n        model: input.model || 'qwen2.5:7b-instruct-q4_K_M',\n        prompt: `You are a code review assistant. Review the following code changes and provide constructive feedback.\\n\\nRepository: ${input.repoUrl}\\n\\nChanges:\\n{{ $json.body.changes }}`,\n        options: {\n          baseUrl: 'http://ollama:11434'\n        }\n      },\n      name: 'Ollama Code Review',\n      type: '@n8n/n8n-nodes-langchain.lmChatOllama',\n      typeVersion: 1,\n      position: [470, 300]\n    }\n  ],\n  connections: {\n    'Webhook Trigger': {\n      main: [[\n        { node: 'Ollama Code Review', type: 'main', index: 0 }\n      ]]\n    }\n  },\n  settings: {\n    executionOrder: 'v1'\n  },\n  active: true\n};\n\nreturn [{ json: { workflowPayload, agentConfig: input } }];"
+      },
+      "id": "prepare-code-review",
+      "name": "Prepare Code Review Workflow",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body;\n\nconst workflowPayload = {\n  name: `[Marketplace] ${input.agentName || 'Unit Test Agent'}`,\n  nodes: [\n    {\n      parameters: {\n        httpMethod: 'POST',\n        path: `marketplace/agent/${input.agentName || 'unit-test'}/trigger`,\n        responseMode: 'lastNode',\n        options: {}\n      },\n      name: 'Webhook Trigger',\n      type: 'n8n-nodes-base.webhook',\n      typeVersion: 2,\n      position: [250, 300]\n    },\n    {\n      parameters: {\n        model: input.model || 'qwen2.5:7b-instruct-q4_K_M',\n        prompt: `You are a unit test generation assistant. Generate ${input.framework || 'jest'} unit tests for the following code.\\n\\nRepository: ${input.repoUrl}\\n\\nCode:\\n{{ $json.body.code }}`,\n        options: {\n          baseUrl: 'http://ollama:11434'\n        }\n      },\n      name: 'Ollama Test Generator',\n      type: '@n8n/n8n-nodes-langchain.lmChatOllama',\n      typeVersion: 1,\n      position: [470, 300]\n    }\n  ],\n  connections: {\n    'Webhook Trigger': {\n      main: [[\n        { node: 'Ollama Test Generator', type: 'main', index: 0 }\n      ]]\n    }\n  },\n  settings: {\n    executionOrder: 'v1'\n  },\n  active: true\n};\n\nreturn [{ json: { workflowPayload, agentConfig: input } }];"
+      },
+      "id": "prepare-unit-test",
+      "name": "Prepare Unit Test Workflow",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://n8n:5678/api/v1/workflows",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "body",
+              "value": "={{ JSON.stringify($json.workflowPayload) }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "create-workflow",
+      "name": "Create Workflow via API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, workflowId: $json.body?.id, message: 'Agent deployed successfully' }) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1130, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Deploy Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch Agent Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Agent Type": {
+      "main": [
+        [
+          {
+            "node": "Prepare Code Review Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Unit Test Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Code Review Workflow": {
+      "main": [
+        [
+          {
+            "node": "Create Workflow via API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Unit Test Workflow": {
+      "main": [
+        [
+          {
+            "node": "Create Workflow via API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Workflow via API": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": true,
+  "tags": [
+    {
+      "name": "marketplace"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: claude-license-request
+  title: Claude License Request
+  description: Request a Claude AI license for your team. Submits an approval request to the platform team.
+  tags:
+    - claude
+    - license
+    - request
+spec:
+  owner: guests
+  type: request
+
+  parameters:
+    - title: Requestor Information
+      required:
+        - fullName
+        - employeeNumber
+        - email
+        - phone
+      properties:
+        fullName:
+          title: Full Name
+          type: string
+          description: Your full name as it appears in the organization directory.
+        employeeNumber:
+          title: Employee Number
+          type: string
+          description: Your employee ID number.
+        email:
+          title: Email Address
+          type: string
+          format: email
+          description: Your organization email address.
+        phone:
+          title: Phone Number
+          type: string
+          description: Your contact phone number.
+    - title: Request Details
+      required:
+        - motivation
+      properties:
+        motivation:
+          title: Motivation
+          type: string
+          description: Explain why you need a Claude license and how you plan to use it.
+          ui:widget: textarea
+          ui:options:
+            rows: 5
+
+  steps:
+    - id: submit-request
+      name: Submit License Request
+      action: http:backstage:request
+      input:
+        method: POST
+        url: '${N8N_BASE_URL}/webhook/marketplace/claude-license-request'
+        headers:
+          Content-Type: application/json
+        body:
+          fullName: ${{ parameters.fullName }}
+          employeeNumber: ${{ parameters.employeeNumber }}
+          email: ${{ parameters.email }}
+          phone: ${{ parameters.phone }}
+          motivation: ${{ parameters.motivation }}
+          requestedAt: ${{ steps['submit-request'].output.timestamp | default('now') }}
+
+  output:
+    text:
+      - title: Request Submitted
+        content: |
+          Your Claude license request has been submitted for approval.
+          You will receive a notification at **${{ parameters.email }}** once your request has been reviewed.

@@ -1,0 +1,23 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: n8n
+  description: Workflow automation platform and central orchestrator for AI agent pipelines, webhook handling, and integrations.
+  tags:
+    - automation
+    - workflows
+    - ai-agents
+  links:
+    - url: http://localhost:5678
+      title: n8n UI
+      icon: dashboard
+    - url: https://n8n.io/
+      title: n8n Documentation
+      icon: docs
+  annotations:
+    backstage.io/techdocs-ref: url:https://docs.n8n.io/
+spec:
+  type: service
+  lifecycle: production
+  owner: guests
+  system: localai-stack

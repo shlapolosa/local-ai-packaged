@@ -1,0 +1,40 @@
+app:
+  baseUrl: ${APP_BASE_URL}
+
+backend:
+  baseUrl: ${BACKEND_BASE_URL}
+  listen: ':7007'
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: ${BACKSTAGE_DB_NAME}
+      ssl: false
+  auth:
+    dangerouslyDisableDefaultAuthPolicy: true
+
+auth:
+  providers:
+    guest:
+      dangerouslyAllowOutsideDevelopment: true
+
+proxy:
+  endpoints:
+    '/n8n':
+      target: ${N8N_BASE_URL}
+      headers:
+        X-N8N-API-KEY: ${N8N_API_KEY}
+      changeOrigin: true
+
+techRadar:
+  url: /app/tech-radar/tech-radar-data.json
+
+catalog:
+  locations:
+    - type: file
+      target: /app/catalog/marketplace-catalog.yaml
+      rules:
+        - allow: [Component, System, API, Resource, Location, Template, User, Group]

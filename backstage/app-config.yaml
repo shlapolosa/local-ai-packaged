@@ -1,0 +1,48 @@
+app:
+  title: ADHDS Marketplace
+  baseUrl: ${APP_BASE_URL}
+  organization:
+    name: ADHDS
+
+backend:
+  baseUrl: ${BACKEND_BASE_URL}
+  listen:
+    port: 7007
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+  cors:
+    origin: ${APP_BASE_URL}
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      database: ${BACKSTAGE_DB_NAME}
+      ssl: false
+
+auth:
+  environment: production
+  providers:
+    guest:
+      dangerouslyAllowOutsideDevelopment: true
+
+catalog:
+  rules:
+    - allow: [Component, System, API, Resource, Location, Template, User, Group]
+  locations:
+    - type: file
+      target: /app/catalog/marketplace-catalog.yaml
+      rules:
+        - allow: [Component, System, API, Resource, Location, Template, User, Group]
+
+scaffolder:
+  defaultAuthor:
+    name: ADHDS Marketplace
+    email: marketplace@adhds.ae
+
+permission:
+  enabled: false

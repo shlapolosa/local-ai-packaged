@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: localai-stack
+  description: Self-hosted AI development environment combining LLMs, workflow automation, chat interfaces, and observability tools.
+  tags:
+    - ai
+    - self-hosted
+    - docker
+  links:
+    - url: https://github.com/your-org/local-ai-packaged
+      title: Repository
+      icon: github
+spec:
+  owner: guests

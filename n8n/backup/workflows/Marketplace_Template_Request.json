@@ -1,0 +1,102 @@
+{
+  "name": "Marketplace Template Request",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "marketplace/template-request",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-template",
+      "name": "Webhook - Template Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\n\nconst record = {\n  templateTitle: body.templateTitle,\n  templateDescription: body.templateDescription,\n  category: body.category,\n  submitterName: body.submitterName || 'Anonymous',\n  submitterEmail: body.submitterEmail || '',\n  status: 'submitted',\n  submittedAt: new Date().toISOString()\n};\n\nreturn [{ json: record }];"
+      },
+      "id": "process-request",
+      "name": "Process Template Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS marketplace_template_requests (\n  id SERIAL PRIMARY KEY,\n  template_title VARCHAR(255),\n  template_description TEXT,\n  category VARCHAR(100),\n  submitter_name VARCHAR(255),\n  submitter_email VARCHAR(255),\n  status VARCHAR(50) DEFAULT 'submitted',\n  submitted_at TIMESTAMP DEFAULT NOW(),\n  votes INTEGER DEFAULT 0\n);\n\nINSERT INTO marketplace_template_requests (template_title, template_description, category, submitter_name, submitter_email, status, submitted_at)\nVALUES ('{{ $json.templateTitle }}', '{{ $json.templateDescription }}', '{{ $json.category }}', '{{ $json.submitterName }}', '{{ $json.submitterEmail }}', '{{ $json.status }}', '{{ $json.submittedAt }}');",
+        "options": {}
+      },
+      "id": "store-request",
+      "name": "Store in Postgres",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [690, 300],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'Template request submitted successfully', title: $json.templateTitle }) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [910, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Template Request": {
+      "main": [
+        [
+          {
+            "node": "Process Template Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Template Request": {
+      "main": [
+        [
+          {
+            "node": "Store in Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store in Postgres": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": true,
+  "tags": [
+    {
+      "name": "marketplace"
+    }
+  ]
+}

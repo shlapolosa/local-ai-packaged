@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ollama
+  description: Local LLM inference server supporting multiple models with GPU acceleration (NVIDIA/AMD).
+  tags:
+    - ai
+    - llm
+    - inference
+    - gpu
+  links:
+    - url: http://localhost:11434
+      title: Ollama API
+      icon: cloud
+    - url: https://ollama.com/
+      title: Ollama Documentation
+      icon: docs
+spec:
+  type: service
+  lifecycle: production
+  owner: guests
+  system: localai-stack

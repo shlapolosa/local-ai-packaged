@@ -1,0 +1,87 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: template-request
+  title: Request a New Template
+  description: Submit a request for a new template in the ADHDS Marketplace. Other users can vote on your request to help prioritize development.
+  tags:
+    - request
+    - template
+    - voting
+spec:
+  owner: guests
+  type: request
+
+  parameters:
+    - title: Template Idea
+      required:
+        - templateTitle
+        - templateDescription
+        - category
+      properties:
+        templateTitle:
+          title: Template Title
+          type: string
+          description: A short, descriptive title for the template you want.
+        templateDescription:
+          title: Description
+          type: string
+          description: Describe what the template should do, what inputs it needs, and what it should produce.
+          ui:widget: textarea
+          ui:options:
+            rows: 5
+        category:
+          title: Category
+          type: string
+          description: What category does this template fall into?
+          enum:
+            - ai-agent
+            - tool
+            - integration
+            - request
+            - other
+          enumNames:
+            - 'AI Agent - Deploy an AI-powered automation'
+            - 'Tool - Download or configure a tool'
+            - 'Integration - Connect to an external service'
+            - 'Request - Submit a request for something'
+            - 'Other'
+    - title: Submitter Details
+      properties:
+        submitterName:
+          title: Your Name
+          type: string
+          description: Your name (optional, for follow-up).
+        submitterEmail:
+          title: Email
+          type: string
+          format: email
+          description: Your email (optional, for notifications when the template is built).
+
+  steps:
+    - id: submit-request
+      name: Submit Template Request
+      action: http:backstage:request
+      input:
+        method: POST
+        url: '${N8N_BASE_URL}/webhook/marketplace/template-request'
+        headers:
+          Content-Type: application/json
+        body:
+          templateTitle: ${{ parameters.templateTitle }}
+          templateDescription: ${{ parameters.templateDescription }}
+          category: ${{ parameters.category }}
+          submitterName: ${{ parameters.submitterName }}
+          submitterEmail: ${{ parameters.submitterEmail }}
+
+  output:
+    text:
+      - title: Request Submitted
+        content: |
+          Your template request **"${{ parameters.templateTitle }}"** has been submitted.
+
+          Other users can find and vote on your request in the catalog under the `template-request` tag.
+          The platform team will prioritize requests based on community interest.
+    links:
+      - title: View All Template Requests
+        url: /catalog?filters[tag]=template-request

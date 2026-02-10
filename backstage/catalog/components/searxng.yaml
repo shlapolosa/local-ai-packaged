@@ -1,0 +1,20 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: searxng
+  description: Privacy-focused metasearch engine providing web search capabilities to AI agents.
+  tags:
+    - search
+    - privacy
+  links:
+    - url: http://localhost:8081
+      title: SearXNG UI
+      icon: dashboard
+    - url: https://docs.searxng.org/
+      title: SearXNG Documentation
+      icon: docs
+spec:
+  type: service
+  lifecycle: production
+  owner: guests
+  system: localai-stack

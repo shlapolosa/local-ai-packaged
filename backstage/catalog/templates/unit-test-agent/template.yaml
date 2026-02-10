@@ -1,0 +1,101 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: unit-test-agent
+  title: Deploy Unit Test Agent
+  description: Deploy an AI-powered unit test generation agent as an n8n workflow. The agent generates unit tests for code in your repository.
+  tags:
+    - ai-agent
+    - testing
+    - n8n
+    - deploy
+spec:
+  owner: guests
+  type: agent
+
+  parameters:
+    - title: Repository Configuration
+      required:
+        - repoUrl
+        - repoPAT
+      properties:
+        repoUrl:
+          title: Repository URL
+          type: string
+          description: 'The full URL of the repository (e.g., https://dev.azure.com/org/project/_git/repo or https://github.com/org/repo).'
+        repoPAT:
+          title: Personal Access Token
+          type: string
+          description: A PAT with read/write access to the repository.
+          ui:widget: password
+    - title: Agent Configuration
+      required:
+        - agentName
+        - framework
+      properties:
+        agentName:
+          title: Agent Name
+          type: string
+          description: A unique name for this agent workflow instance.
+          default: unit-test-agent
+        framework:
+          title: Test Framework
+          type: string
+          description: The test framework to generate tests for.
+          default: jest
+          enum:
+            - jest
+            - pytest
+            - junit
+            - xunit
+            - nunit
+          enumNames:
+            - 'Jest (JavaScript/TypeScript)'
+            - 'Pytest (Python)'
+            - 'JUnit (Java)'
+            - 'xUnit (.NET)'
+            - 'NUnit (.NET)'
+        model:
+          title: LLM Model
+          type: string
+          description: The Ollama model to use for test generation.
+          default: qwen2.5:7b-instruct-q4_K_M
+          enum:
+            - qwen2.5:7b-instruct-q4_K_M
+            - llama3.1:8b-instruct-q4_K_M
+          enumNames:
+            - 'Qwen 2.5 7B (Recommended)'
+            - 'LLaMA 3.1 8B'
+
+  steps:
+    - id: deploy-agent
+      name: Deploy Unit Test Agent to n8n
+      action: http:backstage:request
+      input:
+        method: POST
+        url: '${N8N_BASE_URL}/webhook/marketplace/deploy-agent'
+        headers:
+          Content-Type: application/json
+        body:
+          agentType: unit-test
+          agentName: ${{ parameters.agentName }}
+          repoUrl: ${{ parameters.repoUrl }}
+          repoPAT: ${{ parameters.repoPAT }}
+          framework: ${{ parameters.framework }}
+          model: ${{ parameters.model }}
+
+  output:
+    text:
+      - title: Agent Deployed
+        content: |
+          Your **Unit Test Agent** has been deployed to n8n.
+
+          - **Workflow Name**: ${{ parameters.agentName }}
+          - **Repository**: ${{ parameters.repoUrl }}
+          - **Framework**: ${{ parameters.framework }}
+          - **Model**: ${{ parameters.model }}
+
+          The agent is now active and ready to generate tests on demand.
+    links:
+      - title: Open n8n
+        url: http://localhost:5678

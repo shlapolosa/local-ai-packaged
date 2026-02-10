@@ -1,0 +1,300 @@
+{
+  "quadrants": [
+    { "id": "user-facing", "name": "User-Facing AI" },
+    { "id": "creative-augmentative", "name": "Creative & Augmentative AI" },
+    { "id": "operational", "name": "Operational AI" },
+    { "id": "foundations", "name": "AI Foundations" }
+  ],
+  "rings": [
+    { "id": "adopt", "name": "Adopt", "color": "#5ba300", "description": "Safe to use in production. Proven internally with clear value." },
+    { "id": "trial", "name": "Trial", "color": "#009eb0", "description": "Controlled pilots underway. Worth pursuing with defined scope." },
+    { "id": "assess", "name": "Assess", "color": "#c7ba00", "description": "Promising but immature. Worth exploring, not yet committed." },
+    { "id": "hold", "name": "Hold", "color": "#e09b96", "description": "Proceed with caution. Risky, unclear value, or superseded." }
+  ],
+  "entries": [
+    {
+      "id": "open-webui",
+      "title": "Open WebUI",
+      "description": "Local chat interface connected to Ollama. Supports custom pipe functions for n8n integration, RAG, and multi-model conversations.",
+      "key": "open-webui",
+      "url": "https://openwebui.com/",
+      "quadrant": "user-facing",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2025-01-01", "description": "Deployed as primary chat interface in localai stack" }
+      ]
+    },
+    {
+      "id": "ollama-chat",
+      "title": "Ollama Local Chat",
+      "description": "Direct conversational AI via locally-hosted open models (Qwen, LLaMA). Zero-latency, fully private, no API costs.",
+      "key": "ollama-chat",
+      "url": "https://ollama.com/",
+      "quadrant": "user-facing",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2025-01-01", "description": "Core chat capability via Ollama inference" }
+      ]
+    },
+    {
+      "id": "rag-assistants",
+      "title": "RAG Knowledge Assistants",
+      "description": "Retrieval-augmented generation assistants for enterprise knowledge Q&A. Built with Qdrant vector store + Ollama embeddings.",
+      "key": "rag-assistants",
+      "quadrant": "user-facing",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2025-01-01", "description": "Piloting with internal documentation" }
+      ]
+    },
+    {
+      "id": "claude-chat",
+      "title": "Claude (Anthropic)",
+      "description": "Anthropic's conversational AI. Strong reasoning, long context, safety-focused. Requires API key or license.",
+      "key": "claude-chat",
+      "url": "https://claude.ai/",
+      "quadrant": "user-facing",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2025-06-01", "description": "License request process via Marketplace" }
+      ]
+    },
+    {
+      "id": "domain-chatbots",
+      "title": "Domain-Specific Chatbots",
+      "description": "Purpose-built conversational agents for HR, policy, IT helpdesk. Scoped knowledge bases with guardrails.",
+      "key": "domain-chatbots",
+      "quadrant": "user-facing",
+      "timeline": [
+        { "moved": 0, "ringId": "assess", "date": "2025-06-01", "description": "Evaluating use cases and data requirements" }
+      ]
+    },
+    {
+      "id": "voice-agents",
+      "title": "Voice & Multimodal Agents",
+      "description": "Speech-to-text, voice assistants, image understanding. Requires specialized models and infrastructure.",
+      "key": "voice-agents",
+      "quadrant": "user-facing",
+      "timeline": [
+        { "moved": 0, "ringId": "assess", "date": "2025-06-01", "description": "Exploring capabilities with open multimodal models" }
+      ]
+    },
+    {
+      "id": "claude-code",
+      "title": "Claude Code",
+      "description": "Anthropic's autonomous coding agent. Terminal-based, agentic workflows for code generation, refactoring, and debugging.",
+      "key": "claude-code",
+      "url": "https://claude.ai/code",
+      "quadrant": "creative-augmentative",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2025-06-01", "description": "Piloting with development teams via license program" }
+      ]
+    },
+    {
+      "id": "github-copilot",
+      "title": "GitHub Copilot",
+      "description": "AI-powered IDE inline code completion and chat. Supports VS Code, JetBrains. Requires GitHub license.",
+      "key": "github-copilot",
+      "url": "https://github.com/features/copilot",
+      "quadrant": "creative-augmentative",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2025-01-01", "description": "Piloting with select development teams" }
+      ]
+    },
+    {
+      "id": "cursor-ide",
+      "title": "Cursor IDE",
+      "description": "AI-first code editor with deep model integration. Fork of VS Code with native AI pair programming.",
+      "key": "cursor-ide",
+      "url": "https://cursor.com/",
+      "quadrant": "creative-augmentative",
+      "timeline": [
+        { "moved": 0, "ringId": "assess", "date": "2025-06-01", "description": "Evaluating against Copilot and Claude Code" }
+      ]
+    },
+    {
+      "id": "ai-doc-generation",
+      "title": "AI Document Generation",
+      "description": "Automated report writing, policy drafts, and documentation using LLMs. Integrated via n8n workflows.",
+      "key": "ai-doc-generation",
+      "quadrant": "creative-augmentative",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2025-06-01", "description": "Piloting automated report generation via n8n" }
+      ]
+    },
+    {
+      "id": "ai-sql-analytics",
+      "title": "AI SQL & Analytics Assistants",
+      "description": "Natural language to SQL generation and automated insight discovery. Connected to Supabase/Postgres.",
+      "key": "ai-sql-analytics",
+      "quadrant": "creative-augmentative",
+      "timeline": [
+        { "moved": 0, "ringId": "assess", "date": "2025-06-01", "description": "Exploring text-to-SQL with local models" }
+      ]
+    },
+    {
+      "id": "ai-image-generation",
+      "title": "AI Image & Media Generation",
+      "description": "Image generation, UI mockups, and visual content creation using diffusion models.",
+      "key": "ai-image-generation",
+      "quadrant": "creative-augmentative",
+      "timeline": [
+        { "moved": 0, "ringId": "hold", "date": "2025-06-01", "description": "Infrastructure not yet sized for image models" }
+      ]
+    },
+    {
+      "id": "n8n-ai-agents",
+      "title": "n8n AI Workflow Agents",
+      "description": "Automated task agents orchestrated via n8n. Combines webhook triggers, LLM reasoning, and tool calling for end-to-end automation.",
+      "key": "n8n-ai-agents",
+      "url": "https://n8n.io/",
+      "quadrant": "operational",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2025-01-01", "description": "Core automation platform in the stack" }
+      ]
+    },
+    {
+      "id": "code-review-agent",
+      "title": "Code Review Agent",
+      "description": "AI-powered automated code review. Monitors repositories, analyzes PRs, and provides feedback via n8n + LLM pipeline.",
+      "key": "code-review-agent",
+      "quadrant": "operational",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2025-06-01", "description": "Deployable via Marketplace template" }
+      ]
+    },
+    {
+      "id": "unit-test-agent",
+      "title": "Unit Test Generation Agent",
+      "description": "AI agent that generates unit tests for code repositories. Supports multiple frameworks, deployed via n8n.",
+      "key": "unit-test-agent",
+      "quadrant": "operational",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2025-06-01", "description": "Deployable via Marketplace template" }
+      ]
+    },
+    {
+      "id": "ai-decision-support",
+      "title": "AI Decision Support",
+      "description": "Risk scoring, eligibility assessment, and triage systems powered by LLMs. Requires human-in-the-loop governance.",
+      "key": "ai-decision-support",
+      "quadrant": "operational",
+      "timeline": [
+        { "moved": 0, "ringId": "assess", "date": "2025-06-01", "description": "Evaluating use cases with governance framework" }
+      ]
+    },
+    {
+      "id": "aiops-monitoring",
+      "title": "AIOps & Anomaly Detection",
+      "description": "AI-driven operations monitoring, log analysis, and anomaly detection for infrastructure health.",
+      "key": "aiops-monitoring",
+      "quadrant": "operational",
+      "timeline": [
+        { "moved": 0, "ringId": "assess", "date": "2025-06-01", "description": "Exploring integration with existing monitoring" }
+      ]
+    },
+    {
+      "id": "ollama-platform",
+      "title": "Ollama (Model Platform)",
+      "description": "Self-hosted LLM inference server. GPU-accelerated, supports GGUF models. Foundation for all local AI capabilities.",
+      "key": "ollama-platform",
+      "url": "https://ollama.com/",
+      "quadrant": "foundations",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2025-01-01", "description": "Core model serving infrastructure" }
+      ]
+    },
+    {
+      "id": "qwen-models",
+      "title": "Qwen Models",
+      "description": "Open-source LLM family from Alibaba. Primary instruction model (qwen2.5:7b-instruct) in the stack.",
+      "key": "qwen-models",
+      "url": "https://huggingface.co/Qwen",
+      "quadrant": "foundations",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2025-01-01", "description": "Default instruction model in Ollama" }
+      ]
+    },
+    {
+      "id": "nomic-embed",
+      "title": "Nomic Embed",
+      "description": "Open-source text embedding model for vector search and RAG pipelines. Runs locally via Ollama.",
+      "key": "nomic-embed",
+      "url": "https://www.nomic.ai/",
+      "quadrant": "foundations",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2025-01-01", "description": "Default embedding model for RAG" }
+      ]
+    },
+    {
+      "id": "qdrant-vectors",
+      "title": "Qdrant (Vector Store)",
+      "description": "Vector similarity search engine. Stores and retrieves embeddings for RAG, semantic search, and recommendation.",
+      "key": "qdrant-vectors",
+      "url": "https://qdrant.tech/",
+      "quadrant": "foundations",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2025-01-01", "description": "Primary vector store in the stack" }
+      ]
+    },
+    {
+      "id": "langfuse-observability",
+      "title": "Langfuse (LLM Observability)",
+      "description": "Tracing, evaluation, and monitoring platform for LLM applications. Tracks costs, latency, and quality.",
+      "key": "langfuse-observability",
+      "url": "https://langfuse.com/",
+      "quadrant": "foundations",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2025-01-01", "description": "Core observability for all AI workloads" }
+      ]
+    },
+    {
+      "id": "flowise-orchestration",
+      "title": "Flowise (Agent Builder)",
+      "description": "Visual drag-and-drop agent builder. Low-code orchestration for LLM chains, tools, and memory.",
+      "key": "flowise-orchestration",
+      "url": "https://flowiseai.com/",
+      "quadrant": "foundations",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2025-01-01", "description": "Alternative to n8n for visual agent building" }
+      ]
+    },
+    {
+      "id": "azure-openai",
+      "title": "Azure OpenAI Service",
+      "description": "Microsoft-hosted OpenAI models with enterprise compliance. Alternative to self-hosted for regulated workloads.",
+      "key": "azure-openai",
+      "url": "https://azure.microsoft.com/en-us/products/ai-services/openai-service",
+      "quadrant": "foundations",
+      "timeline": [
+        { "moved": 0, "ringId": "assess", "date": "2025-06-01", "description": "Evaluating for workloads requiring cloud compliance" }
+      ]
+    },
+    {
+      "id": "prompt-management",
+      "title": "Prompt & Version Management",
+      "description": "Systematic prompt engineering, versioning, and A/B testing. Supported by Langfuse prompt management features.",
+      "key": "prompt-management",
+      "quadrant": "foundations",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2025-06-01", "description": "Using Langfuse prompt management capabilities" }
+      ]
+    },
+    {
+      "id": "model-evaluation",
+      "title": "Model Evaluation & Benchmarking",
+      "description": "Systematic evaluation of model quality, accuracy, and safety. Integrated with Langfuse scoring and datasets.",
+      "key": "model-evaluation",
+      "quadrant": "foundations",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2025-06-01", "description": "Building evaluation pipelines with Langfuse" }
+      ]
+    },
+    {
+      "id": "ai-guardrails",
+      "title": "AI Guardrails & Safety",
+      "description": "Content filtering, PII redaction, output validation, and policy enforcement for LLM outputs.",
+      "key": "ai-guardrails",
+      "quadrant": "foundations",
+      "timeline": [
+        { "moved": 0, "ringId": "assess", "date": "2025-06-01", "description": "Evaluating open-source guardrail frameworks" }
+      ]
+    }
+  ]
+}

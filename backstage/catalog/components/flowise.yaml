@@ -1,0 +1,21 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: flowise
+  description: Low-code agent builder with drag-and-drop UI for visual AI workflow creation.
+  tags:
+    - ai
+    - low-code
+    - agents
+  links:
+    - url: http://localhost:3001
+      title: Flowise UI
+      icon: dashboard
+    - url: https://flowiseai.com/
+      title: Flowise Documentation
+      icon: docs
+spec:
+  type: service
+  lifecycle: production
+  owner: guests
+  system: localai-stack

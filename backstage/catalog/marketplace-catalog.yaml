@@ -1,0 +1,26 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: adhds-marketplace-catalog
+  description: Root catalog for ADHDS Marketplace
+spec:
+  targets:
+    # System
+    - ./system.yaml
+    # Components
+    - ./components/n8n.yaml
+    - ./components/ollama.yaml
+    - ./components/flowise.yaml
+    - ./components/open-webui.yaml
+    - ./components/supabase.yaml
+    - ./components/qdrant.yaml
+    - ./components/neo4j.yaml
+    - ./components/langfuse.yaml
+    - ./components/searxng.yaml
+    - ./components/caddy.yaml
+    # Templates
+    - ./templates/claude-license-request/template.yaml
+    - ./templates/claude-skill-download/template.yaml
+    - ./templates/code-review-agent/template.yaml
+    - ./templates/unit-test-agent/template.yaml
+    - ./templates/template-request/template.yaml

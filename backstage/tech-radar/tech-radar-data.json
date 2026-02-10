@@ -1,0 +1,181 @@
+{
+  "quadrants": [
+    { "id": "infrastructure", "name": "Infrastructure" },
+    { "id": "data-storage", "name": "Data & Storage" },
+    { "id": "ai-ml", "name": "AI & ML" },
+    { "id": "tools-platforms", "name": "Tools & Platforms" }
+  ],
+  "rings": [
+    { "id": "adopt", "name": "Adopt", "color": "#5ba300" },
+    { "id": "trial", "name": "Trial", "color": "#009eb0" },
+    { "id": "assess", "name": "Assess", "color": "#c7ba00" },
+    { "id": "hold", "name": "Hold", "color": "#e09b96" }
+  ],
+  "entries": [
+    {
+      "id": "docker",
+      "title": "Docker",
+      "description": "Container runtime and orchestration via Docker Compose. Forms the foundation of the entire localai stack.",
+      "key": "docker",
+      "url": "https://www.docker.com/",
+      "quadrant": "infrastructure",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "caddy",
+      "title": "Caddy",
+      "description": "Reverse proxy with automatic HTTPS via Let's Encrypt. Routes all external traffic to internal services.",
+      "key": "caddy",
+      "url": "https://caddyserver.com/",
+      "quadrant": "infrastructure",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "postgresql",
+      "title": "PostgreSQL",
+      "description": "Primary relational database used by Supabase, n8n, Langfuse, and Backstage for persistent data storage.",
+      "key": "postgresql",
+      "url": "https://www.postgresql.org/",
+      "quadrant": "data-storage",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "redis-valkey",
+      "title": "Redis / Valkey",
+      "description": "In-memory key-value store used by Langfuse for caching and message queuing.",
+      "key": "redis-valkey",
+      "url": "https://valkey.io/",
+      "quadrant": "data-storage",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "clickhouse",
+      "title": "ClickHouse",
+      "description": "Columnar analytics database powering Langfuse's observability data at scale.",
+      "key": "clickhouse",
+      "url": "https://clickhouse.com/",
+      "quadrant": "data-storage",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "minio",
+      "title": "MinIO",
+      "description": "S3-compatible object storage used by Langfuse for event uploads and media storage.",
+      "key": "minio",
+      "url": "https://min.io/",
+      "quadrant": "data-storage",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "supabase",
+      "title": "Supabase",
+      "description": "Open-source Firebase alternative providing Postgres, Auth, Storage, and Realtime APIs.",
+      "key": "supabase",
+      "url": "https://supabase.com/",
+      "quadrant": "data-storage",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "qdrant",
+      "title": "Qdrant",
+      "description": "Vector similarity search engine for AI/ML embedding storage and retrieval (RAG pipelines).",
+      "key": "qdrant",
+      "url": "https://qdrant.tech/",
+      "quadrant": "data-storage",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "ollama",
+      "title": "Ollama",
+      "description": "Local LLM inference server supporting multiple models. GPU-accelerated with NVIDIA/AMD support.",
+      "key": "ollama",
+      "url": "https://ollama.com/",
+      "quadrant": "ai-ml",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "open-webui",
+      "title": "Open WebUI",
+      "description": "Chat interface for interacting with Ollama models. Supports custom pipe functions for n8n integration.",
+      "key": "open-webui",
+      "url": "https://openwebui.com/",
+      "quadrant": "ai-ml",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "n8n",
+      "title": "n8n",
+      "description": "Workflow automation platform. Central orchestrator for AI agent pipelines, webhook handling, and integrations.",
+      "key": "n8n",
+      "url": "https://n8n.io/",
+      "quadrant": "tools-platforms",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "langfuse",
+      "title": "Langfuse",
+      "description": "LLM observability platform for tracing, evaluating, and monitoring AI application performance.",
+      "key": "langfuse",
+      "url": "https://langfuse.com/",
+      "quadrant": "tools-platforms",
+      "timeline": [
+        { "moved": 0, "ringId": "adopt", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "flowise",
+      "title": "Flowise",
+      "description": "Low-code agent builder with drag-and-drop UI. Connects to Ollama and n8n for visual AI workflow creation.",
+      "key": "flowise",
+      "url": "https://flowiseai.com/",
+      "quadrant": "ai-ml",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "neo4j",
+      "title": "Neo4j",
+      "description": "Graph database for knowledge graphs and relationship-heavy data models.",
+      "key": "neo4j",
+      "url": "https://neo4j.com/",
+      "quadrant": "data-storage",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2024-01-01" }
+      ]
+    },
+    {
+      "id": "searxng",
+      "title": "SearXNG",
+      "description": "Privacy-focused metasearch engine providing web search capabilities to AI agents.",
+      "key": "searxng",
+      "url": "https://docs.searxng.org/",
+      "quadrant": "tools-platforms",
+      "timeline": [
+        { "moved": 0, "ringId": "trial", "date": "2024-01-01" }
+      ]
+    }
+  ]
+}

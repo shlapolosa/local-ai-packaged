@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: qdrant
+  description: Vector similarity search engine for AI/ML embedding storage and retrieval (RAG pipelines).
+  tags:
+    - vector-db
+    - ai
+    - rag
+    - embeddings
+  links:
+    - url: http://localhost:6333
+      title: Qdrant API
+      icon: cloud
+    - url: https://qdrant.tech/documentation/
+      title: Qdrant Documentation
+      icon: docs
+spec:
+  type: service
+  lifecycle: production
+  owner: guests
+  system: localai-stack

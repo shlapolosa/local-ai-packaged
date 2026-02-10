@@ -1,0 +1,102 @@
+{
+  "name": "Marketplace License Request",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "marketplace/claude-license-request",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-license",
+      "name": "Webhook - License Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\n\nconst record = {\n  fullName: body.fullName,\n  employeeNumber: body.employeeNumber,\n  email: body.email,\n  phone: body.phone,\n  motivation: body.motivation,\n  status: 'pending',\n  requestedAt: new Date().toISOString()\n};\n\nreturn [{ json: record }];"
+      },
+      "id": "process-request",
+      "name": "Process License Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS marketplace_license_requests (\n  id SERIAL PRIMARY KEY,\n  full_name VARCHAR(255),\n  employee_number VARCHAR(100),\n  email VARCHAR(255),\n  phone VARCHAR(50),\n  motivation TEXT,\n  status VARCHAR(50) DEFAULT 'pending',\n  requested_at TIMESTAMP DEFAULT NOW(),\n  reviewed_at TIMESTAMP,\n  reviewer_notes TEXT\n);\n\nINSERT INTO marketplace_license_requests (full_name, employee_number, email, phone, motivation, status, requested_at)\nVALUES ('{{ $json.fullName }}', '{{ $json.employeeNumber }}', '{{ $json.email }}', '{{ $json.phone }}', '{{ $json.motivation }}', '{{ $json.status }}', '{{ $json.requestedAt }}');",
+        "options": {}
+      },
+      "id": "store-request",
+      "name": "Store in Postgres",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [690, 300],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'License request submitted successfully', requestId: $json.id || 'pending' }) }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [910, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - License Request": {
+      "main": [
+        [
+          {
+            "node": "Process License Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process License Request": {
+      "main": [
+        [
+          {
+            "node": "Store in Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store in Postgres": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": true,
+  "tags": [
+    {
+      "name": "marketplace"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: claude-skill-download
+  title: Claude Skill Download
+  description: Download an organization-approved Claude skill package for use in your development environment.
+  tags:
+    - claude
+    - skills
+    - download
+spec:
+  owner: guests
+  type: tool
+
+  parameters:
+    - title: Select a Skill
+      required:
+        - skillName
+      properties:
+        skillName:
+          title: Skill
+          type: string
+          description: Choose the Claude skill package to download.
+          enum:
+            - dev-story
+            - code-review
+            - unit-test-gen
+            - api-design
+            - doc-writer
+          enumNames:
+            - 'Dev Story Generator - Generate user stories from requirements'
+            - 'Code Review Assistant - AI-powered code review feedback'
+            - 'Unit Test Generator - Auto-generate unit tests for your code'
+            - 'API Design Helper - Design REST/GraphQL APIs from specs'
+            - 'Documentation Writer - Generate technical documentation'
+    - title: Requestor Details
+      properties:
+        requesterName:
+          title: Your Name
+          type: string
+          description: Name for download tracking (optional).
+        requesterEmail:
+          title: Email
+          type: string
+          format: email
+          description: Email for download receipt (optional).
+
+  steps:
+    - id: log-download
+      name: Log Skill Download
+      action: http:backstage:request
+      input:
+        method: POST
+        url: '${N8N_BASE_URL}/webhook/marketplace/skill-download'
+        headers:
+          Content-Type: application/json
+        body:
+          skillName: ${{ parameters.skillName }}
+          requesterName: ${{ parameters.requesterName }}
+          requesterEmail: ${{ parameters.requesterEmail }}
+
+  output:
+    text:
+      - title: Skill Ready
+        content: |
+          The **${{ parameters.skillName }}** skill package is ready.
+
+          To install, download the skill zip from the shared drive and follow the instructions in the README included in the package.
+
+          Skill files are available at: `/data/shared/claude-skills/${{ parameters.skillName }}.zip`
+    links:
+      - title: View Available Skills
+        url: /catalog?filters[kind]=Component&filters[tag]=claude-skill

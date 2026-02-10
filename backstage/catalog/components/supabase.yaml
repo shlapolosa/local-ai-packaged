@@ -1,0 +1,22 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: supabase
+  description: Open-source Firebase alternative providing Postgres, Auth, Storage, and Realtime APIs.
+  tags:
+    - database
+    - auth
+    - storage
+    - baas
+  links:
+    - url: http://localhost:8005
+      title: Supabase Studio
+      icon: dashboard
+    - url: https://supabase.com/docs
+      title: Supabase Documentation
+      icon: docs
+spec:
+  type: service
+  lifecycle: production
+  owner: guests
+  system: localai-stack

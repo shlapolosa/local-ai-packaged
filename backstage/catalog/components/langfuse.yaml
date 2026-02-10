@@ -1,0 +1,21 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: langfuse
+  description: LLM observability platform for tracing, evaluating, and monitoring AI application performance.
+  tags:
+    - observability
+    - llm
+    - tracing
+  links:
+    - url: http://localhost:3002
+      title: Langfuse UI
+      icon: dashboard
+    - url: https://langfuse.com/docs
+      title: Langfuse Documentation
+      icon: docs
+spec:
+  type: service
+  lifecycle: production
+  owner: guests
+  system: localai-stack

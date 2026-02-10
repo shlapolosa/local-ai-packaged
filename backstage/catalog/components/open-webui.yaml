@@ -1,0 +1,21 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: open-webui
+  description: Chat interface for interacting with Ollama models. Supports custom pipe functions for n8n integration.
+  tags:
+    - ai
+    - chat
+    - ui
+  links:
+    - url: http://localhost:3000
+      title: Open WebUI
+      icon: dashboard
+    - url: https://openwebui.com/
+      title: Open WebUI Documentation
+      icon: docs
+spec:
+  type: service
+  lifecycle: production
+  owner: guests
+  system: localai-stack

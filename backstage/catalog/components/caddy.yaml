@@ -1,0 +1,18 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: caddy
+  description: Reverse proxy with automatic HTTPS via Let's Encrypt. Routes all external traffic to internal services.
+  tags:
+    - proxy
+    - https
+    - infrastructure
+  links:
+    - url: https://caddyserver.com/docs/
+      title: Caddy Documentation
+      icon: docs
+spec:
+  type: service
+  lifecycle: production
+  owner: guests
+  system: localai-stack
