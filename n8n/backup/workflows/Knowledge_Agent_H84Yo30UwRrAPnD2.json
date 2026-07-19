@@ -1,11 +1,8 @@
 {
-  "updatedAt": "2026-01-24T09:27:14.507Z",
-  "createdAt": "2026-01-23T04:06:50.744Z",
   "id": "H84Yo30UwRrAPnD2",
   "name": "Knowledge Agent",
   "description": null,
   "active": true,
-  "isArchived": false,
   "nodes": [
     {
       "id": "webhook-trigger",
@@ -208,7 +205,7 @@
         200
       ],
       "parameters": {
-        "jsCode": "const collectionNames = [\n  'capability-maps',\n  'reference-architectures',\n  'guardrails-principles',\n  'existing-landscape',\n  'compliance-requirements',\n  'data-standards',\n  'security-standards',\n  'testing-standards'\n];\n\nconst stats = [];\nlet totalDocs = 0;\n\nfor (const name of collectionNames) {\n  try {\n    const response = await this.helpers.httpRequest({\n      method: 'GET',\n      url: `http://qdrant:6333/collections/${name}`,\n      json: true\n    });\n    const count = response.result?.points_count || 0;\n    totalDocs += count;\n    stats.push({\n      collection: name,\n      documents: count,\n      status: response.result?.status || 'green',\n      vectorSize: response.result?.config?.params?.vectors?.size || 'N/A'\n    });\n  } catch (e) {\n    stats.push({\n      collection: name,\n      documents: 0,\n      status: 'not_created',\n      vectorSize: 'N/A'\n    });\n  }\n}\n\n// Format response\nlet output = '**Knowledge Base Status**\\n\\n';\noutput += '| Collection | Documents | Status | Vector Size |\\n';\noutput += '|------------|-----------|--------|-------------|\\n';\n\nfor (const s of stats) {\n  const statusIcon = s.status === 'green' ? '\ud83d\udfe2' : (s.status === 'not_created' ? '\u26aa' : '\ud83d\udfe1');\n  output += `| ${s.collection} | ${s.documents} | ${statusIcon} ${s.status} | ${s.vectorSize} |\\n`;\n}\n\noutput += `\\n**Total Documents:** ${totalDocs}\\n`;\noutput += `**Collections:** ${stats.filter(s => s.status !== 'not_created').length}/${collectionNames.length} active\\n`;\n\nreturn [{\n  json: {\n    output,\n    intent: 'status',\n    stats,\n    totalDocuments: totalDocs\n  }\n}];"
+        "jsCode": "const collectionNames = [\n  'capability-maps',\n  'reference-architectures',\n  'guardrails-principles',\n  'existing-landscape',\n  'compliance-requirements',\n  'data-standards',\n  'security-standards',\n  'testing-standards'\n];\n\nconst stats = [];\nlet totalDocs = 0;\n\nfor (const name of collectionNames) {\n  try {\n    const response = await this.helpers.httpRequest({\n      method: 'GET',\n      url: `http://qdrant:6333/collections/${name}`,\n      json: true\n    });\n    const count = response.result?.points_count || 0;\n    totalDocs += count;\n    stats.push({\n      collection: name,\n      documents: count,\n      status: response.result?.status || 'green',\n      vectorSize: response.result?.config?.params?.vectors?.size || 'N/A'\n    });\n  } catch (e) {\n    stats.push({\n      collection: name,\n      documents: 0,\n      status: 'not_created',\n      vectorSize: 'N/A'\n    });\n  }\n}\n\n// Format response\nlet output = '**Knowledge Base Status**\\n\\n';\noutput += '| Collection | Documents | Status | Vector Size |\\n';\noutput += '|------------|-----------|--------|-------------|\\n';\n\nfor (const s of stats) {\n  const statusIcon = s.status === 'green' ? '🟢' : (s.status === 'not_created' ? '⚪' : '🟡');\n  output += `| ${s.collection} | ${s.documents} | ${statusIcon} ${s.status} | ${s.vectorSize} |\\n`;\n}\n\noutput += `\\n**Total Documents:** ${totalDocs}\\n`;\noutput += `**Collections:** ${stats.filter(s => s.status !== 'not_created').length}/${collectionNames.length} active\\n`;\n\nreturn [{\n  json: {\n    output,\n    intent: 'status',\n    stats,\n    totalDocuments: totalDocs\n  }\n}];"
       }
     },
     {
@@ -250,7 +247,7 @@
         400
       ],
       "parameters": {
-        "jsCode": "const collectionNames = [\n  'capability-maps',\n  'reference-architectures',\n  'guardrails-principles',\n  'existing-landscape',\n  'compliance-requirements',\n  'data-standards',\n  'security-standards',\n  'testing-standards'\n];\n\nconst results = [];\n\nfor (const collection of collectionNames) {\n  try {\n    // Call the Knowledge Loader - Generic workflow\n    const response = await this.helpers.httpRequest({\n      method: 'POST',\n      url: 'http://n8n:5678/webhook/knowledge-loader',\n      body: { collection },\n      json: true\n    });\n    results.push({\n      collection,\n      status: response.status || 'completed',\n      documentsLoaded: response.documentsLoaded || 0\n    });\n  } catch (e) {\n    results.push({\n      collection,\n      status: 'error',\n      error: e.message,\n      documentsLoaded: 0\n    });\n  }\n}\n\n// Format response\nlet output = '\ud83d\udd04 **Reloading All Knowledge Collections**\\n\\n';\noutput += '| Collection | Status | Documents |\\n';\noutput += '|------------|--------|-----------|\\n';\n\nlet totalLoaded = 0;\nfor (const r of results) {\n  const statusIcon = r.status === 'completed' ? '\u2705' : (r.status === 'no_files' ? '\u26a0\ufe0f' : '\u274c');\n  output += `| ${r.collection} | ${statusIcon} ${r.status} | ${r.documentsLoaded} |\\n`;\n  totalLoaded += r.documentsLoaded;\n}\n\noutput += `\\n**Total:** ${totalLoaded} documents loaded across ${results.filter(r => r.status === 'completed').length} collections.\\n`;\n\nreturn [{\n  json: {\n    output,\n    intent: 'reload',\n    results,\n    totalLoaded\n  }\n}];"
+        "jsCode": "const collectionNames = [\n  'capability-maps',\n  'reference-architectures',\n  'guardrails-principles',\n  'existing-landscape',\n  'compliance-requirements',\n  'data-standards',\n  'security-standards',\n  'testing-standards'\n];\n\nconst results = [];\n\nfor (const collection of collectionNames) {\n  try {\n    // Call the Knowledge Loader - Generic workflow\n    const response = await this.helpers.httpRequest({\n      method: 'POST',\n      url: 'http://n8n:5678/webhook/knowledge-loader',\n      body: { collection },\n      json: true\n    });\n    results.push({\n      collection,\n      status: response.status || 'completed',\n      documentsLoaded: response.documentsLoaded || 0\n    });\n  } catch (e) {\n    results.push({\n      collection,\n      status: 'error',\n      error: e.message,\n      documentsLoaded: 0\n    });\n  }\n}\n\n// Format response\nlet output = '🔄 **Reloading All Knowledge Collections**\\n\\n';\noutput += '| Collection | Status | Documents |\\n';\noutput += '|------------|--------|-----------|\\n';\n\nlet totalLoaded = 0;\nfor (const r of results) {\n  const statusIcon = r.status === 'completed' ? '✅' : (r.status === 'no_files' ? '⚠️' : '❌');\n  output += `| ${r.collection} | ${statusIcon} ${r.status} | ${r.documentsLoaded} |\\n`;\n  totalLoaded += r.documentsLoaded;\n}\n\noutput += `\\n**Total:** ${totalLoaded} documents loaded across ${results.filter(r => r.status === 'completed').length} collections.\\n`;\n\nreturn [{\n  json: {\n    output,\n    intent: 'reload',\n    results,\n    totalLoaded\n  }\n}];"
       }
     },
     {
@@ -263,7 +260,7 @@
         500
       ],
       "parameters": {
-        "jsCode": "const input = $input.first().json;\nlet corpus = input.corpus;\nconst files = input.files || [];\nconst inlineContent = input.inlineContent;\nconst message = input.message || '';\n\n// Extract corpus from message if not explicitly set\nif (!corpus) {\n  const uploadMatch = message.match(/(?:upload|add|save)\\s+(?:to|into)\\s+([\\w-]+)/i);\n  if (uploadMatch) {\n    corpus = uploadMatch[1].toLowerCase();\n  }\n}\n\nif (!corpus) {\n  return [{\n    json: {\n      output: '\u274c **Upload Error**\\n\\nPlease specify a collection to upload to.\\n\\nExample: \"Upload to capability-maps\" or \"Add to agent-knowledge-business-analyst\"\\n\\nAvailable collections:\\n- General: capability-maps, reference-architectures, compliance-requirements, data-standards, security-standards, guardrails-principles, existing-landscape, testing-standards\\n- Agent: agent-knowledge-business-analyst, agent-knowledge-architect, agent-knowledge-solution-architect, agent-knowledge-risk-assessor, agent-knowledge-test-strategist, agent-knowledge-project-manager, agent-knowledge-software-delivery',\n      intent: 'upload',\n      status: 'error',\n      error: 'No corpus specified'\n    }\n  }];\n}\n\n// Validate corpus name\nconst validCorpora = [\n  // General collections\n  'capability-maps', 'reference-architectures', 'guardrails-principles',\n  'existing-landscape', 'compliance-requirements', 'data-standards',\n  'security-standards', 'testing-standards',\n  // Agent-specific collections\n  'agent-knowledge-business-analyst',\n  'agent-knowledge-architect',\n  'agent-knowledge-solution-architect',\n  'agent-knowledge-risk-assessor',\n  'agent-knowledge-test-strategist',\n  'agent-knowledge-project-manager',\n  'agent-knowledge-software-delivery'\n];\n\nif (!validCorpora.includes(corpus)) {\n  return [{\n    json: {\n      output: `\u274c **Unknown Collection**\\n\\nThe collection \"${corpus}\" does not exist.\\n\\n**Available collections:**\\n\\n*General:*\\n${validCorpora.filter(c => !c.startsWith('agent-')).map(c => '- ' + c).join('\\n')}\\n\\n*Agent-specific:*\\n${validCorpora.filter(c => c.startsWith('agent-')).map(c => '- ' + c).join('\\n')}`,\n      intent: 'upload',\n      status: 'error',\n      error: 'Invalid corpus'\n    }\n  }];\n}\n\nlet content = null;\nlet filename = 'uploaded_content.md';\n\n// PRIORITY: Check files array FIRST (actual file uploads)\nif (files.length > 0) {\n  const file = files[0];\n  // Check both 'name' (Open WebUI) and 'filename' (other sources)\n  filename = file.name || file.filename || 'uploaded_file.md';\n  \n  // Decode base64 if needed\n  if (file.encoding === 'base64' || (file.content && typeof file.content === 'string' && file.content.includes('base64'))) {\n    try {\n      let base64Data = file.content;\n      if (base64Data.includes(',')) {\n        base64Data = base64Data.split(',')[1];\n      }\n      content = Buffer.from(base64Data, 'base64').toString('utf-8');\n    } catch (e) {\n      content = file.content;\n    }\n  } else {\n    content = file.content;\n  }\n}\n// FALLBACK: Use inline content only if no files\nelse if (inlineContent) {\n  content = inlineContent;\n  filename = 'inline_content.md';\n}\n\nif (!content) {\n  return [{\n    json: {\n      output: '\u274c **No Content**\\n\\nPlease provide content to upload:\\n- Attach a .md file, or\\n- Include markdown content after the collection name\\n\\nExample: \"Add to data-standards:\\n\\n# My Document\\n\\nContent here...\"',\n      intent: 'upload',\n      status: 'error',\n      error: 'No content provided'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...input,\n    uploadContent: content,\n    uploadFilename: filename,\n    uploadCorpus: corpus\n  }\n}];"
+        "jsCode": "const input = $input.first().json;\nlet corpus = input.corpus;\nconst files = input.files || [];\nconst inlineContent = input.inlineContent;\nconst message = input.message || '';\n\n// Extract corpus from message if not explicitly set\nif (!corpus) {\n  const uploadMatch = message.match(/(?:upload|add|save)\\s+(?:to|into)\\s+([\\w-]+)/i);\n  if (uploadMatch) {\n    corpus = uploadMatch[1].toLowerCase();\n  }\n}\n\nif (!corpus) {\n  return [{\n    json: {\n      output: '❌ **Upload Error**\\n\\nPlease specify a collection to upload to.\\n\\nExample: \"Upload to capability-maps\" or \"Add to agent-knowledge-business-analyst\"\\n\\nAvailable collections:\\n- General: capability-maps, reference-architectures, compliance-requirements, data-standards, security-standards, guardrails-principles, existing-landscape, testing-standards\\n- Agent: agent-knowledge-business-analyst, agent-knowledge-architect, agent-knowledge-solution-architect, agent-knowledge-risk-assessor, agent-knowledge-test-strategist, agent-knowledge-project-manager, agent-knowledge-software-delivery',\n      intent: 'upload',\n      status: 'error',\n      error: 'No corpus specified'\n    }\n  }];\n}\n\n// Validate corpus name\nconst validCorpora = [\n  // General collections\n  'capability-maps', 'reference-architectures', 'guardrails-principles',\n  'existing-landscape', 'compliance-requirements', 'data-standards',\n  'security-standards', 'testing-standards',\n  // Agent-specific collections\n  'agent-knowledge-business-analyst',\n  'agent-knowledge-architect',\n  'agent-knowledge-solution-architect',\n  'agent-knowledge-risk-assessor',\n  'agent-knowledge-test-strategist',\n  'agent-knowledge-project-manager',\n  'agent-knowledge-software-delivery'\n];\n\nif (!validCorpora.includes(corpus)) {\n  return [{\n    json: {\n      output: `❌ **Unknown Collection**\\n\\nThe collection \"${corpus}\" does not exist.\\n\\n**Available collections:**\\n\\n*General:*\\n${validCorpora.filter(c => !c.startsWith('agent-')).map(c => '- ' + c).join('\\n')}\\n\\n*Agent-specific:*\\n${validCorpora.filter(c => c.startsWith('agent-')).map(c => '- ' + c).join('\\n')}`,\n      intent: 'upload',\n      status: 'error',\n      error: 'Invalid corpus'\n    }\n  }];\n}\n\nlet content = null;\nlet filename = 'uploaded_content.md';\n\n// PRIORITY: Check files array FIRST (actual file uploads)\nif (files.length > 0) {\n  const file = files[0];\n  // Check both 'name' (Open WebUI) and 'filename' (other sources)\n  filename = file.name || file.filename || 'uploaded_file.md';\n  \n  // Decode base64 if needed\n  if (file.encoding === 'base64' || (file.content && typeof file.content === 'string' && file.content.includes('base64'))) {\n    try {\n      let base64Data = file.content;\n      if (base64Data.includes(',')) {\n        base64Data = base64Data.split(',')[1];\n      }\n      content = Buffer.from(base64Data, 'base64').toString('utf-8');\n    } catch (e) {\n      content = file.content;\n    }\n  } else {\n    content = file.content;\n  }\n}\n// FALLBACK: Use inline content only if no files\nelse if (inlineContent) {\n  content = inlineContent;\n  filename = 'inline_content.md';\n}\n\nif (!content) {\n  return [{\n    json: {\n      output: '❌ **No Content**\\n\\nPlease provide content to upload:\\n- Attach a .md file, or\\n- Include markdown content after the collection name\\n\\nExample: \"Add to data-standards:\\n\\n# My Document\\n\\nContent here...\"',\n      intent: 'upload',\n      status: 'error',\n      error: 'No content provided'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...input,\n    uploadContent: content,\n    uploadFilename: filename,\n    uploadCorpus: corpus\n  }\n}];"
       }
     },
     {
@@ -296,7 +293,7 @@
         500
       ],
       "parameters": {
-        "jsCode": "// Get data from Handle Upload node\nconst handleUploadData = $('Handle Upload').first().json;\nconst loaderResponse = $input.first().json;\n\n// Extract values with fallbacks\nconst corpus = handleUploadData.uploadCorpus || loaderResponse.collection || 'unknown';\nconst filename = handleUploadData.uploadFilename || 'uploaded_file';\nconst status = loaderResponse.status || 'completed';\nconst docsLoaded = loaderResponse.documentsLoaded || 0;\n\nlet output = '';\nif (status === 'completed' || status === 'success') {\n  output = `\u2705 **Upload Successful**\\n\\n`;\n  output += `**File:** ${filename}\\n`;\n  output += `**Collection:** ${corpus}\\n`;\n  output += `**Documents loaded:** ${docsLoaded}\\n`;\n  output += `\\nYour knowledge has been added to the ${corpus} collection.`;\n} else if (status === 'no_files') {\n  output = `\u26a0\ufe0f **Upload Notice**\\n\\n`;\n  output += `**Collection:** ${corpus}\\n`;\n  output += `**Status:** No files to process\\n`;\n  output += `\\nThe loader found no files matching the expected patterns.`;\n} else {\n  output = `\u26a0\ufe0f **Upload Status: ${status}**\\n\\n`;\n  output += `**File:** ${filename}\\n`;\n  output += `**Collection:** ${corpus}\\n`;\n  output += `**Details:** ${loaderResponse.message || 'Check the collection for updates.'}\\n`;\n}\n\nreturn [{\n  json: {\n    output,\n    intent: 'upload',\n    status,\n    collection: corpus,\n    filename: filename,\n    documentsLoaded: docsLoaded\n  }\n}];"
+        "jsCode": "// Get data from Handle Upload node\nconst handleUploadData = $('Handle Upload').first().json;\nconst loaderResponse = $input.first().json;\n\n// Extract values with fallbacks\nconst corpus = handleUploadData.uploadCorpus || loaderResponse.collection || 'unknown';\nconst filename = handleUploadData.uploadFilename || 'uploaded_file';\nconst status = loaderResponse.status || 'completed';\nconst docsLoaded = loaderResponse.documentsLoaded || 0;\n\nlet output = '';\nif (status === 'completed' || status === 'success') {\n  output = `✅ **Upload Successful**\\n\\n`;\n  output += `**File:** ${filename}\\n`;\n  output += `**Collection:** ${corpus}\\n`;\n  output += `**Documents loaded:** ${docsLoaded}\\n`;\n  output += `\\nYour knowledge has been added to the ${corpus} collection.`;\n} else if (status === 'no_files') {\n  output = `⚠️ **Upload Notice**\\n\\n`;\n  output += `**Collection:** ${corpus}\\n`;\n  output += `**Status:** No files to process\\n`;\n  output += `\\nThe loader found no files matching the expected patterns.`;\n} else {\n  output = `⚠️ **Upload Status: ${status}**\\n\\n`;\n  output += `**File:** ${filename}\\n`;\n  output += `**Collection:** ${corpus}\\n`;\n  output += `**Details:** ${loaderResponse.message || 'Check the collection for updates.'}\\n`;\n}\n\nreturn [{\n  json: {\n    output,\n    intent: 'upload',\n    status,\n    collection: corpus,\n    filename: filename,\n    documentsLoaded: docsLoaded\n  }\n}];"
       }
     },
     {
@@ -939,51 +936,5 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "triggerCount": 1,
-  "shared": [
-    {
-      "updatedAt": "2026-01-23T04:06:50.744Z",
-      "createdAt": "2026-01-23T04:06:50.744Z",
-      "role": "workflow:owner",
-      "workflowId": "H84Yo30UwRrAPnD2",
-      "projectId": "nxaQcUOSSZTVQUEF",
-      "project": {
-        "updatedAt": "2025-12-23T15:34:38.321Z",
-        "createdAt": "2025-12-22T10:30:48.794Z",
-        "id": "nxaQcUOSSZTVQUEF",
-        "name": "socrates hlapolosa <socrates.hlapolosa@gmail.com>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "projectRelations": [
-          {
-            "updatedAt": "2025-12-22T10:30:48.794Z",
-            "createdAt": "2025-12-22T10:30:48.794Z",
-            "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
-            "projectId": "nxaQcUOSSZTVQUEF",
-            "user": {
-              "updatedAt": "2026-01-26T05:03:20.891Z",
-              "createdAt": "2025-12-22T10:30:48.161Z",
-              "id": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
-              "email": "socrates.hlapolosa@gmail.com",
-              "firstName": "socrates",
-              "lastName": "hlapolosa",
-              "personalizationAnswers": null,
-              "settings": {
-                "userActivated": true,
-                "easyAIWorkflowOnboarded": true,
-                "firstSuccessfulWorkflowId": "dAk1DVxtHm85b9GC",
-                "userActivatedAt": 1766573710016
-              },
-              "disabled": false,
-              "mfaEnabled": false,
-              "lastActiveAt": "2026-01-26",
-              "isPending": false
-            }
-          }
-        ]
-      }
-    }
-  ],
   "tags": []
 }

@@ -1,0 +1,35 @@
+{
+  "id": "smoketest0000001",
+  "name": "Smoke Test — n8n to Ollama",
+  "active": false,
+  "settings": {},
+  "tags": [],
+  "nodes": [
+    {
+      "id": "mt000000000000001",
+      "name": "When clicking Test",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "parameters": {}
+    },
+    {
+      "id": "http00000000000001",
+      "name": "Ask Ollama",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"model\":\"qwen2.5:7b-instruct-q4_K_M\",\"stream\":false,\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly one short sentence: what is an API gateway?\"}]}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "When clicking Test": { "main": [[{ "node": "Ask Ollama", "type": "main", "index": 0 }]] }
+  }
+}

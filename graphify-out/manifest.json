@@ -1,0 +1,3202 @@
+{
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/knowledge_pipe.py": {
+    "mtime": 1779713617.122237,
+    "ast_hash": "95c610df63bc138bf812c29b4113ed9c",
+    "semantic_hash": "95c610df63bc138bf812c29b4113ed9c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/start_services.py": {
+    "mtime": 1779713617.2156603,
+    "ast_hash": "fa5c03bdfacd2854ad1b39b8381ffa8f",
+    "semantic_hash": "fa5c03bdfacd2854ad1b39b8381ffa8f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/test-agents.sh": {
+    "mtime": 1779713617.2158017,
+    "ast_hash": "e83a14a8c6b1acd651048a4c37d93c2a",
+    "semantic_hash": "e83a14a8c6b1acd651048a4c37d93c2a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.mcp.json": {
+    "mtime": 1779713617.0645118,
+    "ast_hash": "7a006c6c0b15b52ff2183a9a6c7efc68",
+    "semantic_hash": "7a006c6c0b15b52ff2183a9a6c7efc68"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/latest-pipeline.json": {
+    "mtime": 1779713617.1223235,
+    "ast_hash": "ddab9148ca2d72bab457d620a16089d6",
+    "semantic_hash": "ddab9148ca2d72bab457d620a16089d6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/Local_RAG_AI_Agent_n8n_Workflow.json": {
+    "mtime": 1779713617.0722716,
+    "ast_hash": "c294666e5db09bf443d65c84aa00267d",
+    "semantic_hash": "c294666e5db09bf443d65c84aa00267d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode.json": {
+    "mtime": 1779713617.1325948,
+    "ast_hash": "b5de57525f9d66a6356f5f87c0982f9c",
+    "semantic_hash": "b5de57525f9d66a6356f5f87c0982f9c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n_pipe.py": {
+    "mtime": 1779713617.1325524,
+    "ast_hash": "8e2472328215257054069e9cd3d611b7",
+    "semantic_hash": "8e2472328215257054069e9cd3d611b7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/deploy-update.sh": {
+    "mtime": 1779713617.1179416,
+    "ast_hash": "2e1bf0d54af46c2e5d46bbfbd356d85e",
+    "semantic_hash": "2e1bf0d54af46c2e5d46bbfbd356d85e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-tool-workflows/Create_Google_Doc.json": {
+    "mtime": 1779713617.1233065,
+    "ast_hash": "b3ee5079f0c5356cdd3ec4227e92d7af",
+    "semantic_hash": "b3ee5079f0c5356cdd3ec4227e92d7af"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-tool-workflows/Post_Message_to_Slack.json": {
+    "mtime": 1779713617.1234443,
+    "ast_hash": "af5da239937951371280407f7c832412",
+    "semantic_hash": "af5da239937951371280407f7c832412"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-tool-workflows/Get_Postgres_Tables.json": {
+    "mtime": 1779713617.1233938,
+    "ast_hash": "c4acb725c5d7b043a01024778e889933",
+    "semantic_hash": "c4acb725c5d7b043a01024778e889933"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-tool-workflows/Summarize_Slack_Conversation.json": {
+    "mtime": 1779713617.1235118,
+    "ast_hash": "b716c8f7dd41c07c9317b0d706a6acca",
+    "semantic_hash": "b716c8f7dd41c07c9317b0d706a6acca"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/connections.json": {
+    "mtime": 1779713617.1254492,
+    "ast_hash": "41abff81016c2909416f1fc2e6794974",
+    "semantic_hash": "41abff81016c2909416f1fc2e6794974"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/qc-workflow-for-create.json": {
+    "mtime": 1779713617.125638,
+    "ast_hash": "918cf1f5ce85ec219f091abc7cfdc7c8",
+    "semantic_hash": "918cf1f5ce85ec219f091abc7cfdc7c8"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/06-architecture-workflow.json": {
+    "mtime": 1779713617.1245675,
+    "ast_hash": "25873488bb95c5d9b44c96aa9996245d",
+    "semantic_hash": "25873488bb95c5d9b44c96aa9996245d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/pm-workflow-for-create.json": {
+    "mtime": 1779713617.125581,
+    "ast_hash": "0a5eae951bcf4d92a590a3116ab0071b",
+    "semantic_hash": "0a5eae951bcf4d92a590a3116ab0071b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/architecture-pipeline-original.json": {
+    "mtime": 1779713617.1250994,
+    "ast_hash": "42cfb79abe30f445be40dae879d5cdc2",
+    "semantic_hash": "42cfb79abe30f445be40dae879d5cdc2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/05b-risk-assessment-workflow.json": {
+    "mtime": 1779713617.1244254,
+    "ast_hash": "c2b7f13a799a45759c59967d767f94b9",
+    "semantic_hash": "c2b7f13a799a45759c59967d767f94b9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/03-software-delivery-workflow.json": {
+    "mtime": 1779713617.123746,
+    "ast_hash": "54c480007aa9eaf3cf8c07e5d2c7dc25",
+    "semantic_hash": "54c480007aa9eaf3cf8c07e5d2c7dc25"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/ack-update.json": {
+    "mtime": 1779713617.124655,
+    "ast_hash": "1bfdb0b4d9fa89dbe2d015dd604d6258",
+    "semantic_hash": "1bfdb0b4d9fa89dbe2d015dd604d6258"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/05c-test-strategy-workflow.json": {
+    "mtime": 1779713617.1245089,
+    "ast_hash": "db20c714b6f520e712fb4723dedce6b9",
+    "semantic_hash": "db20c714b6f520e712fb4723dedce6b9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/05-quality-compliance-workflow.json": {
+    "mtime": 1779713617.123927,
+    "ast_hash": "aa48a84fd861a05928f2d3a6f8f593f0",
+    "semantic_hash": "aa48a84fd861a05928f2d3a6f8f593f0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/04-project-management-workflow.json": {
+    "mtime": 1779713617.123824,
+    "ast_hash": "1dfec4d46d7ed6f12b91a24936031a8f",
+    "semantic_hash": "1dfec4d46d7ed6f12b91a24936031a8f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/ack-workflow-compact.json": {
+    "mtime": 1779713617.1248057,
+    "ast_hash": "d22da26b33e20f31bd624eba0ee05d74",
+    "semantic_hash": "d22da26b33e20f31bd624eba0ee05d74"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/05a-solution-architecture-workflow.json": {
+    "mtime": 1779713617.1242378,
+    "ast_hash": "6559df62cfe4c0074d4b0d3aa074e870",
+    "semantic_hash": "6559df62cfe4c0074d4b0d3aa074e870"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/ba-workflow-compact.json": {
+    "mtime": 1779713617.1251674,
+    "ast_hash": "9df3b00b038d4d657db9bd4cb88c0276",
+    "semantic_hash": "9df3b00b038d4d657db9bd4cb88c0276"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/chat-fix.json": {
+    "mtime": 1779713617.1253912,
+    "ast_hash": "ab2712f8961ba9ebb0261d7fb7466c06",
+    "semantic_hash": "ab2712f8961ba9ebb0261d7fb7466c06"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/arch-workflow-for-create.json": {
+    "mtime": 1779713617.1248796,
+    "ast_hash": "4406cc97725a582db8e949290d181c6f",
+    "semantic_hash": "4406cc97725a582db8e949290d181c6f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/01-ack-workflow.json": {
+    "mtime": 1779713617.1236002,
+    "ast_hash": "fca29ea3d5ed2813cbd3357424dd9f78",
+    "semantic_hash": "fca29ea3d5ed2813cbd3357424dd9f78"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/02-business-analysis-workflow.json": {
+    "mtime": 1779713617.1236753,
+    "ast_hash": "73f4375a9db2da4a434eb8e0ac39ac25",
+    "semantic_hash": "73f4375a9db2da4a434eb8e0ac39ac25"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/business-analysis-nodes.json": {
+    "mtime": 1779713617.1253333,
+    "ast_hash": "c0a23419009768eee03b08996117445e",
+    "semantic_hash": "c0a23419009768eee03b08996117445e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/05b-qa-compliance-workflow.json": {
+    "mtime": 1779713617.1243265,
+    "ast_hash": "a1b8024afb30c6c9576855b754bc4f4d",
+    "semantic_hash": "a1b8024afb30c6c9576855b754bc4f4d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/ba-workflow-for-create.json": {
+    "mtime": 1779713617.1252253,
+    "ast_hash": "bec60d79fb30ac65e0c23259446f67a1",
+    "semantic_hash": "bec60d79fb30ac65e0c23259446f67a1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/ack-workflow-chat-update.json": {
+    "mtime": 1779713617.1247077,
+    "ast_hash": "3151f380bc8d846ea51d20556012f00f",
+    "semantic_hash": "3151f380bc8d846ea51d20556012f00f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-refactor/sd-workflow-for-create.json": {
+    "mtime": 1779713617.1257286,
+    "ast_hash": "2b3ea5d75166f1bed58bd6cbea065c80",
+    "semantic_hash": "2b3ea5d75166f1bed58bd6cbea065c80"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/settings.local.json": {
+    "mtime": 1779719495.6470752,
+    "ast_hash": "9373c01945707a39a63a1a3754422aaa",
+    "semantic_hash": "9373c01945707a39a63a1a3754422aaa"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/convert-seed-to-existing-landscape.py": {
+    "mtime": 1779713617.2131336,
+    "ast_hash": "78e80791a6ed55048ffa24d4925daac3",
+    "semantic_hash": "78e80791a6ed55048ffa24d4925daac3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/sahatna-knowledge-seed.json": {
+    "mtime": 1779713617.2153375,
+    "ast_hash": "6cb71b06c65030e3faeb97374d10b7bb",
+    "semantic_hash": "6cb71b06c65030e3faeb97374d10b7bb"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/seed-qdrant.py": {
+    "mtime": 1779713617.2154417,
+    "ast_hash": "c8adc0479c1980a872cb78b48364c57f",
+    "semantic_hash": "c8adc0479c1980a872cb78b48364c57f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/convert-seed-to-markdown.py": {
+    "mtime": 1779713617.2131774,
+    "ast_hash": "a7de754bdca07582f81a303c3076fa11",
+    "semantic_hash": "a7de754bdca07582f81a303c3076fa11"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/knowledge-config.json": {
+    "mtime": 1779713617.2147582,
+    "ast_hash": "e0fe8b9beacd2b55a8394157209e4390",
+    "semantic_hash": "e0fe8b9beacd2b55a8394157209e4390"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/reference-architectures/reference_architectures.json": {
+    "mtime": 1779713617.2152665,
+    "ast_hash": "ef9c1915fc83097ab50aa86556742a75",
+    "semantic_hash": "ef9c1915fc83097ab50aa86556742a75"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/existing_landscape.json": {
+    "mtime": 1779713617.2135136,
+    "ast_hash": "c6edbbd738d0c5cf860670b4e3ec6473",
+    "semantic_hash": "c6edbbd738d0c5cf860670b4e3ec6473"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/capability-maps/capability_map_documents.json": {
+    "mtime": 1779713617.2129588,
+    "ast_hash": "0604600b306c30e341b3326682029512",
+    "semantic_hash": "0604600b306c30e341b3326682029512"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/types.ts": {
+    "mtime": 1779713617.1133907,
+    "ast_hash": "64474390c2a30d67f4f513e8f1754ec6",
+    "semantic_hash": "64474390c2a30d67f4f513e8f1754ec6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/package.json": {
+    "mtime": 1779713617.1127243,
+    "ast_hash": "03801a514f674c18adb27424365c7778",
+    "semantic_hash": "03801a514f674c18adb27424365c7778"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/index.ts": {
+    "mtime": 1779713617.1125336,
+    "ast_hash": "415e23eb4b347b2eb97945e725da9a60",
+    "semantic_hash": "415e23eb4b347b2eb97945e725da9a60"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/config.ts": {
+    "mtime": 1779713617.112369,
+    "ast_hash": "94d525750063c1d2aa49df911667c08d",
+    "semantic_hash": "94d525750063c1d2aa49df911667c08d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/db.ts": {
+    "mtime": 1779713617.112438,
+    "ast_hash": "ce5d4fbfbffc5da3e495e4f09202e172",
+    "semantic_hash": "ce5d4fbfbffc5da3e495e4f09202e172"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/otel/sqlite-exporter.ts": {
+    "mtime": 1779713617.1126773,
+    "ast_hash": "ee3d2a5003a23fc3f2a94bf7c77655d1",
+    "semantic_hash": "ee3d2a5003a23fc3f2a94bf7c77655d1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/otel/setup.ts": {
+    "mtime": 1779713617.1126044,
+    "ast_hash": "e38b01d04b05e2c47ed2a6312f89c00c",
+    "semantic_hash": "e38b01d04b05e2c47ed2a6312f89c00c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/routes/projects.ts": {
+    "mtime": 1779713617.1130583,
+    "ast_hash": "9c614f8ab5191fb32c62c5eba2f90aba",
+    "semantic_hash": "9c614f8ab5191fb32c62c5eba2f90aba"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/routes/webhooks.ts": {
+    "mtime": 1779713617.1133196,
+    "ast_hash": "0d007bab8d07c05f7bb87a972ae94b54",
+    "semantic_hash": "0d007bab8d07c05f7bb87a972ae94b54"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/routes/dashboard.ts": {
+    "mtime": 1779713617.1129148,
+    "ast_hash": "99270d5778dc2f72fa65d3bf3622c38f",
+    "semantic_hash": "99270d5778dc2f72fa65d3bf3622c38f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/routes/spans.ts": {
+    "mtime": 1779713617.113163,
+    "ast_hash": "d3678db0a7678f203e66a9142ef0e434",
+    "semantic_hash": "d3678db0a7678f203e66a9142ef0e434"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/routes/stories.ts": {
+    "mtime": 1779713617.1132407,
+    "ast_hash": "d51aafb1415e1406f975bfc53ba93809",
+    "semantic_hash": "d51aafb1415e1406f975bfc53ba93809"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/routes/events.ts": {
+    "mtime": 1779713617.1130056,
+    "ast_hash": "c9edb691c7a32b8915cfcee061883255",
+    "semantic_hash": "c9edb691c7a32b8915cfcee061883255"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/routes/sessions.ts": {
+    "mtime": 1779713617.1131134,
+    "ast_hash": "bbe31f572f0dfac1f4fbcb5fc8f37c8f",
+    "semantic_hash": "bbe31f572f0dfac1f4fbcb5fc8f37c8f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/server/routes/contributors.ts": {
+    "mtime": 1779713617.1128168,
+    "ast_hash": "d1f888f472ef5fdc2462c963925882c9",
+    "semantic_hash": "d1f888f472ef5fdc2462c963925882c9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/story-tracker.ts": {
+    "mtime": 1779713617.1120806,
+    "ast_hash": "18a4d2d55b40ff71f9b2339bad8cdb6f",
+    "semantic_hash": "18a4d2d55b40ff71f9b2339bad8cdb6f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/send-event.ts": {
+    "mtime": 1779713617.1118152,
+    "ast_hash": "7ce4537bb789cd1113564d31ed74436f",
+    "semantic_hash": "7ce4537bb789cd1113564d31ed74436f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/subagent-stop.ts": {
+    "mtime": 1779713617.112171,
+    "ast_hash": "82c1347887b136830fd047a7a051a425",
+    "semantic_hash": "82c1347887b136830fd047a7a051a425"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/subagent-start.ts": {
+    "mtime": 1779713617.1121266,
+    "ast_hash": "a5ee16b3bfe3ba072d7bcaa9c3347f8e",
+    "semantic_hash": "a5ee16b3bfe3ba072d7bcaa9c3347f8e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/pre-compact.ts": {
+    "mtime": 1779713617.111687,
+    "ast_hash": "952bf11b14db9e1be2394ba56ff052a9",
+    "semantic_hash": "952bf11b14db9e1be2394ba56ff052a9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/install.sh": {
+    "mtime": 1779713617.1111138,
+    "ast_hash": "5242ff7376e502b04043069ff77098b7",
+    "semantic_hash": "5242ff7376e502b04043069ff77098b7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/user-prompt-submit.ts": {
+    "mtime": 1779713617.1122122,
+    "ast_hash": "7985f0891486ccd8a2ef0d991fbb7d8d",
+    "semantic_hash": "7985f0891486ccd8a2ef0d991fbb7d8d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/post-tool-use-failure.ts": {
+    "mtime": 1779713617.1115897,
+    "ast_hash": "b3f4772a715bf897255bb81bd63b89e5",
+    "semantic_hash": "b3f4772a715bf897255bb81bd63b89e5"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/stop.ts": {
+    "mtime": 1779713617.112004,
+    "ast_hash": "b6224ebf8c9c3b91e994da1aefab6b61",
+    "semantic_hash": "b6224ebf8c9c3b91e994da1aefab6b61"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/post-tool-use.ts": {
+    "mtime": 1779713617.1116426,
+    "ast_hash": "2a3350757f3be291ad7b5506c58d4155",
+    "semantic_hash": "2a3350757f3be291ad7b5506c58d4155"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/notification.ts": {
+    "mtime": 1779713617.1113515,
+    "ast_hash": "e80f1d2f599106cd9f2c1d793e38c2c6",
+    "semantic_hash": "e80f1d2f599106cd9f2c1d793e38c2c6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/lib.ts": {
+    "mtime": 1779713617.1111922,
+    "ast_hash": "7582b51bc14334e0946e8e41c27967a2",
+    "semantic_hash": "7582b51bc14334e0946e8e41c27967a2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/session-start.ts": {
+    "mtime": 1779713617.1119115,
+    "ast_hash": "2d2af0b3db9eb55af1f32e0174f783d8",
+    "semantic_hash": "2d2af0b3db9eb55af1f32e0174f783d8"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/session-end.ts": {
+    "mtime": 1779713617.111862,
+    "ast_hash": "ea2326cd456dfb8ab15284020177d674",
+    "semantic_hash": "ea2326cd456dfb8ab15284020177d674"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/permission-request.ts": {
+    "mtime": 1779713617.1115296,
+    "ast_hash": "0806773de73f4da08fdcc0dc784b0630",
+    "semantic_hash": "0806773de73f4da08fdcc0dc784b0630"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/hooks/pre-tool-use.ts": {
+    "mtime": 1779713617.1117382,
+    "ast_hash": "1429372e8a5a5de662ac48350065c214",
+    "semantic_hash": "1429372e8a5a5de662ac48350065c214"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/tsconfig.node.json": {
+    "mtime": 1779713617.1109667,
+    "ast_hash": "b84a00cad3da1546ce9db508961f650b",
+    "semantic_hash": "b84a00cad3da1546ce9db508961f650b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/tailwind.config.js": {
+    "mtime": 1779713617.1108725,
+    "ast_hash": "78c2403376e8d51bf5651862068ec775",
+    "semantic_hash": "78c2403376e8d51bf5651862068ec775"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/package.json": {
+    "mtime": 1779713617.1086843,
+    "ast_hash": "62c3b8126efa716aa019383e4a5e05c8",
+    "semantic_hash": "62c3b8126efa716aa019383e4a5e05c8"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/tsconfig.json": {
+    "mtime": 1779713617.1109178,
+    "ast_hash": "5c861360618de47babe305f9f6daffdf",
+    "semantic_hash": "5c861360618de47babe305f9f6daffdf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/vite.config.ts": {
+    "mtime": 1779713617.1110113,
+    "ast_hash": "398cd5e3163079390bca6d8a28896088",
+    "semantic_hash": "398cd5e3163079390bca6d8a28896088"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/postcss.config.js": {
+    "mtime": 1779713617.1087282,
+    "ast_hash": "c735540bb63936a123bc867d950c9f69",
+    "semantic_hash": "c735540bb63936a123bc867d950c9f69"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/App.vue": {
+    "mtime": 1779713617.109069,
+    "ast_hash": "6f44ed549441e43e0be5b60a62d02140",
+    "semantic_hash": "6f44ed549441e43e0be5b60a62d02140"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/main.ts": {
+    "mtime": 1779713617.1100543,
+    "ast_hash": "3b610694bec30eec14d1d1eacea8c056",
+    "semantic_hash": "3b610694bec30eec14d1d1eacea8c056"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/router.ts": {
+    "mtime": 1779713617.1106966,
+    "ast_hash": "c5ce23a2862586245cc6dd24d0ad4ca0",
+    "semantic_hash": "c5ce23a2862586245cc6dd24d0ad4ca0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/env.d.ts": {
+    "mtime": 1779713617.1100016,
+    "ast_hash": "650643f6615f6ea3e692a0ec07db7402",
+    "semantic_hash": "650643f6615f6ea3e692a0ec07db7402"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/types.ts": {
+    "mtime": 1779713617.110827,
+    "ast_hash": "2fdae50ca85cb6de3758d8c2c401ee4e",
+    "semantic_hash": "2fdae50ca85cb6de3758d8c2c401ee4e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/composables/useRelativeTime.ts": {
+    "mtime": 1779713617.1098561,
+    "ast_hash": "0b05ee93b209db923e2ed5f299b66b50",
+    "semantic_hash": "0b05ee93b209db923e2ed5f299b66b50"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/composables/useApi.ts": {
+    "mtime": 1779713617.109801,
+    "ast_hash": "8106c401f684fa372b5cbca58846125c",
+    "semantic_hash": "8106c401f684fa372b5cbca58846125c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/composables/useWebSocket.ts": {
+    "mtime": 1779713617.1099014,
+    "ast_hash": "c5d028680feef6ab4b74a01c05062e83",
+    "semantic_hash": "c5d028680feef6ab4b74a01c05062e83"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/stores/events.ts": {
+    "mtime": 1779713617.1107748,
+    "ast_hash": "95aa08e47b79a1732d36733b22453854",
+    "semantic_hash": "95aa08e47b79a1732d36733b22453854"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/components/KpiCard.vue": {
+    "mtime": 1779713617.1095006,
+    "ast_hash": "a89a896e3225645e054de4f058867920",
+    "semantic_hash": "a89a896e3225645e054de4f058867920"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/components/SparkLine.vue": {
+    "mtime": 1779713617.1096425,
+    "ast_hash": "c5724dbdce263493cc6faa775b7cfcf3",
+    "semantic_hash": "c5724dbdce263493cc6faa775b7cfcf3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/components/AppLayout.vue": {
+    "mtime": 1779713617.1092706,
+    "ast_hash": "14106bf44aaaaa879d64798e2ca5db72",
+    "semantic_hash": "14106bf44aaaaa879d64798e2ca5db72"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/components/StatusBadge.vue": {
+    "mtime": 1779713617.109689,
+    "ast_hash": "cce70597b6ccfbbe9ba57959086e054b",
+    "semantic_hash": "cce70597b6ccfbbe9ba57959086e054b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/components/LoadingSpinner.vue": {
+    "mtime": 1779713617.109584,
+    "ast_hash": "5bb243dd707f8ff21f346a25b4cd95f0",
+    "semantic_hash": "5bb243dd707f8ff21f346a25b4cd95f0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/components/EventFeed.vue": {
+    "mtime": 1779713617.1093194,
+    "ast_hash": "8ba77ac3c11ee3fb91bef882d7a0bdfc",
+    "semantic_hash": "8ba77ac3c11ee3fb91bef882d7a0bdfc"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/pages/StoryDetail.vue": {
+    "mtime": 1779713617.110551,
+    "ast_hash": "64dfaad086c36e55bd64613b36f0232e",
+    "semantic_hash": "64dfaad086c36e55bd64613b36f0232e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/pages/SessionTrace.vue": {
+    "mtime": 1779713617.1104581,
+    "ast_hash": "380006d495cbd4f3f206ac82b4802f55",
+    "semantic_hash": "380006d495cbd4f3f206ac82b4802f55"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/pages/ProjectDetail.vue": {
+    "mtime": 1779713617.1103182,
+    "ast_hash": "c362ec9ba7164c7cf2a7dc00ba0c5fb0",
+    "semantic_hash": "c362ec9ba7164c7cf2a7dc00ba0c5fb0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/pages/ContributorDetail.vue": {
+    "mtime": 1779713617.1102407,
+    "ast_hash": "c73e40959ac1eb8e9f66d7b3f9fa8cca",
+    "semantic_hash": "c73e40959ac1eb8e9f66d7b3f9fa8cca"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/pages/CIODashboard.vue": {
+    "mtime": 1779713617.110166,
+    "ast_hash": "191c5b2e2ac13bb00cdb9c536d5a9720",
+    "semantic_hash": "191c5b2e2ac13bb00cdb9c536d5a9720"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/src/pages/ProjectsOverview.vue": {
+    "mtime": 1779713617.110388,
+    "ast_hash": "c3e3df5781f4f68bea0ad357b9752e00",
+    "semantic_hash": "c3e3df5781f4f68bea0ad357b9752e00"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Architecture_Pipeline_AI_Agent_iKBlJTWf5HPkKAVX.json": {
+    "mtime": 1779713617.1304326,
+    "ast_hash": "bf5454a8ad00d0bb7a496c5f4ba693af",
+    "semantic_hash": "bf5454a8ad00d0bb7a496c5f4ba693af"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Marketplace_Template_Request.json": {
+    "mtime": 1779713617.1314912,
+    "ast_hash": "551e2994f512efe14190d5fd8436af5c",
+    "semantic_hash": "551e2994f512efe14190d5fd8436af5c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Marketplace_Agent_Deploy.json": {
+    "mtime": 1779713617.1314032,
+    "ast_hash": "a909169c1ef7b71b14bee1a1404ebf0e",
+    "semantic_hash": "a909169c1ef7b71b14bee1a1404ebf0e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Seed_Knowledge_Base_dBpVnf9ZCL0Cjzsw.json": {
+    "mtime": 1779713617.132111,
+    "ast_hash": "c416ef1f6536bd353a24529819dd911b",
+    "semantic_hash": "c416ef1f6536bd353a24529819dd911b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Knowledge_Loader_Generic_BlN67oV6QwF2hzgb.json": {
+    "mtime": 1779713617.1313336,
+    "ast_hash": "fd27e06ffe011cc1b52359902c000239",
+    "semantic_hash": "fd27e06ffe011cc1b52359902c000239"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Test_Strategy_Pipeline_DZdCDfvObweaHen4.json": {
+    "mtime": 1779713617.1324604,
+    "ast_hash": "6774c0f8a3318f5fec7ac17b35f0192c",
+    "semantic_hash": "6774c0f8a3318f5fec7ac17b35f0192c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Risk_Assessment_Pipeline_FUDBTPAjmDnFlg7h.json": {
+    "mtime": 1779713617.1320398,
+    "ast_hash": "4a939d0b4782c505db1c15158a0ece1f",
+    "semantic_hash": "4a939d0b4782c505db1c15158a0ece1f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Marketplace_License_Request.json": {
+    "mtime": 1779713617.1314545,
+    "ast_hash": "c936d7c4948f49580a1b1a3436409787",
+    "semantic_hash": "c936d7c4948f49580a1b1a3436409787"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Software_Delivery_Pipeline_GitHub_Taskmaster_RxOksieHq60Si7A5.json": {
+    "mtime": 1779713617.1322806,
+    "ast_hash": "73b73e22d93c57f775dc735abcaf686b",
+    "semantic_hash": "73b73e22d93c57f775dc735abcaf686b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/QA_and_Compliance_Pipeline_IxuJtVhuqD4WK2UQ.json": {
+    "mtime": 1779713617.131847,
+    "ast_hash": "22d210b58ef258d2acac9f48c11bf9f2",
+    "semantic_hash": "22d210b58ef258d2acac9f48c11bf9f2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Architecture_Pipeline_R4SsOqGqQIkRwUPT.json": {
+    "mtime": 1779713617.1308117,
+    "ast_hash": "dc1ca4dc3fd76ba9f5125d44283eddf6",
+    "semantic_hash": "dc1ca4dc3fd76ba9f5125d44283eddf6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Project_Management_Pipeline_VvpkyZ9c4dCNv4rd.json": {
+    "mtime": 1779713617.1316044,
+    "ast_hash": "2853105b904e9ee99f9db7bf9dedcf90",
+    "semantic_hash": "2853105b904e9ee99f9db7bf9dedcf90"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Architecture_Artifact_Get_v2_7IUOzaD9TUwXP2Qw.json": {
+    "mtime": 1779713617.130174,
+    "ast_hash": "5693cd34a288aa0def5644103b870894",
+    "semantic_hash": "5693cd34a288aa0def5644103b870894"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Business_Analysis_Pipeline_nmqyIEwcwVfiIIOu.json": {
+    "mtime": 1779713617.1311455,
+    "ast_hash": "cd500b055b5a4079cec943c28c548d37",
+    "semantic_hash": "cd500b055b5a4079cec943c28c548d37"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Knowledge_Agent_H84Yo30UwRrAPnD2.json": {
+    "mtime": 1779713617.1312668,
+    "ast_hash": "c970676cda9b6b9c9d5022c2fa5d4ec9",
+    "semantic_hash": "c970676cda9b6b9c9d5022c2fa5d4ec9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Software_Delivery_Pipeline_FlqPvbx2ICZvJiQr.json": {
+    "mtime": 1779713617.1322076,
+    "ast_hash": "91803dd9e6a278e48161ae6a242a29d3",
+    "semantic_hash": "91803dd9e6a278e48161ae6a242a29d3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Quality_and_Compliance_Pipeline_r0oYx6nuhRPR70zg.json": {
+    "mtime": 1779713617.1319282,
+    "ast_hash": "847e02d4b2a99b52959c0efbe8c69a83",
+    "semantic_hash": "847e02d4b2a99b52959c0efbe8c69a83"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n/backup/workflows/Solution_Architecture_Pipeline_smxRuLpxe8181lbw.json": {
+    "mtime": 1779713617.132336,
+    "ast_hash": "088eddb24ccb16255a47df96f45cc1fb",
+    "semantic_hash": "088eddb24ccb16255a47df96f45cc1fb"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/settings.json": {
+    "mtime": 1779713617.1174521,
+    "ast_hash": "772816a038b1bdd241e188f1888206cc",
+    "semantic_hash": "772816a038b1bdd241e188f1888206cc"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/story-tracker.ts": {
+    "mtime": 1779713617.1172805,
+    "ast_hash": "18a4d2d55b40ff71f9b2339bad8cdb6f",
+    "semantic_hash": "18a4d2d55b40ff71f9b2339bad8cdb6f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/send-event.ts": {
+    "mtime": 1779713617.1170917,
+    "ast_hash": "7ce4537bb789cd1113564d31ed74436f",
+    "semantic_hash": "7ce4537bb789cd1113564d31ed74436f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/subagent-stop.ts": {
+    "mtime": 1779713617.1173737,
+    "ast_hash": "82c1347887b136830fd047a7a051a425",
+    "semantic_hash": "82c1347887b136830fd047a7a051a425"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/subagent-start.ts": {
+    "mtime": 1779713617.11733,
+    "ast_hash": "a5ee16b3bfe3ba072d7bcaa9c3347f8e",
+    "semantic_hash": "a5ee16b3bfe3ba072d7bcaa9c3347f8e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/pre-compact.ts": {
+    "mtime": 1779713617.116978,
+    "ast_hash": "952bf11b14db9e1be2394ba56ff052a9",
+    "semantic_hash": "952bf11b14db9e1be2394ba56ff052a9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/user-prompt-submit.ts": {
+    "mtime": 1779713617.1174133,
+    "ast_hash": "7985f0891486ccd8a2ef0d991fbb7d8d",
+    "semantic_hash": "7985f0891486ccd8a2ef0d991fbb7d8d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/post-tool-use-failure.ts": {
+    "mtime": 1779713617.1168833,
+    "ast_hash": "b3f4772a715bf897255bb81bd63b89e5",
+    "semantic_hash": "b3f4772a715bf897255bb81bd63b89e5"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/stop.ts": {
+    "mtime": 1779713617.1172097,
+    "ast_hash": "b6224ebf8c9c3b91e994da1aefab6b61",
+    "semantic_hash": "b6224ebf8c9c3b91e994da1aefab6b61"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/post-tool-use.ts": {
+    "mtime": 1779713617.116935,
+    "ast_hash": "2a3350757f3be291ad7b5506c58d4155",
+    "semantic_hash": "2a3350757f3be291ad7b5506c58d4155"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/notification.ts": {
+    "mtime": 1779713617.1168025,
+    "ast_hash": "e80f1d2f599106cd9f2c1d793e38c2c6",
+    "semantic_hash": "e80f1d2f599106cd9f2c1d793e38c2c6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/lib.ts": {
+    "mtime": 1779713617.116743,
+    "ast_hash": "7582b51bc14334e0946e8e41c27967a2",
+    "semantic_hash": "7582b51bc14334e0946e8e41c27967a2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/session-start.ts": {
+    "mtime": 1779713617.1171768,
+    "ast_hash": "2d2af0b3db9eb55af1f32e0174f783d8",
+    "semantic_hash": "2d2af0b3db9eb55af1f32e0174f783d8"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/session-end.ts": {
+    "mtime": 1779713617.117136,
+    "ast_hash": "ea2326cd456dfb8ab15284020177d674",
+    "semantic_hash": "ea2326cd456dfb8ab15284020177d674"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/permission-request.ts": {
+    "mtime": 1779713617.1168454,
+    "ast_hash": "0806773de73f4da08fdcc0dc784b0630",
+    "semantic_hash": "0806773de73f4da08fdcc0dc784b0630"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/hooks/pre-tool-use.ts": {
+    "mtime": 1779713617.117025,
+    "ast_hash": "1429372e8a5a5de662ac48350065c214",
+    "semantic_hash": "1429372e8a5a5de662ac48350065c214"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/scripts/add_azure_devops.py": {
+    "mtime": 1779713617.2021782,
+    "ast_hash": "fef98bb42736b69cec58b2345a0b3c0b",
+    "semantic_hash": "fef98bb42736b69cec58b2345a0b3c0b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/scripts/setup-architecture-pipeline.sh": {
+    "mtime": 1779713617.202354,
+    "ast_hash": "1d6d6f2e02e5cd2b2ac351770364023e",
+    "semantic_hash": "1d6d6f2e02e5cd2b2ac351770364023e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/scripts/embed-documents.py": {
+    "mtime": 1779713617.2022767,
+    "ast_hash": "06fa876fc51cb9d06585325e7b38c93f",
+    "semantic_hash": "06fa876fc51cb9d06585325e7b38c93f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/scripts/setup-qdrant-collections.py": {
+    "mtime": 1779713617.2024248,
+    "ast_hash": "a61b9705b3451b302de3a18fce75573f",
+    "semantic_hash": "a61b9705b3451b302de3a18fce75573f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.understand-anything/fingerprints.json": {
+    "mtime": 1779717746.8194864,
+    "ast_hash": "5c41294728bbb40bdc8e22f085fe135c",
+    "semantic_hash": "5c41294728bbb40bdc8e22f085fe135c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.understand-anything/knowledge-graph.json": {
+    "mtime": 1779717734.1748083,
+    "ast_hash": "0f6e926558bd962cd3089cdbb74f501e",
+    "semantic_hash": "0f6e926558bd962cd3089cdbb74f501e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.understand-anything/meta.json": {
+    "mtime": 1779717751.9391222,
+    "ast_hash": "42ba77ff51f23b9271e2bd8accac851b",
+    "semantic_hash": "42ba77ff51f23b9271e2bd8accac851b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/flowise/Web Search + n8n Agent Chatflow.json": {
+    "mtime": 1779713617.1218932,
+    "ast_hash": "104d9ef3b276f8b6fe3ca1ad0e9159a5",
+    "semantic_hash": "104d9ef3b276f8b6fe3ca1ad0e9159a5"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/flowise/get_postgres_tables-CustomTool.json": {
+    "mtime": 1779713617.1219842,
+    "ast_hash": "af911c37eff384bce5bc4b80ce3a02c7",
+    "semantic_hash": "af911c37eff384bce5bc4b80ce3a02c7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/flowise/summarize_slack_conversation-CustomTool.json": {
+    "mtime": 1779713617.122069,
+    "ast_hash": "a284b85d70f959d475fb3118438f05c1",
+    "semantic_hash": "a284b85d70f959d475fb3118438f05c1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/flowise/send_slack_message_through_n8n-CustomTool.json": {
+    "mtime": 1779713617.1220298,
+    "ast_hash": "782c62f1d4bb91682ec9363c5d76f93d",
+    "semantic_hash": "782c62f1d4bb91682ec9363c5d76f93d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/flowise/create_google_doc-CustomTool.json": {
+    "mtime": 1779713617.1219392,
+    "ast_hash": "a06983445e03e7e837a8b0c8d5e0f631",
+    "semantic_hash": "a06983445e03e7e837a8b0c8d5e0f631"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/0-configuration-assistant.json": {
+    "mtime": 1779713617.1259325,
+    "ast_hash": "041f523bb3d5d2c9d34f7ed1b7fe5997",
+    "semantic_hash": "041f523bb3d5d2c9d34f7ed1b7fe5997"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/11-documentation-generator-agent.json": {
+    "mtime": 1779713617.1261451,
+    "ast_hash": "2c42f18941a3942516720566ce929f2d",
+    "semantic_hash": "2c42f18941a3942516720566ce929f2d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/5-code-transformer-ios.json": {
+    "mtime": 1779713617.1264338,
+    "ast_hash": "35ef99b204c1518b000d8327bc90916c",
+    "semantic_hash": "35ef99b204c1518b000d8327bc90916c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/2-master-orchestrator.json": {
+    "mtime": 1779713617.1262193,
+    "ast_hash": "f0080c99ced9289bd80659f70f030828",
+    "semantic_hash": "f0080c99ced9289bd80659f70f030828"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/7-code-transformer-web.json": {
+    "mtime": 1779713617.1265452,
+    "ast_hash": "eed65244fa096991812597f09bff14d0",
+    "semantic_hash": "eed65244fa096991812597f09bff14d0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/10-test-generator-agent.json": {
+    "mtime": 1779713617.1261017,
+    "ast_hash": "003c7812ebc1776cefa1bce58aa20d57",
+    "semantic_hash": "003c7812ebc1776cefa1bce58aa20d57"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/openwebui-function.py": {
+    "mtime": 1779713617.1286345,
+    "ast_hash": "91e293cc2fca37f3a521690663d5fe75",
+    "semantic_hash": "91e293cc2fca37f3a521690663d5fe75"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/0-configuration-assistant-intent-router.json": {
+    "mtime": 1779713617.1258302,
+    "ast_hash": "8e36adc55c8a85558d13ff6e44f8e748",
+    "semantic_hash": "8e36adc55c8a85558d13ff6e44f8e748"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/comedian-workflow.json": {
+    "mtime": 1779713617.126963,
+    "ast_hash": "8a6fbc605f4ec6bc2d8023133682bd88",
+    "semantic_hash": "8a6fbc605f4ec6bc2d8023133682bd88"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/6-code-transformer-android.json": {
+    "mtime": 1779713617.1264892,
+    "ast_hash": "f12e7131ff6a5f7e9ae685335d914863",
+    "semantic_hash": "f12e7131ff6a5f7e9ae685335d914863"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/8-validator-agent.json": {
+    "mtime": 1779713617.126615,
+    "ast_hash": "501fbcf6605b2bd28141a6400ca1a22e",
+    "semantic_hash": "501fbcf6605b2bd28141a6400ca1a22e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/9-visual-diff-agent.json": {
+    "mtime": 1779713617.1266706,
+    "ast_hash": "9be74719e23c271012dc05ceab045d29",
+    "semantic_hash": "9be74719e23c271012dc05ceab045d29"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/4-contract-generator-agent.json": {
+    "mtime": 1779713617.1263752,
+    "ast_hash": "4e545e700507362e6cbfefd887d87747",
+    "semantic_hash": "4e545e700507362e6cbfefd887d87747"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/1-github-webhook-handler.json": {
+    "mtime": 1779713617.1260355,
+    "ast_hash": "95112c30ea2cb0e0f5c61db1de68e95c",
+    "semantic_hash": "95112c30ea2cb0e0f5c61db1de68e95c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/database-schema.sql": {
+    "mtime": 1779713617.127017,
+    "ast_hash": "08855ffc75c1d73a7c0ff6f2af8a07c7",
+    "semantic_hash": "08855ffc75c1d73a7c0ff6f2af8a07c7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/3-repo-analyzer-agent.json": {
+    "mtime": 1779713617.1263053,
+    "ast_hash": "b99d093b9133de0272bdd725da661a4b",
+    "semantic_hash": "b99d093b9133de0272bdd725da661a4b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/database/architecture-schema.sql": {
+    "mtime": 1779713617.1271157,
+    "ast_hash": "a3ac5dcb249ec5901fc9ba7ff3580b48",
+    "semantic_hash": "a3ac5dcb249ec5901fc9ba7ff3580b48"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/database/e2e-schema.sql": {
+    "mtime": 1779713617.127266,
+    "ast_hash": "94556fa175653582e041a6d9ed6d265f",
+    "semantic_hash": "94556fa175653582e041a6d9ed6d265f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/database/e2e-schema-updates.sql": {
+    "mtime": 1779713617.1271696,
+    "ast_hash": "c0eac7d74e7ec9a247abbdbb117c5f69",
+    "semantic_hash": "c0eac7d74e7ec9a247abbdbb117c5f69"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/tests/test_workflow_validation.py": {
+    "mtime": 1779713617.1291604,
+    "ast_hash": "36e393b73c6f825a07d6953e9c48a5db",
+    "semantic_hash": "36e393b73c6f825a07d6953e9c48a5db"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/tests/test_e2e_integration.py": {
+    "mtime": 1779713617.1289363,
+    "ast_hash": "7e640e6810a3eed064482cfe2d0202cf",
+    "semantic_hash": "7e640e6810a3eed064482cfe2d0202cf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/workflows/1-prd-generator-orchestrator.json": {
+    "mtime": 1779713617.1293068,
+    "ast_hash": "269ea757b46ddc09033cf8ff27052319",
+    "semantic_hash": "269ea757b46ddc09033cf8ff27052319"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/workflows/9-github-docs-writer.json": {
+    "mtime": 1779713617.1299958,
+    "ast_hash": "b57a3c26415b9b48a602da21468cda46",
+    "semantic_hash": "b57a3c26415b9b48a602da21468cda46"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/workflows/7-expert-solution-architect.json": {
+    "mtime": 1779713617.129848,
+    "ast_hash": "9ba29af53c70d81ea843a38fd5de55e3",
+    "semantic_hash": "9ba29af53c70d81ea843a38fd5de55e3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/workflows/0-business-analyst-e2e.json": {
+    "mtime": 1779713617.1292572,
+    "ast_hash": "e6f1ad966f40a9e13240a01045e899b1",
+    "semantic_hash": "e6f1ad966f40a9e13240a01045e899b1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/workflows/8-expert-infrastructure-reviewer.json": {
+    "mtime": 1779713617.1299274,
+    "ast_hash": "2b884448b5c8d7d6abf9867ffb9b0ba3",
+    "semantic_hash": "2b884448b5c8d7d6abf9867ffb9b0ba3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/workflows/1b-devops-engineer.json": {
+    "mtime": 1779713617.1293807,
+    "ast_hash": "9cb15f5881fcbd730bc4b1a870d5f95d",
+    "semantic_hash": "9cb15f5881fcbd730bc4b1a870d5f95d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/workflows/6-expert-application-architect.json": {
+    "mtime": 1779713617.1297688,
+    "ast_hash": "3b2fa4a573f70c82344b4dce6d6160e6",
+    "semantic_hash": "3b2fa4a573f70c82344b4dce6d6160e6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/workflows/5-expert-technology-cto.json": {
+    "mtime": 1779713617.1296945,
+    "ast_hash": "d5401e6683039215d2806b136889f2e3",
+    "semantic_hash": "d5401e6683039215d2806b136889f2e3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/workflows/3-expert-business-architect.json": {
+    "mtime": 1779713617.1295342,
+    "ast_hash": "7d1d6d23e5b336c60026748d1bbbb0db",
+    "semantic_hash": "7d1d6d23e5b336c60026748d1bbbb0db"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/workflows/2-expert-compliance-risk.json": {
+    "mtime": 1779713617.1294603,
+    "ast_hash": "d433990fe33561d18aae103610204925",
+    "semantic_hash": "d433990fe33561d18aae103610204925"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/workflows/4-expert-experience-designer.json": {
+    "mtime": 1779713617.129614,
+    "ast_hash": "fba1e17b4f1baeb9df713303b9826830",
+    "semantic_hash": "fba1e17b4f1baeb9df713303b9826830"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/backstage.json": {
+    "mtime": 1779713617.1011984,
+    "ast_hash": "79971d1e69bc1986db4e11a4f1739590",
+    "semantic_hash": "79971d1e69bc1986db4e11a4f1739590"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/package.json": {
+    "mtime": 1779713617.1039557,
+    "ast_hash": "d6a34d2dc4b6468f4d39851a726e6670",
+    "semantic_hash": "d6a34d2dc4b6468f4d39851a726e6670"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/.eslintrc.js": {
+    "mtime": 1779713617.0938895,
+    "ast_hash": "a76f6da16665d9af8194333846588f35",
+    "semantic_hash": "a76f6da16665d9af8194333846588f35"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/tsconfig.json": {
+    "mtime": 1779713617.1064882,
+    "ast_hash": "2fd9115df613c0ea267e0f0f58db515a",
+    "semantic_hash": "2fd9115df613c0ea267e0f0f58db515a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/playwright.config.ts": {
+    "mtime": 1779713617.106158,
+    "ast_hash": "4fc8cc9dac76b133e0b1d3e99a771d29",
+    "semantic_hash": "4fc8cc9dac76b133e0b1d3e99a771d29"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/examples/template/content/index.js": {
+    "mtime": 1779713617.102793,
+    "ast_hash": "3bd7c761693b2e10df19811351f983dd",
+    "semantic_hash": "3bd7c761693b2e10df19811351f983dd"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/examples/template/content/package.json": {
+    "mtime": 1779713617.103835,
+    "ast_hash": "4383098f3a5f3fbb8277ba3e9ede6730",
+    "semantic_hash": "4383098f3a5f3fbb8277ba3e9ede6730"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/package.json": {
+    "mtime": 1779713617.1042695,
+    "ast_hash": "177ee102a6f0ffab2825fde845a2b9b2",
+    "semantic_hash": "177ee102a6f0ffab2825fde845a2b9b2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/.eslintrc.js": {
+    "mtime": 1779713617.1041563,
+    "ast_hash": "7927debb2b116a08b8e28edc7e603415",
+    "semantic_hash": "7927debb2b116a08b8e28edc7e603415"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/e2e-tests/app.test.ts": {
+    "mtime": 1779713617.1042237,
+    "ast_hash": "a1628814611c9b753e66ade573324854",
+    "semantic_hash": "a1628814611c9b753e66ade573324854"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/public/manifest.json": {
+    "mtime": 1779713617.1048284,
+    "ast_hash": "3d8560b89bc5bd2306d99fa7d8b5a9c2",
+    "semantic_hash": "3d8560b89bc5bd2306d99fa7d8b5a9c2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/index.tsx": {
+    "mtime": 1779713617.1056824,
+    "ast_hash": "811070d77fe4261282088e0cf5dbf908",
+    "semantic_hash": "811070d77fe4261282088e0cf5dbf908"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/App.tsx": {
+    "mtime": 1779713617.1050768,
+    "ast_hash": "b21725b6c88d5cdf3773f36062640fda",
+    "semantic_hash": "b21725b6c88d5cdf3773f36062640fda"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/App.test.tsx": {
+    "mtime": 1779713617.1050239,
+    "ast_hash": "da7511b10cd5f3a75acadf0f429e20ac",
+    "semantic_hash": "da7511b10cd5f3a75acadf0f429e20ac"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/apis.ts": {
+    "mtime": 1779713617.1051226,
+    "ast_hash": "c0eec216d6c474a2225aff267e8091a4",
+    "semantic_hash": "c0eec216d6c474a2225aff267e8091a4"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/setupTests.ts": {
+    "mtime": 1779713617.1057246,
+    "ast_hash": "00e47f7b9836e8f731101981fa2bb2de",
+    "semantic_hash": "00e47f7b9836e8f731101981fa2bb2de"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/components/catalog/EntityPage.tsx": {
+    "mtime": 1779713617.10555,
+    "ast_hash": "7853ef3c4f2c7d4f74e245f2fcc71baf",
+    "semantic_hash": "7853ef3c4f2c7d4f74e245f2fcc71baf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/components/search/SearchPage.tsx": {
+    "mtime": 1779713617.1056328,
+    "ast_hash": "0dff1486030580660d80966c6026db4b",
+    "semantic_hash": "0dff1486030580660d80966c6026db4b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/components/Root/LogoFull.tsx": {
+    "mtime": 1779713617.1052709,
+    "ast_hash": "c4a39a3d718f588ecb9727869f69801e",
+    "semantic_hash": "c4a39a3d718f588ecb9727869f69801e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/components/Root/Root.tsx": {
+    "mtime": 1779713617.1053767,
+    "ast_hash": "e2b72d4521f745ef68b09e05254094af",
+    "semantic_hash": "e2b72d4521f745ef68b09e05254094af"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/components/Root/index.ts": {
+    "mtime": 1779713617.105424,
+    "ast_hash": "7cc6946a48f9a90cd36c7c97c2ae3dd8",
+    "semantic_hash": "7cc6946a48f9a90cd36c7c97c2ae3dd8"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/components/Root/LogoIcon.tsx": {
+    "mtime": 1779713617.1053247,
+    "ast_hash": "aed51aa2a5050b08006acdd389221459",
+    "semantic_hash": "aed51aa2a5050b08006acdd389221459"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/src/tech-radar/techRadarClient.ts": {
+    "mtime": 1779713617.1058009,
+    "ast_hash": "0eb97980821dfa14aa23abaa79581d71",
+    "semantic_hash": "0eb97980821dfa14aa23abaa79581d71"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/backend/package.json": {
+    "mtime": 1779713617.1060233,
+    "ast_hash": "a0be0e1d8b156698692a626485035403",
+    "semantic_hash": "a0be0e1d8b156698692a626485035403"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/backend/.eslintrc.js": {
+    "mtime": 1779713617.1058779,
+    "ast_hash": "7927debb2b116a08b8e28edc7e603415",
+    "semantic_hash": "7927debb2b116a08b8e28edc7e603415"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/backend/src/index.ts": {
+    "mtime": 1779713617.1061,
+    "ast_hash": "48cde6f486c0ccb3c5f9285cda48909c",
+    "semantic_hash": "48cde6f486c0ccb3c5f9285cda48909c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/tech-radar/ai-radar-data.json": {
+    "mtime": 1779713617.106353,
+    "ast_hash": "3d8ae2cb94b2f671217d8ed2562c602d",
+    "semantic_hash": "3d8ae2cb94b2f671217d8ed2562c602d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/tech-radar/tech-radar-data.json": {
+    "mtime": 1779713617.1064417,
+    "ast_hash": "8b02927005b86193884c8728e41785c0",
+    "semantic_hash": "8b02927005b86193884c8728e41785c0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/comedian/jokes.json": {
+    "mtime": 1779713617.1178248,
+    "ast_hash": "f185a4c2539a62a96e77812820fb3ffe",
+    "semantic_hash": "f185a4c2539a62a96e77812820fb3ffe"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/comedian/opencode.json": {
+    "mtime": 1779713617.1178665,
+    "ast_hash": "9bc064b892417929b45a4eeb18632b51",
+    "semantic_hash": "9bc064b892417929b45a4eeb18632b51"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.taskmaster/state.json": {
+    "mtime": 1779713617.0674562,
+    "ast_hash": "57f4f73c167e0cd660e35f53b3f1e3bf",
+    "semantic_hash": "57f4f73c167e0cd660e35f53b3f1e3bf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.taskmaster/config.json": {
+    "mtime": 1779713617.0674176,
+    "ast_hash": "fc88fb64617def098c7e5b1143b53cc7",
+    "semantic_hash": "fc88fb64617def098c7e5b1143b53cc7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/industry-config.schema.json": {
+    "mtime": 1779713617.1450088,
+    "ast_hash": "f4f3f0b65a051e0cea576af946df20aa",
+    "semantic_hash": "f4f3f0b65a051e0cea576af946df20aa"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/industry-config.json": {
+    "mtime": 1779713617.1449587,
+    "ast_hash": "7dece4bd03b32c473932776248a60dbf",
+    "semantic_hash": "7dece4bd03b32c473932776248a60dbf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/opencode.json": {
+    "mtime": 1779713617.1452477,
+    "ast_hash": "07bd831b8188cb445eddc730ab509cbf",
+    "semantic_hash": "07bd831b8188cb445eddc730ab509cbf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.mcp/mcp_config.json": {
+    "mtime": 1779713617.1326811,
+    "ast_hash": "ddfd0b2c5803dbb4f09d36817597e434",
+    "semantic_hash": "ddfd0b2c5803dbb4f09d36817597e434"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/templates/ba-output-schema.json": {
+    "mtime": 1779713617.1442873,
+    "ast_hash": "391877034d8cb6fd22ae29d9cea7821c",
+    "semantic_hash": "391877034d8cb6fd22ae29d9cea7821c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/templates/architect-output-schema.json": {
+    "mtime": 1779713617.1442425,
+    "ast_hash": "07b767ed4f01830dd7fbdd39311d681e",
+    "semantic_hash": "07b767ed4f01830dd7fbdd39311d681e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/templates/schema-template.sql": {
+    "mtime": 1779713617.144649,
+    "ast_hash": "87b575024b1ffe37b2f4c8a1f50f9f9b",
+    "semantic_hash": "87b575024b1ffe37b2f4c8a1f50f9f9b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/adoit-archimate/scripts/adoit_excel_generator.py": {
+    "mtime": 1779713617.1422925,
+    "ast_hash": "2e7e4839bd5d675fa337d37a11df16ce",
+    "semantic_hash": "2e7e4839bd5d675fa337d37a11df16ce"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/adoit-archimate/scripts/adoit_client.py": {
+    "mtime": 1779713617.1422176,
+    "ast_hash": "3862519acaf9fdeb5ae47590b263de8a",
+    "semantic_hash": "3862519acaf9fdeb5ae47590b263de8a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/adoit-archimate/scripts/validate_import.py": {
+    "mtime": 1779713617.142377,
+    "ast_hash": "7146a70cffaf2d6ff094127b25cdee3c",
+    "semantic_hash": "7146a70cffaf2d6ff094127b25cdee3c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/taskmaster-mcp/templates/config.json": {
+    "mtime": 1779713617.1439764,
+    "ast_hash": "f1286fb2a04ba0721ccbf21f00830a17",
+    "semantic_hash": "f1286fb2a04ba0721ccbf21f00830a17"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/json-validation-20260116-190539/ba-agent-brd.json": {
+    "mtime": 1779713617.1480231,
+    "ast_hash": "c8cd7211e18414cc102c31b7220b19f5",
+    "semantic_hash": "c8cd7211e18414cc102c31b7220b19f5"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/test-archimate-agent.sh": {
+    "mtime": 1779713617.1461306,
+    "ast_hash": "9f4f136d55646cfcd8f5a3aa5c788054",
+    "semantic_hash": "9f4f136d55646cfcd8f5a3aa5c788054"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/json-to-adoit.py": {
+    "mtime": 1779713617.1454473,
+    "ast_hash": "b5d74a165cebe0ebe8f661a92560c3d6",
+    "semantic_hash": "b5d74a165cebe0ebe8f661a92560c3d6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/test-agents.sh": {
+    "mtime": 1779713617.146061,
+    "ast_hash": "ebde593d4fd3d210a758ff1e8ebc996c",
+    "semantic_hash": "ebde593d4fd3d210a758ff1e8ebc996c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/test-pipeline-full.sh": {
+    "mtime": 1779713617.1462975,
+    "ast_hash": "06d53e71062b561a3f8d97a9dec1d0cc",
+    "semantic_hash": "06d53e71062b561a3f8d97a9dec1d0cc"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/test-agents-docker.sh": {
+    "mtime": 1779713617.145974,
+    "ast_hash": "87552aee6481fc50286c1e36d741eed5",
+    "semantic_hash": "87552aee6481fc50286c1e36d741eed5"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/json-to-openapi.py": {
+    "mtime": 1779713617.1458087,
+    "ast_hash": "ed65abc923d773ca436fb77ff5bc27d1",
+    "semantic_hash": "ed65abc923d773ca436fb77ff5bc27d1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/test-pipeline.sh": {
+    "mtime": 1779713617.1463974,
+    "ast_hash": "1ea2274dae5da6000458a6b8618a7c4c",
+    "semantic_hash": "1ea2274dae5da6000458a6b8618a7c4c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/json-to-markdown.py": {
+    "mtime": 1779713617.1456065,
+    "ast_hash": "086ee6e07fc82a6aead413473ae459a8",
+    "semantic_hash": "086ee6e07fc82a6aead413473ae459a8"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/test-json-output.sh": {
+    "mtime": 1779713617.1462092,
+    "ast_hash": "6890c30ea1350deec50e26777aee860f",
+    "semantic_hash": "6890c30ea1350deec50e26777aee860f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/json-to-sql.py": {
+    "mtime": 1779713617.1459022,
+    "ast_hash": "e15b9ad90b364f69b362895bdcbeef3b",
+    "semantic_hash": "e15b9ad90b364f69b362895bdcbeef3b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/json-to-archimate.py": {
+    "mtime": 1779713617.1455297,
+    "ast_hash": "4abd44718efe87290b7155d85912e537",
+    "semantic_hash": "4abd44718efe87290b7155d85912e537"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/scripts/archimate-schema.json": {
+    "mtime": 1779713617.1453524,
+    "ast_hash": "ee1de7e5657fffcd5de1fe699f7f669c",
+    "semantic_hash": "ee1de7e5657fffcd5de1fe699f7f669c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/PRD_APP-v1.md": {
+    "mtime": 1779713617.0723429,
+    "ast_hash": "4adb95fbf06349373e9af32a74450e5f",
+    "semantic_hash": "4adb95fbf06349373e9af32a74450e5f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/IFHAS_Process_Diagram.html": {
+    "mtime": 1779713617.071948,
+    "ast_hash": "0d1df754cad4bc464a09b78fa0b6e868",
+    "semantic_hash": "0d1df754cad4bc464a09b78fa0b6e868"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/hazy-chasing-squid.md": {
+    "mtime": 1779713617.1221693,
+    "ast_hash": "ab4326ec09a06d6c49818e8eda34c90b",
+    "semantic_hash": "ab4326ec09a06d6c49818e8eda34c90b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/IFHAS_Process_Diagram.md": {
+    "mtime": 1779713617.072003,
+    "ast_hash": "f5c5b9d1857607922d5777431298d0b7",
+    "semantic_hash": "f5c5b9d1857607922d5777431298d0b7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/IFHAS_Sequence_Diagrams.md": {
+    "mtime": 1779713617.0721154,
+    "ast_hash": "cc0753fb478b7fb1eef36d08fbe3aa1d",
+    "semantic_hash": "cc0753fb478b7fb1eef36d08fbe3aa1d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/docker-compose.override.public.yml": {
+    "mtime": 1779713617.1180632,
+    "ast_hash": "03401852ef93a106f6f4dfb524cebaee",
+    "semantic_hash": "03401852ef93a106f6f4dfb524cebaee"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/temporal-greeting-tower.md": {
+    "mtime": 1779713617.215744,
+    "ast_hash": "7297a1e696d157fbb433e15445904c65",
+    "semantic_hash": "7297a1e696d157fbb433e15445904c65"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/docker-compose.override.public.supabase.yml": {
+    "mtime": 1779713617.1180227,
+    "ast_hash": "03401852ef93a106f6f4dfb524cebaee",
+    "semantic_hash": "03401852ef93a106f6f4dfb524cebaee"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/README.md": {
+    "mtime": 1779713617.0724938,
+    "ast_hash": "9faa9832696303a7bee841634ef187bf",
+    "semantic_hash": "9faa9832696303a7bee841634ef187bf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/IFHAS_Application_Architecture.md": {
+    "mtime": 1779713617.0713751,
+    "ast_hash": "fc83abdc95338ef99fb81c5bbeb6b38c",
+    "semantic_hash": "fc83abdc95338ef99fb81c5bbeb6b38c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/docker-compose.override.private.yml": {
+    "mtime": 1779713617.1179862,
+    "ast_hash": "9f3817f09015a6092f3387ce9a1025e6",
+    "semantic_hash": "9f3817f09015a6092f3387ce9a1025e6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/docker-compose.yml": {
+    "mtime": 1779713617.118139,
+    "ast_hash": "ec1d97905bc591cea82e25baf9658807",
+    "semantic_hash": "ec1d97905bc591cea82e25baf9658807"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/RFD_IFHAS_V3.md": {
+    "mtime": 1779713617.0725799,
+    "ast_hash": "c3e5ec939145ae66b2ed407aa8e88805",
+    "semantic_hash": "c3e5ec939145ae66b2ed407aa8e88805"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/IFHAS_Sequence_Diagrams.html": {
+    "mtime": 1779713617.0720468,
+    "ast_hash": "19a0c6eec3529613c66cc4dc0eafd6b0",
+    "semantic_hash": "19a0c6eec3529613c66cc4dc0eafd6b0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/CLAUDE.md": {
+    "mtime": 1779713645.574081,
+    "ast_hash": "f99b3fc37f8946568eb3f3cf8d5ac34f",
+    "semantic_hash": "f99b3fc37f8946568eb3f3cf8d5ac34f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/workspace/system-oam.yaml": {
+    "mtime": 1779713617.216065,
+    "ast_hash": "c311b48108cd30616e577e0d195fb52c",
+    "semantic_hash": "c311b48108cd30616e577e0d195fb52c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-command-pipeline.md": {
+    "mtime": 1779713617.0650778,
+    "ast_hash": "398310c1c733cb7c18fe3d4f5e59c2ad",
+    "semantic_hash": "398310c1c733cb7c18fe3d4f5e59c2ad"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-expand-all-tasks.md": {
+    "mtime": 1779713617.065295,
+    "ast_hash": "7fa1cd710a7d2a843a59be7242b4b905",
+    "semantic_hash": "7fa1cd710a7d2a843a59be7242b4b905"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-show-task.md": {
+    "mtime": 1779713617.0665903,
+    "ast_hash": "f1f9ac4baee2f7484052c009bacd04c1",
+    "semantic_hash": "f1f9ac4baee2f7484052c009bacd04c1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-next-task.md": {
+    "mtime": 1779713617.066027,
+    "ast_hash": "ec22f7e548eab123def4a4b4914debb4",
+    "semantic_hash": "ec22f7e548eab123def4a4b4914debb4"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-expand-task.md": {
+    "mtime": 1779713617.0653617,
+    "ast_hash": "28f15c733287d51d0b2c9f7b7ef4b201",
+    "semantic_hash": "28f15c733287d51d0b2c9f7b7ef4b201"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-analyze-complexity.md": {
+    "mtime": 1779713617.0648482,
+    "ast_hash": "5c79839aaebf9d1528ec2fb3e8082e9c",
+    "semantic_hash": "5c79839aaebf9d1528ec2fb3e8082e9c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-parse-prd-with-research.md": {
+    "mtime": 1779713617.0660882,
+    "ast_hash": "faf20f907583590a3fc9d2f3356e614b",
+    "semantic_hash": "faf20f907583590a3fc9d2f3356e614b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-setup-models.md": {
+    "mtime": 1779713617.0665464,
+    "ast_hash": "9049c01c0520e3cfe872c57f18c22af0",
+    "semantic_hash": "9049c01c0520e3cfe872c57f18c22af0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-smart-workflow.md": {
+    "mtime": 1779713617.066636,
+    "ast_hash": "d0d93d62612b07ce509baf262b12bd30",
+    "semantic_hash": "d0d93d62612b07ce509baf262b12bd30"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-remove-task.md": {
+    "mtime": 1779713617.066514,
+    "ast_hash": "c35147b9ecf2f3ea924e12ce26116bd4",
+    "semantic_hash": "c35147b9ecf2f3ea924e12ce26116bd4"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-to-pending.md": {
+    "mtime": 1779713617.0669866,
+    "ast_hash": "342f7ae6d7ced73718132a40513315c1",
+    "semantic_hash": "342f7ae6d7ced73718132a40513315c1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-fix-dependencies.md": {
+    "mtime": 1779713617.0654387,
+    "ast_hash": "d8cc9dffb26ffacb367a63c7ca5e5067",
+    "semantic_hash": "d8cc9dffb26ffacb367a63c7ca5e5067"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-project-status.md": {
+    "mtime": 1779713617.0662074,
+    "ast_hash": "56277d51acc924e4b4823e45d8992ca5",
+    "semantic_hash": "56277d51acc924e4b4823e45d8992ca5"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-analyze-project.md": {
+    "mtime": 1779713617.0649252,
+    "ast_hash": "9636bee3dbc4bb92e6d46bd40d845554",
+    "semantic_hash": "9636bee3dbc4bb92e6d46bd40d845554"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-update-single-task.md": {
+    "mtime": 1779713617.0670834,
+    "ast_hash": "f39819859742de29123517eee2c595e9",
+    "semantic_hash": "f39819859742de29123517eee2c595e9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-remove-subtask.md": {
+    "mtime": 1779713617.0664215,
+    "ast_hash": "88382ad1d8c1c06eb6539d334cf4283a",
+    "semantic_hash": "88382ad1d8c1c06eb6539d334cf4283a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-help.md": {
+    "mtime": 1779713617.0655065,
+    "ast_hash": "5764cd27a040d6d0362e4dad3bdad21e",
+    "semantic_hash": "5764cd27a040d6d0362e4dad3bdad21e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-to-deferred.md": {
+    "mtime": 1779713617.066843,
+    "ast_hash": "36d57d76c5c8691acc1c109ec7c5d50d",
+    "semantic_hash": "36d57d76c5c8691acc1c109ec7c5d50d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-update-tasks-from-id.md": {
+    "mtime": 1779713617.0671785,
+    "ast_hash": "08521b3ad14268589bf5de41a58d72cf",
+    "semantic_hash": "08521b3ad14268589bf5de41a58d72cf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-to-in-progress.md": {
+    "mtime": 1779713617.0669463,
+    "ast_hash": "33fd62b039eee57890e6533f047ed4e2",
+    "semantic_hash": "33fd62b039eee57890e6533f047ed4e2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-sync-readme.md": {
+    "mtime": 1779713617.0666857,
+    "ast_hash": "eabe642d1efe1f6f31462d348915ddb6",
+    "semantic_hash": "eabe642d1efe1f6f31462d348915ddb6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-list-tasks-by-status.md": {
+    "mtime": 1779713617.0658367,
+    "ast_hash": "be2d8cb2bbf7565c1937957c28a1fe2f",
+    "semantic_hash": "be2d8cb2bbf7565c1937957c28a1fe2f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-complexity-report.md": {
+    "mtime": 1779713617.0651383,
+    "ast_hash": "80704ba3b326c9353373fc118430021f",
+    "semantic_hash": "80704ba3b326c9353373fc118430021f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-add-task.md": {
+    "mtime": 1779713617.0647876,
+    "ast_hash": "33c3128a0f1901a1e8820c49e862eab4",
+    "semantic_hash": "33c3128a0f1901a1e8820c49e862eab4"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-auto-implement-tasks.md": {
+    "mtime": 1779713617.0649955,
+    "ast_hash": "5cee96a397f8fcee59dc67cd8c403caa",
+    "semantic_hash": "5cee96a397f8fcee59dc67cd8c403caa"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-add-dependency.md": {
+    "mtime": 1779713617.0646446,
+    "ast_hash": "d5e1c3de745770ddd7415ed51a3830ec",
+    "semantic_hash": "d5e1c3de745770ddd7415ed51a3830ec"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-view-models.md": {
+    "mtime": 1779713617.0672593,
+    "ast_hash": "c33b3916144ba4a1f1665484683ea513",
+    "semantic_hash": "c33b3916144ba4a1f1665484683ea513"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-add-subtask.md": {
+    "mtime": 1779713617.0647094,
+    "ast_hash": "301d99b9c0da5759586bed6144173c2f",
+    "semantic_hash": "301d99b9c0da5759586bed6144173c2f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-remove-all-subtasks.md": {
+    "mtime": 1779713617.0663264,
+    "ast_hash": "fbfdb1d72d332405328e1789848f2d6d",
+    "semantic_hash": "fbfdb1d72d332405328e1789848f2d6d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-remove-subtasks.md": {
+    "mtime": 1779713617.066467,
+    "ast_hash": "99e7a8518f0edfbaaf2bd77847e38824",
+    "semantic_hash": "99e7a8518f0edfbaaf2bd77847e38824"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-tm-main.md": {
+    "mtime": 1779713617.0667565,
+    "ast_hash": "8cc78fa4b66000686248d41789dcec1f",
+    "semantic_hash": "8cc78fa4b66000686248d41789dcec1f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-update-task.md": {
+    "mtime": 1779713617.0671346,
+    "ast_hash": "e531f51cfd95b750da13bf753a363645",
+    "semantic_hash": "e531f51cfd95b750da13bf753a363645"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-list-tasks-with-subtasks.md": {
+    "mtime": 1779713617.0659049,
+    "ast_hash": "c6f1a239b9be09cc6ebf1c1d0b70fa86",
+    "semantic_hash": "c6f1a239b9be09cc6ebf1c1d0b70fa86"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-init-project.md": {
+    "mtime": 1779713617.0656447,
+    "ast_hash": "85ac67aaec2eb1ce7688fb55a2ab424a",
+    "semantic_hash": "85ac67aaec2eb1ce7688fb55a2ab424a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-to-review.md": {
+    "mtime": 1779713617.0670304,
+    "ast_hash": "b551f608c27767ef07a4600d07dd8c99",
+    "semantic_hash": "b551f608c27767ef07a4600d07dd8c99"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-to-done.md": {
+    "mtime": 1779713617.0668955,
+    "ast_hash": "a582cc7381de9adf32d26d1b7594f3de",
+    "semantic_hash": "a582cc7381de9adf32d26d1b7594f3de"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-to-cancelled.md": {
+    "mtime": 1779713617.066803,
+    "ast_hash": "07fd0c6c6a4042e8f01cc23c9c0c2b4d",
+    "semantic_hash": "07fd0c6c6a4042e8f01cc23c9c0c2b4d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-remove-dependency.md": {
+    "mtime": 1779713617.0663793,
+    "ast_hash": "917ec175b4db5dc21d0e05502dc52ec2",
+    "semantic_hash": "917ec175b4db5dc21d0e05502dc52ec2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-quick-install-taskmaster.md": {
+    "mtime": 1779713617.0662785,
+    "ast_hash": "c0248c390620da0ba699d49991bcda6d",
+    "semantic_hash": "c0248c390620da0ba699d49991bcda6d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-list-tasks.md": {
+    "mtime": 1779713617.0659635,
+    "ast_hash": "56f7f759fcc3af577c114997b69e8238",
+    "semantic_hash": "56f7f759fcc3af577c114997b69e8238"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-learn.md": {
+    "mtime": 1779713617.0657709,
+    "ast_hash": "0f1de8d0641e642401ef7bd36eb9d4d8",
+    "semantic_hash": "0f1de8d0641e642401ef7bd36eb9d4d8"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-convert-task-to-subtask.md": {
+    "mtime": 1779713617.065222,
+    "ast_hash": "a7628d0c4711785014d3804b9dbecdce",
+    "semantic_hash": "a7628d0c4711785014d3804b9dbecdce"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-install-taskmaster.md": {
+    "mtime": 1779713617.0657058,
+    "ast_hash": "ecb6418536be64a048c6c23f5dea9487",
+    "semantic_hash": "ecb6418536be64a048c6c23f5dea9487"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-validate-dependencies.md": {
+    "mtime": 1779713617.0672174,
+    "ast_hash": "130f36de41d4cbd0b53d8787792875f2",
+    "semantic_hash": "130f36de41d4cbd0b53d8787792875f2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-init-project-quick.md": {
+    "mtime": 1779713617.0655828,
+    "ast_hash": "03f7d08dc84e2422c8713ac42323ca8c",
+    "semantic_hash": "03f7d08dc84e2422c8713ac42323ca8c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.opencode/command/tm-parse-prd.md": {
+    "mtime": 1779713617.066145,
+    "ast_hash": "606710c2acfddef70e6a088e70bfcb95",
+    "semantic_hash": "606710c2acfddef70e6a088e70bfcb95"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/tests/e2e-pipeline-test.md": {
+    "mtime": 1779713617.2159727,
+    "ast_hash": "70738d1a4655bfc3efa259d496ce8ff2",
+    "semantic_hash": "70738d1a4655bfc3efa259d496ce8ff2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/update-task.md": {
+    "mtime": 1779713617.0637558,
+    "ast_hash": "8caaa83eb7cc510f8813f386c27a1a5e",
+    "semantic_hash": "8caaa83eb7cc510f8813f386c27a1a5e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/add-subtask.md": {
+    "mtime": 1779713617.060947,
+    "ast_hash": "41374b8304eae28b67fc28197a29c7bc",
+    "semantic_hash": "41374b8304eae28b67fc28197a29c7bc"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/fix-dependencies.md": {
+    "mtime": 1779713617.0618253,
+    "ast_hash": "4c8c06fae51550446e3bc40effc66e7a",
+    "semantic_hash": "4c8c06fae51550446e3bc40effc66e7a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/to-in-progress.md": {
+    "mtime": 1779713617.063476,
+    "ast_hash": "5b0ab7158371ecc656ffada9601918fb",
+    "semantic_hash": "5b0ab7158371ecc656ffada9601918fb"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/quick-install-taskmaster.md": {
+    "mtime": 1779713617.0625615,
+    "ast_hash": "50dfff801ce70aeb8e02d1e6f4836d02",
+    "semantic_hash": "50dfff801ce70aeb8e02d1e6f4836d02"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/list-tasks-by-status.md": {
+    "mtime": 1779713617.0622258,
+    "ast_hash": "799218ec78bc85b8ede014ee168e3953",
+    "semantic_hash": "799218ec78bc85b8ede014ee168e3953"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/view-models.md": {
+    "mtime": 1779713617.0639536,
+    "ast_hash": "703d3f3400361822d1ad82039f164bd9",
+    "semantic_hash": "703d3f3400361822d1ad82039f164bd9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/learn.md": {
+    "mtime": 1779713617.062164,
+    "ast_hash": "3cc049c0f0efaf69099afdb8acc1cddb",
+    "semantic_hash": "3cc049c0f0efaf69099afdb8acc1cddb"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/remove-subtask.md": {
+    "mtime": 1779713617.062696,
+    "ast_hash": "9da71f137a7f9b3198ee0fa3258dc971",
+    "semantic_hash": "9da71f137a7f9b3198ee0fa3258dc971"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/to-done.md": {
+    "mtime": 1779713617.0634115,
+    "ast_hash": "a0459a1e16aec00d35206eb73ac2ffb3",
+    "semantic_hash": "a0459a1e16aec00d35206eb73ac2ffb3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/analyze-complexity.md": {
+    "mtime": 1779713617.0611076,
+    "ast_hash": "eabf624c432440fd542885fb22846edb",
+    "semantic_hash": "eabf624c432440fd542885fb22846edb"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/sync-readme.md": {
+    "mtime": 1779713617.0630858,
+    "ast_hash": "9c164da16ca203106574733a91e108bf",
+    "semantic_hash": "9c164da16ca203106574733a91e108bf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/auto-implement-tasks.md": {
+    "mtime": 1779713617.0612643,
+    "ast_hash": "862259d6a80755e76b3e61604d2a5752",
+    "semantic_hash": "862259d6a80755e76b3e61604d2a5752"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/project-status.md": {
+    "mtime": 1779713617.0625155,
+    "ast_hash": "e3ca709bf97b5564b35371b1abbc1a9c",
+    "semantic_hash": "e3ca709bf97b5564b35371b1abbc1a9c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/command-pipeline.md": {
+    "mtime": 1779713617.061348,
+    "ast_hash": "73d074384dca3e39faeb401f20411e22",
+    "semantic_hash": "73d074384dca3e39faeb401f20411e22"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/smart-workflow.md": {
+    "mtime": 1779713617.0630066,
+    "ast_hash": "f5fbc1c3d37c1bbbb5caa9c8a6236fb1",
+    "semantic_hash": "f5fbc1c3d37c1bbbb5caa9c8a6236fb1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/expand-all-tasks.md": {
+    "mtime": 1779713617.0615718,
+    "ast_hash": "e37222e901e19ee660ee79b48987549f",
+    "semantic_hash": "e37222e901e19ee660ee79b48987549f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/list-tasks-with-subtasks.md": {
+    "mtime": 1779713617.0622714,
+    "ast_hash": "07c83aa33f8110e805930b3781ab50e7",
+    "semantic_hash": "07c83aa33f8110e805930b3781ab50e7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/setup-models.md": {
+    "mtime": 1779713617.0628788,
+    "ast_hash": "81c0c34560b0ad598dfa8807bad4556f",
+    "semantic_hash": "81c0c34560b0ad598dfa8807bad4556f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/update-single-task.md": {
+    "mtime": 1779713617.0636775,
+    "ast_hash": "911880cbb2082e3762c48fab7b8e981c",
+    "semantic_hash": "911880cbb2082e3762c48fab7b8e981c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/tm-main.md": {
+    "mtime": 1779713617.063194,
+    "ast_hash": "30d4fe17f5c4b87173ec1627996f12c0",
+    "semantic_hash": "30d4fe17f5c4b87173ec1627996f12c0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/show-task.md": {
+    "mtime": 1779713617.0629404,
+    "ast_hash": "f115b478da08ca21819b88436727c575",
+    "semantic_hash": "f115b478da08ca21819b88436727c575"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/validate-dependencies.md": {
+    "mtime": 1779713617.063889,
+    "ast_hash": "336bcc01161d5f5df1a4d394f5f766fd",
+    "semantic_hash": "336bcc01161d5f5df1a4d394f5f766fd"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/next-task.md": {
+    "mtime": 1779713617.0623672,
+    "ast_hash": "c06ea14cad9477fb66351f75c6f091a9",
+    "semantic_hash": "c06ea14cad9477fb66351f75c6f091a9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/parse-prd-with-research.md": {
+    "mtime": 1779713617.062418,
+    "ast_hash": "1817cff4693a6bce68fb32bd6c8f16dd",
+    "semantic_hash": "1817cff4693a6bce68fb32bd6c8f16dd"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/analyze-project.md": {
+    "mtime": 1779713617.061188,
+    "ast_hash": "5d8c2347a3224224c31b53cc0805f082",
+    "semantic_hash": "5d8c2347a3224224c31b53cc0805f082"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/help.md": {
+    "mtime": 1779713617.0619035,
+    "ast_hash": "5d32f401a361e51a01ee170441088972",
+    "semantic_hash": "5d32f401a361e51a01ee170441088972"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/to-pending.md": {
+    "mtime": 1779713617.0635455,
+    "ast_hash": "e641c70f6794bed726740fbbe72c863f",
+    "semantic_hash": "e641c70f6794bed726740fbbe72c863f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/to-review.md": {
+    "mtime": 1779713617.063609,
+    "ast_hash": "9734fa4236a05ed0e8f8732936048111",
+    "semantic_hash": "9734fa4236a05ed0e8f8732936048111"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/add-task.md": {
+    "mtime": 1779713617.0610335,
+    "ast_hash": "93ca5f87c6b20684c9fec7e35e277b3f",
+    "semantic_hash": "93ca5f87c6b20684c9fec7e35e277b3f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/remove-task.md": {
+    "mtime": 1779713617.0628133,
+    "ast_hash": "db572ba5ae2a19949a866de51d5a24a0",
+    "semantic_hash": "db572ba5ae2a19949a866de51d5a24a0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/remove-subtasks.md": {
+    "mtime": 1779713617.0627468,
+    "ast_hash": "246679692bea1b95d8c51667cb3c639c",
+    "semantic_hash": "246679692bea1b95d8c51667cb3c639c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/remove-all-subtasks.md": {
+    "mtime": 1779713617.0626101,
+    "ast_hash": "6b2cdccfa201e686174f65dc5ff1f386",
+    "semantic_hash": "6b2cdccfa201e686174f65dc5ff1f386"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/expand-task.md": {
+    "mtime": 1779713617.061754,
+    "ast_hash": "ff678eab0e682d18fcd0f757982df9da",
+    "semantic_hash": "ff678eab0e682d18fcd0f757982df9da"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/init-project.md": {
+    "mtime": 1779713617.062031,
+    "ast_hash": "277942acabae85539c8f58c3105976a7",
+    "semantic_hash": "277942acabae85539c8f58c3105976a7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/to-cancelled.md": {
+    "mtime": 1779713617.0632677,
+    "ast_hash": "4f57137696a3beed841b403762908870",
+    "semantic_hash": "4f57137696a3beed841b403762908870"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/convert-task-to-subtask.md": {
+    "mtime": 1779713617.061497,
+    "ast_hash": "c3385bf83791271f5d94502576d53bb1",
+    "semantic_hash": "c3385bf83791271f5d94502576d53bb1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/complexity-report.md": {
+    "mtime": 1779713617.0614302,
+    "ast_hash": "bb0c68a45f11e48d50a5ac85db4a4902",
+    "semantic_hash": "bb0c68a45f11e48d50a5ac85db4a4902"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/parse-prd.md": {
+    "mtime": 1779713617.062463,
+    "ast_hash": "b2b169a86a2a6739e6e9db66b1668074",
+    "semantic_hash": "b2b169a86a2a6739e6e9db66b1668074"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/to-deferred.md": {
+    "mtime": 1779713617.0633452,
+    "ast_hash": "a3695054ceb491bee349356b6b341528",
+    "semantic_hash": "a3695054ceb491bee349356b6b341528"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/list-tasks.md": {
+    "mtime": 1779713617.0623186,
+    "ast_hash": "0f536433a5dc8d2cd60b9e270918d930",
+    "semantic_hash": "0f536433a5dc8d2cd60b9e270918d930"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/add-dependency.md": {
+    "mtime": 1779713617.060873,
+    "ast_hash": "e747b1a8be7f6e92885df6c8eeeee7e9",
+    "semantic_hash": "e747b1a8be7f6e92885df6c8eeeee7e9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/remove-dependency.md": {
+    "mtime": 1779713617.0626547,
+    "ast_hash": "065e41064ea5f951f71d8fa231c4e02a",
+    "semantic_hash": "065e41064ea5f951f71d8fa231c4e02a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/install-taskmaster.md": {
+    "mtime": 1779713617.0620975,
+    "ast_hash": "8a75c3ce45ad0ac658a79d1fb9767a45",
+    "semantic_hash": "8a75c3ce45ad0ac658a79d1fb9767a45"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/init-project-quick.md": {
+    "mtime": 1779713617.0619667,
+    "ast_hash": "1a28e18509feb45617c9ad1b52f1431f",
+    "semantic_hash": "1a28e18509feb45617c9ad1b52f1431f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.claude/commands/tm/update-tasks-from-id.md": {
+    "mtime": 1779713617.0638254,
+    "ast_hash": "62ddd6a07cb9140e7613030b62fd9726",
+    "semantic_hash": "62ddd6a07cb9140e7613030b62fd9726"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/searxng/settings-base.yml": {
+    "mtime": 1779713617.2024996,
+    "ast_hash": "92a07055aecb401e1d4d07b4321a1c93",
+    "semantic_hash": "92a07055aecb401e1d4d07b4321a1c93"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/security-standards/README.md": {
+    "mtime": 1779713617.2153997,
+    "ast_hash": "e1c3501d405f5ecdd53eab89dd3b9738",
+    "semantic_hash": "e1c3501d405f5ecdd53eab89dd3b9738"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/data-standards/README.md": {
+    "mtime": 1779713617.213374,
+    "ast_hash": "a9c06b7f0f9bf4c803fbb69fb541122e",
+    "semantic_hash": "a9c06b7f0f9bf4c803fbb69fb541122e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/test-uploads/sahatna-overview.md": {
+    "mtime": 1779713617.2155056,
+    "ast_hash": "d64ccf1e1c69051e76bf36ccdd96dbf3",
+    "semantic_hash": "d64ccf1e1c69051e76bf36ccdd96dbf3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/compliance-requirements/README.md": {
+    "mtime": 1779713617.2130573,
+    "ast_hash": "fc547b2a8edfa2597862734689e6c762",
+    "semantic_hash": "fc547b2a8edfa2597862734689e6c762"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/reference-architectures/archimate-view-templates.md": {
+    "mtime": 1779713617.2151344,
+    "ast_hash": "0bb86ce66e21748694c7318d93150b55",
+    "semantic_hash": "0bb86ce66e21748694c7318d93150b55"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/reference-architectures/README.md": {
+    "mtime": 1779713617.2149765,
+    "ast_hash": "3f5db423261e7becebf960972c8f38f0",
+    "semantic_hash": "3f5db423261e7becebf960972c8f38f0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/reference-architectures/healthcare-application-architecture.md": {
+    "mtime": 1779713617.2152016,
+    "ast_hash": "bf5e07524f2de1f2fe31913f18a55e25",
+    "semantic_hash": "bf5e07524f2de1f2fe31913f18a55e25"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/reference-architectures/archimate-relationship-patterns.md": {
+    "mtime": 1779713617.2150462,
+    "ast_hash": "67613bd8c4803d2a230dd814d882e273",
+    "semantic_hash": "67613bd8c4803d2a230dd814d882e273"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-wearables-service.md": {
+    "mtime": 1779713617.214633,
+    "ast_hash": "8f6f3eb713cb8e5419b618958b50b68e",
+    "semantic_hash": "8f6f3eb713cb8e5419b618958b50b68e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-architectural-principles.md": {
+    "mtime": 1779713617.2136316,
+    "ast_hash": "8bf98a77303cbce385182dc1b62ee584",
+    "semantic_hash": "8bf98a77303cbce385182dc1b62ee584"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-teleconsultation-service.md": {
+    "mtime": 1779713617.2145634,
+    "ast_hash": "3ca9af0c0c278afc642ab2e9749b89f5",
+    "semantic_hash": "3ca9af0c0c278afc642ab2e9749b89f5"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-payment-service.md": {
+    "mtime": 1779713617.2142851,
+    "ast_hash": "64507043898367311c85f21a46338f3a",
+    "semantic_hash": "64507043898367311c85f21a46338f3a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-cms-service.md": {
+    "mtime": 1779713617.2137392,
+    "ast_hash": "16770166215548358677f88ea306275b",
+    "semantic_hash": "16770166215548358677f88ea306275b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-chatbot-service.md": {
+    "mtime": 1779713617.2137034,
+    "ast_hash": "4e5a1f51091a7071a3da78fbe4fb2f8e",
+    "semantic_hash": "4e5a1f51091a7071a3da78fbe4fb2f8e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-overview.md": {
+    "mtime": 1779713617.214216,
+    "ast_hash": "da8232e097d606e1e858f72a12948a1d",
+    "semantic_hash": "da8232e097d606e1e858f72a12948a1d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-malaffi-integration.md": {
+    "mtime": 1779713617.214137,
+    "ast_hash": "799619a83139f13caeb573dbf33a3d38",
+    "semantic_hash": "799619a83139f13caeb573dbf33a3d38"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-symptoms-checker-service.md": {
+    "mtime": 1779713617.2144952,
+    "ast_hash": "f434110c64d477e59183c03ab6de432b",
+    "semantic_hash": "f434110c64d477e59183c03ab6de432b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-reference-service.md": {
+    "mtime": 1779713617.2143912,
+    "ast_hash": "71349a90ab43dcf6db38aafb1222adb1",
+    "semantic_hash": "71349a90ab43dcf6db38aafb1222adb1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-batch-worker-service.md": {
+    "mtime": 1779713617.213669,
+    "ast_hash": "d7a1cc46f6f080f7e9a35eb8a6e6e879",
+    "semantic_hash": "d7a1cc46f6f080f7e9a35eb8a6e6e879"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-integration-service.md": {
+    "mtime": 1779713617.2141023,
+    "ast_hash": "e89b36058ab81c9ded8f211753376ed3",
+    "semantic_hash": "e89b36058ab81c9ded8f211753376ed3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-patient-service.md": {
+    "mtime": 1779713617.2142506,
+    "ast_hash": "7dc19fcc2b0537b5ec84626d9388fdf6",
+    "semantic_hash": "7dc19fcc2b0537b5ec84626d9388fdf6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-resiliency-patterns.md": {
+    "mtime": 1779713617.2144268,
+    "ast_hash": "2cba54927e2df372adaf127420221189",
+    "semantic_hash": "2cba54927e2df372adaf127420221189"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-glossary.md": {
+    "mtime": 1779713617.2138858,
+    "ast_hash": "d3da474dd28f985f535a3dad7250c1cb",
+    "semantic_hash": "d3da474dd28f985f535a3dad7250c1cb"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-sidecar-pattern.md": {
+    "mtime": 1779713617.2144618,
+    "ast_hash": "213fb118cf201a07704890f81891277b",
+    "semantic_hash": "213fb118cf201a07704890f81891277b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/README.md": {
+    "mtime": 1779713617.2134345,
+    "ast_hash": "179dd98ab13753a8765274485f7c7136",
+    "semantic_hash": "179dd98ab13753a8765274485f7c7136"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-appointment-service.md": {
+    "mtime": 1779713617.2135944,
+    "ast_hash": "5012de7c68d36cd3303a12cc787ed31e",
+    "semantic_hash": "5012de7c68d36cd3303a12cc787ed31e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-doh-integration.md": {
+    "mtime": 1779713617.2138107,
+    "ast_hash": "3bc759c551025ad711aba08c480d8205",
+    "semantic_hash": "3bc759c551025ad711aba08c480d8205"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-provider-service.md": {
+    "mtime": 1779713617.2143567,
+    "ast_hash": "5446f62b1d63ef437e410fa367f7e3fa",
+    "semantic_hash": "5446f62b1d63ef437e410fa367f7e3fa"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-technology-stack.md": {
+    "mtime": 1779713617.2145283,
+    "ast_hash": "9d442a1c04c44537b0ef6b439ee6d039",
+    "semantic_hash": "9d442a1c04c44537b0ef6b439ee6d039"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-core-requirements.md": {
+    "mtime": 1779713617.2137747,
+    "ast_hash": "a02b24180fa9a227d6abb2bb17fd467d",
+    "semantic_hash": "a02b24180fa9a227d6abb2bb17fd467d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-identity-service.md": {
+    "mtime": 1779713617.2140672,
+    "ast_hash": "21e448011a5ceec329f63544d1c314e2",
+    "semantic_hash": "21e448011a5ceec329f63544d1c314e2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-genomics-service.md": {
+    "mtime": 1779713617.2138438,
+    "ast_hash": "58d71da9864432fab22d8ccb945b473a",
+    "semantic_hash": "58d71da9864432fab22d8ccb945b473a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-uaepass-integration.md": {
+    "mtime": 1779713617.2145984,
+    "ast_hash": "16158a0e2e742bef87c77fdbdb928ea1",
+    "semantic_hash": "16158a0e2e742bef87c77fdbdb928ea1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-phr-service.md": {
+    "mtime": 1779713617.2143216,
+    "ast_hash": "1e709d82c524a735fc08e244f75c97f0",
+    "semantic_hash": "1e709d82c524a735fc08e244f75c97f0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-health-checks.md": {
+    "mtime": 1779713617.214028,
+    "ast_hash": "b15ae1098f2b34c2e0914e96e235dc54",
+    "semantic_hash": "b15ae1098f2b34c2e0914e96e235dc54"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/existing-landscape/sahatna-notification-service.md": {
+    "mtime": 1779713617.214175,
+    "ast_hash": "07cb71cac04cbb0c3dba03913e96801a",
+    "semantic_hash": "07cb71cac04cbb0c3dba03913e96801a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/solution-architect/help.md": {
+    "mtime": 1779713617.212202,
+    "ast_hash": "ac79545ab925fb106fa6482d1eb57100",
+    "semantic_hash": "ac79545ab925fb106fa6482d1eb57100"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/test-strategist/help.md": {
+    "mtime": 1779713617.212274,
+    "ast_hash": "1113dfb9066fd7180219e2d3099921be",
+    "semantic_hash": "1113dfb9066fd7180219e2d3099921be"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/software-delivery/help.md": {
+    "mtime": 1779713617.2121317,
+    "ast_hash": "bb6264395933c0c74bb09adf12866792",
+    "semantic_hash": "bb6264395933c0c74bb09adf12866792"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/project-manager/help.md": {
+    "mtime": 1779713617.2119708,
+    "ast_hash": "1c9c11b84f981482aa24337994bd6fc6",
+    "semantic_hash": "1c9c11b84f981482aa24337994bd6fc6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/architect/help.md": {
+    "mtime": 1779713617.202648,
+    "ast_hash": "23fe42f98371c4d4412e8349b6d1e1f7",
+    "semantic_hash": "23fe42f98371c4d4412e8349b6d1e1f7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/risk-assessor/help.md": {
+    "mtime": 1779713617.2120597,
+    "ast_hash": "be67f4fb7a1a04c740ff044f8aa55d92",
+    "semantic_hash": "be67f4fb7a1a04c740ff044f8aa55d92"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-wearables-service.md": {
+    "mtime": 1779713617.2118993,
+    "ast_hash": "edc79fb451ef9f88c6d24dd07ccafb8c",
+    "semantic_hash": "edc79fb451ef9f88c6d24dd07ccafb8c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-architectural-principles.md": {
+    "mtime": 1779713617.2028146,
+    "ast_hash": "1ef4c990eabc76f88b554a57cebc2685",
+    "semantic_hash": "1ef4c990eabc76f88b554a57cebc2685"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-teleconsultation-service.md": {
+    "mtime": 1779713617.211809,
+    "ast_hash": "561cd1c41be6475e7fa7b47fda02aa43",
+    "semantic_hash": "561cd1c41be6475e7fa7b47fda02aa43"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-payment-service.md": {
+    "mtime": 1779713617.2059193,
+    "ast_hash": "0d641c51a376e2fc4e5a2a1021b86f8e",
+    "semantic_hash": "0d641c51a376e2fc4e5a2a1021b86f8e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-cms-service.md": {
+    "mtime": 1779713617.2052903,
+    "ast_hash": "c6fe5c625a54781d80fcdf441daf79ed",
+    "semantic_hash": "c6fe5c625a54781d80fcdf441daf79ed"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-chatbot-service.md": {
+    "mtime": 1779713617.2051642,
+    "ast_hash": "9afc1140692c00aabd13ba6e53a4654e",
+    "semantic_hash": "9afc1140692c00aabd13ba6e53a4654e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-malaffi-integration.md": {
+    "mtime": 1779713617.2057784,
+    "ast_hash": "8e6aeba32590cbdf339c3cb28f65bdfe",
+    "semantic_hash": "8e6aeba32590cbdf339c3cb28f65bdfe"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-symptoms-checker-service.md": {
+    "mtime": 1779713617.2116733,
+    "ast_hash": "89dfd553370100cd4e4e1ed691c65911",
+    "semantic_hash": "89dfd553370100cd4e4e1ed691c65911"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-reference-service.md": {
+    "mtime": 1779713617.2060504,
+    "ast_hash": "af82f7d175e301ec68cc529b34e74ad2",
+    "semantic_hash": "af82f7d175e301ec68cc529b34e74ad2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-batch-worker-service.md": {
+    "mtime": 1779713617.205042,
+    "ast_hash": "bc7f7f811ec8b7614df9339e7d2d1bdd",
+    "semantic_hash": "bc7f7f811ec8b7614df9339e7d2d1bdd"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-integration-service.md": {
+    "mtime": 1779713617.2057247,
+    "ast_hash": "45a810af802e55841bffdebe9e5d707a",
+    "semantic_hash": "45a810af802e55841bffdebe9e5d707a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-patient-service.md": {
+    "mtime": 1779713617.2058783,
+    "ast_hash": "202918890877da1d7886d7ca10d943a9",
+    "semantic_hash": "202918890877da1d7886d7ca10d943a9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-resiliency-patterns.md": {
+    "mtime": 1779713617.2061315,
+    "ast_hash": "3dd6e680f8ff9618c2d85152d08447c3",
+    "semantic_hash": "3dd6e680f8ff9618c2d85152d08447c3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-glossary.md": {
+    "mtime": 1779713617.2055066,
+    "ast_hash": "fd1d5006861f225455ca45f78c1f5794",
+    "semantic_hash": "fd1d5006861f225455ca45f78c1f5794"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-sidecar-pattern.md": {
+    "mtime": 1779713617.2098885,
+    "ast_hash": "93cf32dafea4233931606465179cb997",
+    "semantic_hash": "93cf32dafea4233931606465179cb997"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/help.md": {
+    "mtime": 1779713617.2027175,
+    "ast_hash": "d2757f4fb8cc61c8ce2c0528c3fa1bd8",
+    "semantic_hash": "d2757f4fb8cc61c8ce2c0528c3fa1bd8"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-appointment-service.md": {
+    "mtime": 1779713617.202766,
+    "ast_hash": "1b56bc495ce2515792b8b9ada1d3a124",
+    "semantic_hash": "1b56bc495ce2515792b8b9ada1d3a124"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-doh-integration.md": {
+    "mtime": 1779713617.2054,
+    "ast_hash": "2c23663d2792b0a181703ed58bdaebab",
+    "semantic_hash": "2c23663d2792b0a181703ed58bdaebab"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-provider-service.md": {
+    "mtime": 1779713617.2060087,
+    "ast_hash": "af27b026b3f316f6f59b58e0a8643f72",
+    "semantic_hash": "af27b026b3f316f6f59b58e0a8643f72"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-technology-stack.md": {
+    "mtime": 1779713617.2117567,
+    "ast_hash": "43bdbd3e78e3a1dd7926ae818674d08d",
+    "semantic_hash": "43bdbd3e78e3a1dd7926ae818674d08d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-core-requirements.md": {
+    "mtime": 1779713617.205355,
+    "ast_hash": "ed1cf5e79346b81619c04065b37044a3",
+    "semantic_hash": "ed1cf5e79346b81619c04065b37044a3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-identity-service.md": {
+    "mtime": 1779713617.205672,
+    "ast_hash": "31f2f5b499c7585401cd3aebf2e2b736",
+    "semantic_hash": "31f2f5b499c7585401cd3aebf2e2b736"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-genomics-service.md": {
+    "mtime": 1779713617.205454,
+    "ast_hash": "7a9f0fc2cb1b5e5d2d60d3af52742d72",
+    "semantic_hash": "7a9f0fc2cb1b5e5d2d60d3af52742d72"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-uaepass-integration.md": {
+    "mtime": 1779713617.2118535,
+    "ast_hash": "681a696cad827a9c6874f6eeaecca7e1",
+    "semantic_hash": "681a696cad827a9c6874f6eeaecca7e1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-phr-service.md": {
+    "mtime": 1779713617.2059662,
+    "ast_hash": "819290babad21879b9fc21491fc04569",
+    "semantic_hash": "819290babad21879b9fc21491fc04569"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-health-checks.md": {
+    "mtime": 1779713617.2056205,
+    "ast_hash": "7dc5c299777d0c9a32a402e2467577fc",
+    "semantic_hash": "7dc5c299777d0c9a32a402e2467577fc"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/agent-docs/business-analyst/sahatna-notification-service.md": {
+    "mtime": 1779713617.205832,
+    "ast_hash": "6d6761462a2d8fa89916c8517a5083bd",
+    "semantic_hash": "6d6761462a2d8fa89916c8517a5083bd"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/guardrails-principles/README.md": {
+    "mtime": 1779713617.214694,
+    "ast_hash": "4e38ea63a4c8a22052db824ed5d672ba",
+    "semantic_hash": "4e38ea63a4c8a22052db824ed5d672ba"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/testing-standards/README.md": {
+    "mtime": 1779713617.2155678,
+    "ast_hash": "bbf53f4f30a113500a5d7deb982a72bd",
+    "semantic_hash": "bbf53f4f30a113500a5d7deb982a72bd"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/shared/knowledge/capability-maps/README.md": {
+    "mtime": 1779713617.2125075,
+    "ast_hash": "c95223f6f0b35692ed21034cabf0b96b",
+    "semantic_hash": "c95223f6f0b35692ed21034cabf0b96b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/docs/pipeline-evaluation-questions.md": {
+    "mtime": 1779713617.1184652,
+    "ast_hash": "da274230d40ee1afae81e592dfd424da",
+    "semantic_hash": "da274230d40ee1afae81e592dfd424da"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/docs/pipeline-api-reference.md": {
+    "mtime": 1779713617.118381,
+    "ast_hash": "8143e71cfb38a0397c4dde6be53b782a",
+    "semantic_hash": "8143e71cfb38a0397c4dde6be53b782a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/docs/azure-devops-setup.md": {
+    "mtime": 1779713617.1183283,
+    "ast_hash": "358a793e0e4ffed3efe47a3dd3233dc9",
+    "semantic_hash": "358a793e0e4ffed3efe47a3dd3233dc9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/docs/ARCHITECTURE-PIPELINE.md": {
+    "mtime": 1779713617.1182537,
+    "ast_hash": "e2d880f87ecfeb563aa9a3dd90c62dc3",
+    "semantic_hash": "e2d880f87ecfeb563aa9a3dd90c62dc3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/index.html": {
+    "mtime": 1779713617.1086373,
+    "ast_hash": "55e8ab6c16d68656312a5e74bb6bfc7f",
+    "semantic_hash": "55e8ab6c16d68656312a5e74bb6bfc7f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/update-task.md": {
+    "mtime": 1779713617.1165342,
+    "ast_hash": "8caaa83eb7cc510f8813f386c27a1a5e",
+    "semantic_hash": "8caaa83eb7cc510f8813f386c27a1a5e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/add-subtask.md": {
+    "mtime": 1779713617.114731,
+    "ast_hash": "41374b8304eae28b67fc28197a29c7bc",
+    "semantic_hash": "41374b8304eae28b67fc28197a29c7bc"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/fix-dependencies.md": {
+    "mtime": 1779713617.1151361,
+    "ast_hash": "4c8c06fae51550446e3bc40effc66e7a",
+    "semantic_hash": "4c8c06fae51550446e3bc40effc66e7a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/to-in-progress.md": {
+    "mtime": 1779713617.1163523,
+    "ast_hash": "5b0ab7158371ecc656ffada9601918fb",
+    "semantic_hash": "5b0ab7158371ecc656ffada9601918fb"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/quick-install-taskmaster.md": {
+    "mtime": 1779713617.115666,
+    "ast_hash": "50dfff801ce70aeb8e02d1e6f4836d02",
+    "semantic_hash": "50dfff801ce70aeb8e02d1e6f4836d02"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/list-tasks-by-status.md": {
+    "mtime": 1779713617.1153772,
+    "ast_hash": "799218ec78bc85b8ede014ee168e3953",
+    "semantic_hash": "799218ec78bc85b8ede014ee168e3953"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/view-models.md": {
+    "mtime": 1779713617.1166508,
+    "ast_hash": "703d3f3400361822d1ad82039f164bd9",
+    "semantic_hash": "703d3f3400361822d1ad82039f164bd9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/learn.md": {
+    "mtime": 1779713617.115339,
+    "ast_hash": "3cc049c0f0efaf69099afdb8acc1cddb",
+    "semantic_hash": "3cc049c0f0efaf69099afdb8acc1cddb"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/remove-subtask.md": {
+    "mtime": 1779713617.1157877,
+    "ast_hash": "9da71f137a7f9b3198ee0fa3258dc971",
+    "semantic_hash": "9da71f137a7f9b3198ee0fa3258dc971"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/to-done.md": {
+    "mtime": 1779713617.1162019,
+    "ast_hash": "a0459a1e16aec00d35206eb73ac2ffb3",
+    "semantic_hash": "a0459a1e16aec00d35206eb73ac2ffb3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/analyze-complexity.md": {
+    "mtime": 1779713617.11481,
+    "ast_hash": "eabf624c432440fd542885fb22846edb",
+    "semantic_hash": "eabf624c432440fd542885fb22846edb"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/sync-readme.md": {
+    "mtime": 1779713617.116027,
+    "ast_hash": "9c164da16ca203106574733a91e108bf",
+    "semantic_hash": "9c164da16ca203106574733a91e108bf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/auto-implement-tasks.md": {
+    "mtime": 1779713617.114893,
+    "ast_hash": "862259d6a80755e76b3e61604d2a5752",
+    "semantic_hash": "862259d6a80755e76b3e61604d2a5752"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/project-status.md": {
+    "mtime": 1779713617.1156244,
+    "ast_hash": "e3ca709bf97b5564b35371b1abbc1a9c",
+    "semantic_hash": "e3ca709bf97b5564b35371b1abbc1a9c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/command-pipeline.md": {
+    "mtime": 1779713617.1149356,
+    "ast_hash": "73d074384dca3e39faeb401f20411e22",
+    "semantic_hash": "73d074384dca3e39faeb401f20411e22"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/smart-workflow.md": {
+    "mtime": 1779713617.115986,
+    "ast_hash": "f5fbc1c3d37c1bbbb5caa9c8a6236fb1",
+    "semantic_hash": "f5fbc1c3d37c1bbbb5caa9c8a6236fb1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/expand-all-tasks.md": {
+    "mtime": 1779713617.1150565,
+    "ast_hash": "e37222e901e19ee660ee79b48987549f",
+    "semantic_hash": "e37222e901e19ee660ee79b48987549f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/list-tasks-with-subtasks.md": {
+    "mtime": 1779713617.115418,
+    "ast_hash": "07c83aa33f8110e805930b3781ab50e7",
+    "semantic_hash": "07c83aa33f8110e805930b3781ab50e7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/setup-models.md": {
+    "mtime": 1779713617.115907,
+    "ast_hash": "81c0c34560b0ad598dfa8807bad4556f",
+    "semantic_hash": "81c0c34560b0ad598dfa8807bad4556f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/update-single-task.md": {
+    "mtime": 1779713617.1164918,
+    "ast_hash": "911880cbb2082e3762c48fab7b8e981c",
+    "semantic_hash": "911880cbb2082e3762c48fab7b8e981c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/tm-main.md": {
+    "mtime": 1779713617.1160872,
+    "ast_hash": "30d4fe17f5c4b87173ec1627996f12c0",
+    "semantic_hash": "30d4fe17f5c4b87173ec1627996f12c0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/show-task.md": {
+    "mtime": 1779713617.115945,
+    "ast_hash": "f115b478da08ca21819b88436727c575",
+    "semantic_hash": "f115b478da08ca21819b88436727c575"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/validate-dependencies.md": {
+    "mtime": 1779713617.1166127,
+    "ast_hash": "336bcc01161d5f5df1a4d394f5f766fd",
+    "semantic_hash": "336bcc01161d5f5df1a4d394f5f766fd"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/next-task.md": {
+    "mtime": 1779713617.1154969,
+    "ast_hash": "c06ea14cad9477fb66351f75c6f091a9",
+    "semantic_hash": "c06ea14cad9477fb66351f75c6f091a9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/parse-prd-with-research.md": {
+    "mtime": 1779713617.1155372,
+    "ast_hash": "1817cff4693a6bce68fb32bd6c8f16dd",
+    "semantic_hash": "1817cff4693a6bce68fb32bd6c8f16dd"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/analyze-project.md": {
+    "mtime": 1779713617.1148498,
+    "ast_hash": "5d8c2347a3224224c31b53cc0805f082",
+    "semantic_hash": "5d8c2347a3224224c31b53cc0805f082"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/help.md": {
+    "mtime": 1779713617.115174,
+    "ast_hash": "5d32f401a361e51a01ee170441088972",
+    "semantic_hash": "5d32f401a361e51a01ee170441088972"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/to-pending.md": {
+    "mtime": 1779713617.1164024,
+    "ast_hash": "e641c70f6794bed726740fbbe72c863f",
+    "semantic_hash": "e641c70f6794bed726740fbbe72c863f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/to-review.md": {
+    "mtime": 1779713617.116443,
+    "ast_hash": "9734fa4236a05ed0e8f8732936048111",
+    "semantic_hash": "9734fa4236a05ed0e8f8732936048111"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/add-task.md": {
+    "mtime": 1779713617.1147726,
+    "ast_hash": "93ca5f87c6b20684c9fec7e35e277b3f",
+    "semantic_hash": "93ca5f87c6b20684c9fec7e35e277b3f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/remove-task.md": {
+    "mtime": 1779713617.115868,
+    "ast_hash": "db572ba5ae2a19949a866de51d5a24a0",
+    "semantic_hash": "db572ba5ae2a19949a866de51d5a24a0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/remove-subtasks.md": {
+    "mtime": 1779713617.11583,
+    "ast_hash": "246679692bea1b95d8c51667cb3c639c",
+    "semantic_hash": "246679692bea1b95d8c51667cb3c639c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/remove-all-subtasks.md": {
+    "mtime": 1779713617.115705,
+    "ast_hash": "6b2cdccfa201e686174f65dc5ff1f386",
+    "semantic_hash": "6b2cdccfa201e686174f65dc5ff1f386"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/expand-task.md": {
+    "mtime": 1779713617.1150937,
+    "ast_hash": "ff678eab0e682d18fcd0f757982df9da",
+    "semantic_hash": "ff678eab0e682d18fcd0f757982df9da"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/init-project.md": {
+    "mtime": 1779713617.1152573,
+    "ast_hash": "277942acabae85539c8f58c3105976a7",
+    "semantic_hash": "277942acabae85539c8f58c3105976a7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/to-cancelled.md": {
+    "mtime": 1779713617.1161253,
+    "ast_hash": "4f57137696a3beed841b403762908870",
+    "semantic_hash": "4f57137696a3beed841b403762908870"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/convert-task-to-subtask.md": {
+    "mtime": 1779713617.1150186,
+    "ast_hash": "c3385bf83791271f5d94502576d53bb1",
+    "semantic_hash": "c3385bf83791271f5d94502576d53bb1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/complexity-report.md": {
+    "mtime": 1779713617.1149764,
+    "ast_hash": "bb0c68a45f11e48d50a5ac85db4a4902",
+    "semantic_hash": "bb0c68a45f11e48d50a5ac85db4a4902"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/parse-prd.md": {
+    "mtime": 1779713617.1155791,
+    "ast_hash": "b2b169a86a2a6739e6e9db66b1668074",
+    "semantic_hash": "b2b169a86a2a6739e6e9db66b1668074"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/to-deferred.md": {
+    "mtime": 1779713617.1161644,
+    "ast_hash": "a3695054ceb491bee349356b6b341528",
+    "semantic_hash": "a3695054ceb491bee349356b6b341528"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/list-tasks.md": {
+    "mtime": 1779713617.115456,
+    "ast_hash": "0f536433a5dc8d2cd60b9e270918d930",
+    "semantic_hash": "0f536433a5dc8d2cd60b9e270918d930"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/add-dependency.md": {
+    "mtime": 1779713617.1146853,
+    "ast_hash": "e747b1a8be7f6e92885df6c8eeeee7e9",
+    "semantic_hash": "e747b1a8be7f6e92885df6c8eeeee7e9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/remove-dependency.md": {
+    "mtime": 1779713617.1157427,
+    "ast_hash": "065e41064ea5f951f71d8fa231c4e02a",
+    "semantic_hash": "065e41064ea5f951f71d8fa231c4e02a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/install-taskmaster.md": {
+    "mtime": 1779713617.1153002,
+    "ast_hash": "8a75c3ce45ad0ac658a79d1fb9767a45",
+    "semantic_hash": "8a75c3ce45ad0ac658a79d1fb9767a45"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/init-project-quick.md": {
+    "mtime": 1779713617.1152155,
+    "ast_hash": "1a28e18509feb45617c9ad1b52f1431f",
+    "semantic_hash": "1a28e18509feb45617c9ad1b52f1431f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/claude-template/commands/tm/update-tasks-from-id.md": {
+    "mtime": 1779713617.1165733,
+    "ast_hash": "62ddd6a07cb9140e7613030b62fd9726",
+    "semantic_hash": "62ddd6a07cb9140e7613030b62fd9726"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.github/ISSUE_TEMPLATE/feature_request.md": {
+    "mtime": 1779713617.0643897,
+    "ast_hash": "ea34d58ed647769f522907a36d3ab74b",
+    "semantic_hash": "ea34d58ed647769f522907a36d3ab74b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.github/ISSUE_TEMPLATE/bug_report.md": {
+    "mtime": 1779713617.0642748,
+    "ast_hash": "3af4d24c452d14629525e6d4b271b6be",
+    "semantic_hash": "3af4d24c452d14629525e6d4b271b6be"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.github/ISSUE_TEMPLATE/config.yml": {
+    "mtime": 1779713617.064333,
+    "ast_hash": "8164e152b13f2f53e149ea47a6cbcde6",
+    "semantic_hash": "8164e152b13f2f53e149ea47a6cbcde6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/README.md": {
+    "mtime": 1779713617.1267753,
+    "ast_hash": "5f8e24a063bb92b782b2664abc43160a",
+    "semantic_hash": "5f8e24a063bb92b782b2664abc43160a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/chat-interface.html": {
+    "mtime": 1779713617.1268766,
+    "ast_hash": "48f1b47c69e7c6cb6cd935495bfa78b1",
+    "semantic_hash": "48f1b47c69e7c6cb6cd935495bfa78b1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/WORKFLOW_REVIEW_AND_TESTING.md": {
+    "mtime": 1779713617.1285598,
+    "ast_hash": "4e6a29a9f97424d16c4074b23f59b2f1",
+    "semantic_hash": "4e6a29a9f97424d16c4074b23f59b2f1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/ARCHITECTURE.md": {
+    "mtime": 1779713617.1276128,
+    "ast_hash": "5bb4987180254abee4a119c6529a989d",
+    "semantic_hash": "5bb4987180254abee4a119c6529a989d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/TROUBLESHOOTING.md": {
+    "mtime": 1779713617.1284041,
+    "ast_hash": "6a6c077fd4d792058cc17013a33a1f02",
+    "semantic_hash": "6a6c077fd4d792058cc17013a33a1f02"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/PRD-GENERATION.md": {
+    "mtime": 1779713617.128148,
+    "ast_hash": "31780b07dbf513eb2e2ff2b8d1d7cca3",
+    "semantic_hash": "31780b07dbf513eb2e2ff2b8d1d7cca3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/QUICK-START.md": {
+    "mtime": 1779713617.1282198,
+    "ast_hash": "ad7a3f4d5ec06e1c0b36b26b71aa76b9",
+    "semantic_hash": "ad7a3f4d5ec06e1c0b36b26b71aa76b9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/DATABASE-SCHEMA.md": {
+    "mtime": 1779713617.127817,
+    "ast_hash": "e99b32b5e6b66083875e426e84969f61",
+    "semantic_hash": "e99b32b5e6b66083875e426e84969f61"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/TESTING.md": {
+    "mtime": 1779713617.1283107,
+    "ast_hash": "9d6778c864015a2d8d9e056f866547d5",
+    "semantic_hash": "9d6778c864015a2d8d9e056f866547d5"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/DEVOPS_GITHUB_INTEGRATION.md": {
+    "mtime": 1779713617.1279154,
+    "ast_hash": "c07ee648a7e232bfb4c2a19ceef01ecf",
+    "semantic_hash": "c07ee648a7e232bfb4c2a19ceef01ecf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/EXPERT_WORKFLOW_TEMPLATES.md": {
+    "mtime": 1779713617.1279867,
+    "ast_hash": "e7209903015bbc29276d593af78e7d93",
+    "semantic_hash": "e7209903015bbc29276d593af78e7d93"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/WHITE-LABEL-MIGRATION.md": {
+    "mtime": 1779713617.1284935,
+    "ast_hash": "9a4ce3de3651fb37de128c6cde530543",
+    "semantic_hash": "9a4ce3de3651fb37de128c6cde530543"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/CONFIGURATION.md": {
+    "mtime": 1779713617.1277165,
+    "ast_hash": "d2b0454cd21b08e92eaa8936e056a907",
+    "semantic_hash": "d2b0454cd21b08e92eaa8936e056a907"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/INTENT-ROUTING.md": {
+    "mtime": 1779713617.1280794,
+    "ast_hash": "24ae550556238a3933995f89e13c5966",
+    "semantic_hash": "24ae550556238a3933995f89e13c5966"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/n8n-workflows-start-here/docs/API-REFERENCE.md": {
+    "mtime": 1779713617.1273842,
+    "ast_hash": "976fb78dddba2ae1a1da070f73a0bbcc",
+    "semantic_hash": "976fb78dddba2ae1a1da070f73a0bbcc"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/app-config.yaml": {
+    "mtime": 1779713617.10116,
+    "ast_hash": "53993d446eac0cc41c3c3067a16415a3",
+    "semantic_hash": "53993d446eac0cc41c3c3067a16415a3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/app-config.production.yaml": {
+    "mtime": 1779713617.101119,
+    "ast_hash": "85d2d912381d12716e22fbfc279e69bc",
+    "semantic_hash": "85d2d912381d12716e22fbfc279e69bc"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/.yarnrc.yml": {
+    "mtime": 1779713617.100978,
+    "ast_hash": "61ebd7bd99f7e50e362f625eba50ad45",
+    "semantic_hash": "61ebd7bd99f7e50e362f625eba50ad45"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/README.md": {
+    "mtime": 1779713617.1010735,
+    "ast_hash": "28e789c0d43c4c3115efc042287fff41",
+    "semantic_hash": "28e789c0d43c4c3115efc042287fff41"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog-info.yaml": {
+    "mtime": 1779713617.1012437,
+    "ast_hash": "56c4783cb82a5b9e7602434bdb2c1f61",
+    "semantic_hash": "56c4783cb82a5b9e7602434bdb2c1f61"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/plugins/README.md": {
+    "mtime": 1779713617.1062396,
+    "ast_hash": "04618aa610c709e8c3f340aa5a8cda06",
+    "semantic_hash": "04618aa610c709e8c3f340aa5a8cda06"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/marketplace-catalog.yaml": {
+    "mtime": 1779713617.1017885,
+    "ast_hash": "3ae0f6d05dbbafdd29693c15c6be0e9e",
+    "semantic_hash": "3ae0f6d05dbbafdd29693c15c6be0e9e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/system.yaml": {
+    "mtime": 1779713617.1018338,
+    "ast_hash": "b8f18251da91956b05cba4110472d770",
+    "semantic_hash": "b8f18251da91956b05cba4110472d770"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/components/langfuse.yaml": {
+    "mtime": 1779713617.1014364,
+    "ast_hash": "de7c2ad548f91bb1d9ccf0e4e0e35736",
+    "semantic_hash": "de7c2ad548f91bb1d9ccf0e4e0e35736"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/components/caddy.yaml": {
+    "mtime": 1779713617.1013439,
+    "ast_hash": "1c606108fb45fa8715a5b96276009ad1",
+    "semantic_hash": "1c606108fb45fa8715a5b96276009ad1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/components/flowise.yaml": {
+    "mtime": 1779713617.1013937,
+    "ast_hash": "624a6f168bf9fd398ae41f725390d973",
+    "semantic_hash": "624a6f168bf9fd398ae41f725390d973"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/components/n8n.yaml": {
+    "mtime": 1779713617.1014771,
+    "ast_hash": "410599427829baa91677989a18ddf34c",
+    "semantic_hash": "410599427829baa91677989a18ddf34c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/components/ollama.yaml": {
+    "mtime": 1779713617.1015608,
+    "ast_hash": "3421c5247300094f68e1bad1881f4f20",
+    "semantic_hash": "3421c5247300094f68e1bad1881f4f20"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/components/open-webui.yaml": {
+    "mtime": 1779713617.1016006,
+    "ast_hash": "eeac14d2721d55dd4d4f67d557965795",
+    "semantic_hash": "eeac14d2721d55dd4d4f67d557965795"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/components/searxng.yaml": {
+    "mtime": 1779713617.101685,
+    "ast_hash": "80d43497f37c73be3a4b32b224c9d16d",
+    "semantic_hash": "80d43497f37c73be3a4b32b224c9d16d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/components/neo4j.yaml": {
+    "mtime": 1779713617.1015177,
+    "ast_hash": "d2f06969a54bbabeb475b36c94fc78c4",
+    "semantic_hash": "d2f06969a54bbabeb475b36c94fc78c4"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/components/qdrant.yaml": {
+    "mtime": 1779713617.1016443,
+    "ast_hash": "aedff6416327c17c38baaeef33bef34c",
+    "semantic_hash": "aedff6416327c17c38baaeef33bef34c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/components/supabase.yaml": {
+    "mtime": 1779713617.1017404,
+    "ast_hash": "5ee4d1f777bc225ca56a4737333246db",
+    "semantic_hash": "5ee4d1f777bc225ca56a4737333246db"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/templates/claude-skill-download/template.yaml": {
+    "mtime": 1779713617.1023235,
+    "ast_hash": "2c0d07a38b026403d1d3ce0591e25d16",
+    "semantic_hash": "2c0d07a38b026403d1d3ce0591e25d16"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/templates/claude-skill-download/skeleton/skills/unit-test-gen.txt": {
+    "mtime": 1779713617.1022727,
+    "ast_hash": "8cc42b66e5d850cebef133f4e40cc554",
+    "semantic_hash": "8cc42b66e5d850cebef133f4e40cc554"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/templates/claude-skill-download/skeleton/skills/api-design.txt": {
+    "mtime": 1779713617.1020863,
+    "ast_hash": "766914709e4d6fb8ff50ac58659a83af",
+    "semantic_hash": "766914709e4d6fb8ff50ac58659a83af"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/templates/claude-skill-download/skeleton/skills/code-review.txt": {
+    "mtime": 1779713617.1021338,
+    "ast_hash": "831cf3387a081c6a31bc10be789d9e2f",
+    "semantic_hash": "831cf3387a081c6a31bc10be789d9e2f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/templates/claude-skill-download/skeleton/skills/dev-story.txt": {
+    "mtime": 1779713617.1021788,
+    "ast_hash": "76d1493eb967aa6f9f3b96cbbc2455b9",
+    "semantic_hash": "76d1493eb967aa6f9f3b96cbbc2455b9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/templates/claude-skill-download/skeleton/skills/doc-writer.txt": {
+    "mtime": 1779713617.102226,
+    "ast_hash": "b755698f8567f37fd88aeabbed2c55cf",
+    "semantic_hash": "b755698f8567f37fd88aeabbed2c55cf"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/templates/code-review-agent/template.yaml": {
+    "mtime": 1779713617.1024022,
+    "ast_hash": "b59fa04fef0213f643b3c7d9cfbc4a1a",
+    "semantic_hash": "b59fa04fef0213f643b3c7d9cfbc4a1a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/templates/unit-test-agent/template.yaml": {
+    "mtime": 1779713617.1025453,
+    "ast_hash": "88d06a1010ad963a75b3fa2103435aa1",
+    "semantic_hash": "88d06a1010ad963a75b3fa2103435aa1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/templates/template-request/template.yaml": {
+    "mtime": 1779713617.1024806,
+    "ast_hash": "5ecd41dfab7e73c64f6ce5ede23993b1",
+    "semantic_hash": "5ecd41dfab7e73c64f6ce5ede23993b1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/catalog/templates/claude-license-request/template.yaml": {
+    "mtime": 1779713617.101943,
+    "ast_hash": "9730b36af203537e77f89d0f342ed0c3",
+    "semantic_hash": "9730b36af203537e77f89d0f342ed0c3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/examples/entities.yaml": {
+    "mtime": 1779713617.1026154,
+    "ast_hash": "7ef2781b06e69d886e1ea4238fa61af8",
+    "semantic_hash": "7ef2781b06e69d886e1ea4238fa61af8"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/examples/org.yaml": {
+    "mtime": 1779713617.1026604,
+    "ast_hash": "b17d4aaf4853940722b59745eb08c8f6",
+    "semantic_hash": "b17d4aaf4853940722b59745eb08c8f6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/examples/template/template.yaml": {
+    "mtime": 1779713617.103909,
+    "ast_hash": "a50acdba560f4058b0130d91c5836dac",
+    "semantic_hash": "a50acdba560f4058b0130d91c5836dac"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/examples/template/content/catalog-info.yaml": {
+    "mtime": 1779713617.102752,
+    "ast_hash": "2bb4ef5aa3c9f582d6622c52cabee624",
+    "semantic_hash": "2bb4ef5aa3c9f582d6622c52cabee624"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/README.md": {
+    "mtime": 1779713617.1040323,
+    "ast_hash": "8f525c6984f6fb5b860c7f999060cb65",
+    "semantic_hash": "8f525c6984f6fb5b860c7f999060cb65"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/public/index.html": {
+    "mtime": 1779713617.1047833,
+    "ast_hash": "c3d3fc753d5b749ebbd3e56623c1261c",
+    "semantic_hash": "c3d3fc753d5b749ebbd3e56623c1261c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/public/robots.txt": {
+    "mtime": 1779713617.1048741,
+    "ast_hash": "3ad0652bd17ff826a31fa29366021cfd",
+    "semantic_hash": "3ad0652bd17ff826a31fa29366021cfd"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/backend/README.md": {
+    "mtime": 1779713617.1059785,
+    "ast_hash": "4236fdbb779bd942bfa7bff849d31a6b",
+    "semantic_hash": "4236fdbb779bd942bfa7bff849d31a6b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/comedian/AGENTS.md": {
+    "mtime": 1779713617.117782,
+    "ast_hash": "b9adf543e1b64f9cd6c93852346d392e",
+    "semantic_hash": "b9adf543e1b64f9cd6c93852346d392e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/comedian/.opencode/agent/comedian.md": {
+    "mtime": 1779713617.1175728,
+    "ast_hash": "4803c0fbfd7bc75508ceec5ad225e23b",
+    "semantic_hash": "4803c0fbfd7bc75508ceec5ad225e23b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/comedian/.opencode/skills/joke-catalog/SKILL.md": {
+    "mtime": 1779713617.1176658,
+    "ast_hash": "c31e6678601b6b8d1101fb07d113c273",
+    "semantic_hash": "c31e6678601b6b8d1101fb07d113c273"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/comedian/.opencode/skills/joke-catalog/references/joke-categories.md": {
+    "mtime": 1779713617.117737,
+    "ast_hash": "dacf61b08644388764c621ae7808dc34",
+    "semantic_hash": "dacf61b08644388764c621ae7808dc34"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.taskmaster/CLAUDE.md": {
+    "mtime": 1779713617.0673697,
+    "ast_hash": "eabc98555e630285031cd6c82f197c39",
+    "semantic_hash": "eabc98555e630285031cd6c82f197c39"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.taskmaster/templates/example_prd.txt": {
+    "mtime": 1779713617.0675254,
+    "ast_hash": "a272db186851e2fb09db1e20c7222cb6",
+    "semantic_hash": "a272db186851e2fb09db1e20c7222cb6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/.taskmaster/templates/example_prd_rpg.txt": {
+    "mtime": 1779713617.0676248,
+    "ast_hash": "13d20957b32cbe1c0f814a7c6d2fa786",
+    "semantic_hash": "13d20957b32cbe1c0f814a7c6d2fa786"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/TEST-RESULTS.md": {
+    "mtime": 1779713617.1449094,
+    "ast_hash": "134c7a77bdeed52e08ed65e9027ddbe3",
+    "semantic_hash": "134c7a77bdeed52e08ed65e9027ddbe3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/AGENTS.md": {
+    "mtime": 1779713617.144771,
+    "ast_hash": "61e6829c2a59ce029b7a064514747dae",
+    "semantic_hash": "61e6829c2a59ce029b7a064514747dae"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/frontend-coder.md": {
+    "mtime": 1779713617.1336725,
+    "ast_hash": "99f3e879d7cda57ee38981f2d11dbf56",
+    "semantic_hash": "99f3e879d7cda57ee38981f2d11dbf56"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/infra-coder.md": {
+    "mtime": 1779713617.1337676,
+    "ast_hash": "feab846d67806957c800de0aa850e0af",
+    "semantic_hash": "feab846d67806957c800de0aa850e0af"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/cto.md": {
+    "mtime": 1779713617.133433,
+    "ast_hash": "73f5d007cf7d1164e64e421895d8e821",
+    "semantic_hash": "73f5d007cf7d1164e64e421895d8e821"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/test-agent.md": {
+    "mtime": 1779713617.1343884,
+    "ast_hash": "9210574fc44d1a6a25b64b2d31efba0f",
+    "semantic_hash": "9210574fc44d1a6a25b64b2d31efba0f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/techlead.md": {
+    "mtime": 1779713617.134347,
+    "ast_hash": "76b78d0f5630d121c46d041d0a6ad243",
+    "semantic_hash": "76b78d0f5630d121c46d041d0a6ad243"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/security-architect.md": {
+    "mtime": 1779713617.1342273,
+    "ast_hash": "f30b575704722e481baa4bc8e41f593b",
+    "semantic_hash": "f30b575704722e481baa4bc8e41f593b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/risk-analyst.md": {
+    "mtime": 1779713617.1341786,
+    "ast_hash": "74c097d79af40bd412efccff0cf785b7",
+    "semantic_hash": "74c097d79af40bd412efccff0cf785b7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/ba-agent.md": {
+    "mtime": 1779713617.1330013,
+    "ast_hash": "e4e948f817f9dc2d48cce2d691dd2026",
+    "semantic_hash": "e4e948f817f9dc2d48cce2d691dd2026"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/data-coder.md": {
+    "mtime": 1779713617.1335633,
+    "ast_hash": "068231f267a43ebb7d09e08052a9744f",
+    "semantic_hash": "068231f267a43ebb7d09e08052a9744f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/testing-agent.md": {
+    "mtime": 1779713617.1344402,
+    "ast_hash": "4413c02d96fc47d6251fe8c17108005c",
+    "semantic_hash": "4413c02d96fc47d6251fe8c17108005c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/json-test.md": {
+    "mtime": 1779713617.1338053,
+    "ast_hash": "9c5583702a9942d691781ea654b6b432",
+    "semantic_hash": "9c5583702a9942d691781ea654b6b432"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/devops-coder.md": {
+    "mtime": 1779713617.1336231,
+    "ast_hash": "c0680ff24523ea5ae365f3dae78afb14",
+    "semantic_hash": "c0680ff24523ea5ae365f3dae78afb14"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/backend-coder.md": {
+    "mtime": 1779713617.133082,
+    "ast_hash": "0e309a24c7c91834c107804ed6e60146",
+    "semantic_hash": "0e309a24c7c91834c107804ed6e60146"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/solution-architect.md": {
+    "mtime": 1779713617.13427,
+    "ast_hash": "8f3d4c3d5bfa0322c33a5598f7f86d18",
+    "semantic_hash": "8f3d4c3d5bfa0322c33a5598f7f86d18"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/business-architect.md": {
+    "mtime": 1779713617.1331334,
+    "ast_hash": "e14f73aa9489f1a330c5d844c6ad02c1",
+    "semantic_hash": "e14f73aa9489f1a330c5d844c6ad02c1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/compliance.md": {
+    "mtime": 1779713617.1332517,
+    "ast_hash": "cb6d0adce20bde21bb36b02a3d919c38",
+    "semantic_hash": "cb6d0adce20bde21bb36b02a3d919c38"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/data-architect.md": {
+    "mtime": 1779713617.1334977,
+    "ast_hash": "3c3328b57ee44ca0b851e5c9e15a8156",
+    "semantic_hash": "3c3328b57ee44ca0b851e5c9e15a8156"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/pm.md": {
+    "mtime": 1779713617.1338563,
+    "ast_hash": "228653c74017fd12f1fbdb57bc8d27fb",
+    "semantic_hash": "228653c74017fd12f1fbdb57bc8d27fb"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/prefeasibility-architect.md": {
+    "mtime": 1779713617.1340044,
+    "ast_hash": "47b1487653343dbf3e570767dd76c2aa",
+    "semantic_hash": "47b1487653343dbf3e570767dd76c2aa"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/architect-orchestrator.md": {
+    "mtime": 1779713617.1328368,
+    "ast_hash": "7c73672139ae4b9dc0f1f9e8c0389dca",
+    "semantic_hash": "7c73672139ae4b9dc0f1f9e8c0389dca"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/qa-architect.md": {
+    "mtime": 1779713617.1341121,
+    "ast_hash": "f75e12a1ced9b0a96afd950ca8adbe1d",
+    "semantic_hash": "f75e12a1ced9b0a96afd950ca8adbe1d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/prefeasibility-ba.md": {
+    "mtime": 1779713617.1340628,
+    "ast_hash": "3aab3869929488321e5fff618be9130d",
+    "semantic_hash": "3aab3869929488321e5fff618be9130d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/infra-architect.md": {
+    "mtime": 1779713617.1337142,
+    "ast_hash": "361d1755f0b3eb0f021ffb80a3a543be",
+    "semantic_hash": "361d1755f0b3eb0f021ffb80a3a543be"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/coding-orchestrator.md": {
+    "mtime": 1779713617.1331992,
+    "ast_hash": "009ab58d8a2501a497f099bce1ff08e6",
+    "semantic_hash": "009ab58d8a2501a497f099bce1ff08e6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/agent/app-architect.md": {
+    "mtime": 1779713617.132767,
+    "ast_hash": "56484d6754c5059a8c170f5759e050fb",
+    "semantic_hash": "56484d6754c5059a8c170f5759e050fb"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/knowledge/prefeasibility/architect-output-schema.md": {
+    "mtime": 1779713617.1350923,
+    "ast_hash": "dd405354a2762b5835e21842d4800b1d",
+    "semantic_hash": "dd405354a2762b5835e21842d4800b1d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/knowledge/prefeasibility/ba-output-schema.md": {
+    "mtime": 1779713617.1351683,
+    "ast_hash": "ae7f5243fae6e0931ae286bef7c89c5e",
+    "semantic_hash": "ae7f5243fae6e0931ae286bef7c89c5e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/knowledge/healthcare/data-entities.md": {
+    "mtime": 1779713617.1349835,
+    "ast_hash": "1586d0a4b2b26a06dc41ddee1b109a53",
+    "semantic_hash": "1586d0a4b2b26a06dc41ddee1b109a53"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/knowledge/healthcare/component-types.md": {
+    "mtime": 1779713617.1349125,
+    "ast_hash": "b6aaca7bb6612d6f93e39d8eae36fe11",
+    "semantic_hash": "b6aaca7bb6612d6f93e39d8eae36fe11"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/knowledge/healthcare/compliance-standards.md": {
+    "mtime": 1779713617.1348422,
+    "ast_hash": "7096bf8111adbb2e95fb1b6f1a4fdd9c",
+    "semantic_hash": "7096bf8111adbb2e95fb1b6f1a4fdd9c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/examples/healthcare-session-example.md": {
+    "mtime": 1779713617.134727,
+    "ast_hash": "7f212a08127e357e095c30d6d976a48b",
+    "semantic_hash": "7f212a08127e357e095c30d6d976a48b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/examples/healthcare-prd-example.md": {
+    "mtime": 1779713617.1345406,
+    "ast_hash": "0d374c47bb0aa2b2ffc9ddab7c7d05b6",
+    "semantic_hash": "0d374c47bb0aa2b2ffc9ddab7c7d05b6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/templates/brd-template.md": {
+    "mtime": 1779713617.1443522,
+    "ast_hash": "272c4bb32823611b773492a5ed22a932",
+    "semantic_hash": "272c4bb32823611b773492a5ed22a932"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/templates/prd-template.md": {
+    "mtime": 1779713617.1446006,
+    "ast_hash": "9eaa75004b7bb4652430a6a4b3986ff0",
+    "semantic_hash": "9eaa75004b7bb4652430a6a4b3986ff0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/templates/openapi-template.yaml": {
+    "mtime": 1779713617.1445265,
+    "ast_hash": "7387334ca09061121b0bade7d5da0c9d",
+    "semantic_hash": "7387334ca09061121b0bade7d5da0c9d"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/templates/test-examples.md": {
+    "mtime": 1779713617.144723,
+    "ast_hash": "340f7ba469e4ced3c122f25a200903bd",
+    "semantic_hash": "340f7ba469e4ced3c122f25a200903bd"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/templates/healthcare-domain.md": {
+    "mtime": 1779713617.1444602,
+    "ast_hash": "6456e779c65fab2dddd01523570f5143",
+    "semantic_hash": "6456e779c65fab2dddd01523570f5143"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/adoit-archimate/SKILL.md": {
+    "mtime": 1779713617.137026,
+    "ast_hash": "67e0cf7a320b07547b8143d752454294",
+    "semantic_hash": "67e0cf7a320b07547b8143d752454294"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/adoit-archimate/references/archimate-reference.md": {
+    "mtime": 1779713617.1418998,
+    "ast_hash": "27f65360e3e49f92e7164c2efa2fbb55",
+    "semantic_hash": "27f65360e3e49f92e7164c2efa2fbb55"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/adoit-archimate/references/healthcare-capability-model.md": {
+    "mtime": 1779713617.1420772,
+    "ast_hash": "2419ff9089a57df9546cda1cc847efd9",
+    "semantic_hash": "2419ff9089a57df9546cda1cc847efd9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/adoit-archimate/references/architecture-agents.md": {
+    "mtime": 1779713617.1419797,
+    "ast_hash": "91a141d7d6a9a7a15e443bb637db5b4f",
+    "semantic_hash": "91a141d7d6a9a7a15e443bb637db5b4f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/coding-workflow/SKILL.md": {
+    "mtime": 1779713617.1427937,
+    "ast_hash": "ce4dde8225ad34586a53228d09ae444f",
+    "semantic_hash": "ce4dde8225ad34586a53228d09ae444f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/taskmaster-mcp/SKILL.md": {
+    "mtime": 1779713617.143722,
+    "ast_hash": "7ee04dc0c7e3024014be13cac5912919",
+    "semantic_hash": "7ee04dc0c7e3024014be13cac5912919"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/taskmaster-mcp/references/taskmaster-commands.md": {
+    "mtime": 1779713617.143905,
+    "ast_hash": "3dd8a4bdf0fa75c81dec35c565167c90",
+    "semantic_hash": "3dd8a4bdf0fa75c81dec35c565167c90"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/taskmaster-mcp/references/prd-format.md": {
+    "mtime": 1779713617.1438227,
+    "ast_hash": "6dd8a74316bfb6b4e04ad0fa94897213",
+    "semantic_hash": "6dd8a74316bfb6b4e04ad0fa94897213"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/doc-to-archimate/doc-to-archimate-formula.md": {
+    "mtime": 1779713617.142885,
+    "ast_hash": "6b812c8377ec171f9e06cb8bbc2d5da1",
+    "semantic_hash": "6b812c8377ec171f9e06cb8bbc2d5da1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/risk-assessment/SKILL.md": {
+    "mtime": 1779713617.1435192,
+    "ast_hash": "774c32ac0ef7d2258deb97f8ba54b027",
+    "semantic_hash": "774c32ac0ef7d2258deb97f8ba54b027"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/openapi/SKILL.md": {
+    "mtime": 1779713617.1433194,
+    "ast_hash": "0fe956626c7fa16adb63b73b4b69af12",
+    "semantic_hash": "0fe956626c7fa16adb63b73b4b69af12"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/sql-schema/SKILL.md": {
+    "mtime": 1779713617.143622,
+    "ast_hash": "49b87b15368125e38ab50560fe238595",
+    "semantic_hash": "49b87b15368125e38ab50560fe238595"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/brd/SKILL.md": {
+    "mtime": 1779713617.1426046,
+    "ast_hash": "b937eff27b4b43f69296d896091b6321",
+    "semantic_hash": "b937eff27b4b43f69296d896091b6321"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/prd/SKILL.md": {
+    "mtime": 1779713617.1434145,
+    "ast_hash": "1a80a802930ea194fbeffaaa3bf9af3e",
+    "semantic_hash": "1a80a802930ea194fbeffaaa3bf9af3e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/archimate/SKILL.md": {
+    "mtime": 1779713617.1424885,
+    "ast_hash": "df3cebb694e959e237ea8212c0687ad1",
+    "semantic_hash": "df3cebb694e959e237ea8212c0687ad1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/oam-gitops/SKILL.md": {
+    "mtime": 1779713617.1430416,
+    "ast_hash": "ab7957db01b936d419b6390fc863d096",
+    "semantic_hash": "ab7957db01b936d419b6390fc863d096"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/oam-gitops/references/component-definitions.md": {
+    "mtime": 1779713617.1431482,
+    "ast_hash": "3286aa42be01db770cc1904666ca7451",
+    "semantic_hash": "3286aa42be01db770cc1904666ca7451"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/oam-gitops/references/traits-and-policies.md": {
+    "mtime": 1779713617.1432168,
+    "ast_hash": "1704751ee4fbedf67e7a0e83fa23d3e5",
+    "semantic_hash": "1704751ee4fbedf67e7a0e83fa23d3e5"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/.opencode/skills/test-strategy/SKILL.md": {
+    "mtime": 1779713617.1440916,
+    "ast_hash": "a7db8026a9017625e43e95666d151d7c",
+    "semantic_hash": "a7db8026a9017625e43e95666d151d7c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/risk-analyst-20260116-154116.md": {
+    "mtime": 1779713617.1493354,
+    "ast_hash": "7ad07186e923ef413d4d6eb2282e3dd1",
+    "semantic_hash": "7ad07186e923ef413d4d6eb2282e3dd1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/qa-architect-20260116-154115.md": {
+    "mtime": 1779713617.1492932,
+    "ast_hash": "7ad07186e923ef413d4d6eb2282e3dd1",
+    "semantic_hash": "7ad07186e923ef413d4d6eb2282e3dd1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/ba-agent-brd-20260116-154115.md": {
+    "mtime": 1779713617.1464734,
+    "ast_hash": "7ad07186e923ef413d4d6eb2282e3dd1",
+    "semantic_hash": "7ad07186e923ef413d4d6eb2282e3dd1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-165734/phase3.5-solution-architect-openapi.md": {
+    "mtime": 1779713617.148344,
+    "ast_hash": "fcdb1e5a73d079a336fbe7af11e28837",
+    "semantic_hash": "fcdb1e5a73d079a336fbe7af11e28837"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-165734/phase3-business-architect-archimate.md": {
+    "mtime": 1779713617.1483026,
+    "ast_hash": "f6c2e390429ff607ed5ce2018030ce35",
+    "semantic_hash": "f6c2e390429ff607ed5ce2018030ce35"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-165734/phase2-ba-agent-brd.md": {
+    "mtime": 1779713617.1482594,
+    "ast_hash": "5bb92fac585da18f1779d2663dceb154",
+    "semantic_hash": "5bb92fac585da18f1779d2663dceb154"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-165734/phase3.6-qa-architect-test-strategy.md": {
+    "mtime": 1779713617.1483846,
+    "ast_hash": "806148608d9cff8618f744128ef5fc28",
+    "semantic_hash": "806148608d9cff8618f744128ef5fc28"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-165734/phase4-ba-agent-prd.md": {
+    "mtime": 1779713617.1484284,
+    "ast_hash": "61fd14e75f771acba01eb0141383097a",
+    "semantic_hash": "61fd14e75f771acba01eb0141383097a"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-170236/phase3-business-architect-archimate.md": {
+    "mtime": 1779713617.1485407,
+    "ast_hash": "95f31c66af5c8e35bf8efa0d38a31b44",
+    "semantic_hash": "95f31c66af5c8e35bf8efa0d38a31b44"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-170236/phase3-app-architect-archimate.md": {
+    "mtime": 1779713617.1484952,
+    "ast_hash": "8e7ae6597e051c3064c77ad6693db77c",
+    "semantic_hash": "8e7ae6597e051c3064c77ad6693db77c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-170449/phase3.6-risk-analyst-risk-assessment.md": {
+    "mtime": 1779713617.1488054,
+    "ast_hash": "4b3dc7d148ad4cd25075e48619621a86",
+    "semantic_hash": "4b3dc7d148ad4cd25075e48619621a86"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-170449/phase3.6-qa-architect-test-strategy.md": {
+    "mtime": 1779713617.1486223,
+    "ast_hash": "130bc65c389f7b1c25f0c5ed7ad40da1",
+    "semantic_hash": "130bc65c389f7b1c25f0c5ed7ad40da1"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-170626/phase3.5-solution-architect-openapi.md": {
+    "mtime": 1779713617.1490293,
+    "ast_hash": "334a300c5a2d6a98c11620b87aea3f5c",
+    "semantic_hash": "334a300c5a2d6a98c11620b87aea3f5c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-170626/phase3-business-architect-archimate.md": {
+    "mtime": 1779713617.148961,
+    "ast_hash": "fdeeb8663c505e5f917d75bfcd0e3555",
+    "semantic_hash": "fdeeb8663c505e5f917d75bfcd0e3555"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-170626/phase2-ba-agent-brd.md": {
+    "mtime": 1779713617.1489108,
+    "ast_hash": "bae27f40cf7e4968537c1284b11afb2e",
+    "semantic_hash": "bae27f40cf7e4968537c1284b11afb2e"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-170626/phase3.6-qa-architect-test-strategy.md": {
+    "mtime": 1779713617.1491618,
+    "ast_hash": "d3ee6cc114a549b2a550efd5361b610c",
+    "semantic_hash": "d3ee6cc114a549b2a550efd5361b610c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/pipeline-20260116-170626/phase4-ba-agent-prd.md": {
+    "mtime": 1779713617.149247,
+    "ast_hash": "f8f2be6f0a752fbf88377e60d2d9147c",
+    "semantic_hash": "f8f2be6f0a752fbf88377e60d2d9147c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase3.5-solution-architect-openapi.md": {
+    "mtime": 1779713617.147682,
+    "ast_hash": "83852088a10184f72db6fedeee9b9bb6",
+    "semantic_hash": "83852088a10184f72db6fedeee9b9bb6"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase3-compliance-archimate.md": {
+    "mtime": 1779713617.1475048,
+    "ast_hash": "42a695fce831a1298987420c6e47f1aa",
+    "semantic_hash": "42a695fce831a1298987420c6e47f1aa"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase3-business-architect-archimate.md": {
+    "mtime": 1779713617.1474528,
+    "ast_hash": "eb71d7ad68bf86a48467a18b882bc287",
+    "semantic_hash": "eb71d7ad68bf86a48467a18b882bc287"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase3-data-architect-archimate.md": {
+    "mtime": 1779713617.1475518,
+    "ast_hash": "bd5c4ccd69dc3f7aac3acbdaaaca35e0",
+    "semantic_hash": "bd5c4ccd69dc3f7aac3acbdaaaca35e0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase3.5-solution-architect-sql-schema.md": {
+    "mtime": 1779713617.1477182,
+    "ast_hash": "e743af63803dc30c2504917ee96f2426",
+    "semantic_hash": "e743af63803dc30c2504917ee96f2426"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase3-app-architect-archimate.md": {
+    "mtime": 1779713617.14741,
+    "ast_hash": "f791ddad8576cb9d0c989a76dd08448f",
+    "semantic_hash": "f791ddad8576cb9d0c989a76dd08448f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase3.6-risk-analyst-risk-assessment.md": {
+    "mtime": 1779713617.1478322,
+    "ast_hash": "0974b8985f675a815a4337aa006cb1ea",
+    "semantic_hash": "0974b8985f675a815a4337aa006cb1ea"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase2-ba-agent-brd.md": {
+    "mtime": 1779713617.1473684,
+    "ast_hash": "2017f37173246056c356dfb6bd5a2e42",
+    "semantic_hash": "2017f37173246056c356dfb6bd5a2e42"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase3.6-qa-architect-test-strategy.md": {
+    "mtime": 1779713617.1477592,
+    "ast_hash": "b9ad1eeaa7df9b10bba47adcb6cc0c81",
+    "semantic_hash": "b9ad1eeaa7df9b10bba47adcb6cc0c81"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase3-security-architect-archimate.md": {
+    "mtime": 1779713617.1476412,
+    "ast_hash": "3da4b1af1a5ed5e57a0f2a65b4ae2dd3",
+    "semantic_hash": "3da4b1af1a5ed5e57a0f2a65b4ae2dd3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase3-infra-architect-archimate.md": {
+    "mtime": 1779713617.1475985,
+    "ast_hash": "a760d1c2d58457b82727246b8fe0b12b",
+    "semantic_hash": "a760d1c2d58457b82727246b8fe0b12b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-173329/phase4-ba-agent-prd.md": {
+    "mtime": 1779713617.1478808,
+    "ast_hash": "14763feec1a87bd527561890e443c283",
+    "semantic_hash": "14763feec1a87bd527561890e443c283"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase3.5-solution-architect-openapi.md": {
+    "mtime": 1779713617.1470237,
+    "ast_hash": "5e6481ef3a0a1d1a4c7a202e8e6e76b9",
+    "semantic_hash": "5e6481ef3a0a1d1a4c7a202e8e6e76b9"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase3-compliance-archimate.md": {
+    "mtime": 1779713617.146695,
+    "ast_hash": "752d9230eddbe0c384b4de1c12b0de13",
+    "semantic_hash": "752d9230eddbe0c384b4de1c12b0de13"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase3-business-architect-archimate.md": {
+    "mtime": 1779713617.1466494,
+    "ast_hash": "b127819ceb0586529d44300d7d4f1e43",
+    "semantic_hash": "b127819ceb0586529d44300d7d4f1e43"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase3-data-architect-archimate.md": {
+    "mtime": 1779713617.1468496,
+    "ast_hash": "e1a38146766243f7f4c79f2c2e30bcb2",
+    "semantic_hash": "e1a38146766243f7f4c79f2c2e30bcb2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase3.5-solution-architect-sql-schema.md": {
+    "mtime": 1779713617.1470783,
+    "ast_hash": "d8f38c3053d3d60aee0013d48646a54b",
+    "semantic_hash": "d8f38c3053d3d60aee0013d48646a54b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase3-app-architect-archimate.md": {
+    "mtime": 1779713617.1466045,
+    "ast_hash": "4de90b51eaef3ec0ffd6277453190da3",
+    "semantic_hash": "4de90b51eaef3ec0ffd6277453190da3"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase3.6-risk-analyst-risk-assessment.md": {
+    "mtime": 1779713617.1472466,
+    "ast_hash": "6e0572b22d50700587170decf92a46de",
+    "semantic_hash": "6e0572b22d50700587170decf92a46de"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase2-ba-agent-brd.md": {
+    "mtime": 1779713617.1465507,
+    "ast_hash": "d58d54bc963ea8a5bc555c0037af4ee7",
+    "semantic_hash": "d58d54bc963ea8a5bc555c0037af4ee7"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase3.6-qa-architect-test-strategy.md": {
+    "mtime": 1779713617.1471546,
+    "ast_hash": "cda995713b4d7a07620358c22887073c",
+    "semantic_hash": "cda995713b4d7a07620358c22887073c"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase3-security-architect-archimate.md": {
+    "mtime": 1779713617.1469457,
+    "ast_hash": "715af7355473351829051bd1f48775f2",
+    "semantic_hash": "715af7355473351829051bd1f48775f2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase3-infra-architect-archimate.md": {
+    "mtime": 1779713617.146899,
+    "ast_hash": "28bac75945063e3b85b1bfcc67831693",
+    "semantic_hash": "28bac75945063e3b85b1bfcc67831693"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-172410/phase4-ba-agent-prd.md": {
+    "mtime": 1779713617.1472943,
+    "ast_hash": "81b14f232147d47682f20a732c47068b",
+    "semantic_hash": "81b14f232147d47682f20a732c47068b"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/opencode/test-output/full-pipeline-20260116-174741/phase2-ba-agent-brd.md": {
+    "mtime": 1779713617.1479526,
+    "ast_hash": "9e8a646c5ca536b4b7310f4db7effbec",
+    "semantic_hash": "9e8a646c5ca536b4b7310f4db7effbec"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/Screenshot 2026-01-28 at 19.57.45.png": {
+    "mtime": 1779713617.0766463,
+    "ast_hash": "d9aa65e5c10181811b99c41a3b0d0248",
+    "semantic_hash": "d9aa65e5c10181811b99c41a3b0d0248"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/e2e-test-screenshot.png": {
+    "mtime": 1779713617.121767,
+    "ast_hash": "c958306cc00d024262af75d1e8e4ab37",
+    "semantic_hash": "c958306cc00d024262af75d1e8e4ab37"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/cc-observability/client/public/vite.svg": {
+    "mtime": 1779713617.1087956,
+    "ast_hash": "634ffa76f3e9c36d319ea03054d557c0",
+    "semantic_hash": "634ffa76f3e9c36d319ea03054d557c0"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/public/favicon-16x16.png": {
+    "mtime": 1779713617.1045897,
+    "ast_hash": "599164d149323dee930260a04cbe731f",
+    "semantic_hash": "599164d149323dee930260a04cbe731f"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/public/safari-pinned-tab.svg": {
+    "mtime": 1779713617.104921,
+    "ast_hash": "43cd34f4de218e07ff0b173266704039",
+    "semantic_hash": "43cd34f4de218e07ff0b173266704039"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/public/android-chrome-192x192.png": {
+    "mtime": 1779713617.1044035,
+    "ast_hash": "577fa964ecd0a7bd7480cbe1f12b6bc2",
+    "semantic_hash": "577fa964ecd0a7bd7480cbe1f12b6bc2"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/public/apple-touch-icon.png": {
+    "mtime": 1779713617.1045396,
+    "ast_hash": "a78d5ea76a6d1d4ddcb7b587590c74bd",
+    "semantic_hash": "a78d5ea76a6d1d4ddcb7b587590c74bd"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/backstage/packages/app/public/favicon-32x32.png": {
+    "mtime": 1779713617.1046424,
+    "ast_hash": "7f2c832df0d1aedcb0f39bfcf9c0b7ba",
+    "semantic_hash": "7f2c832df0d1aedcb0f39bfcf9c0b7ba"
+  },
+  "/Users/socrateshlapolosa/Development/local-ai-packaged/assets/n8n-demo.gif": {
+    "mtime": 1779713617.0934684,
+    "ast_hash": "b3f3c044fa1ddd127e098e67c6b9d7e1",
+    "semantic_hash": "b3f3c044fa1ddd127e098e67c6b9d7e1"
+  }
+}

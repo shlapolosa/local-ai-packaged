@@ -12,7 +12,10 @@
       "name": "Webhook - Deploy Agent",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 300]
+      "position": [
+        250,
+        300
+      ]
     },
     {
       "parameters": {
@@ -41,7 +44,10 @@
       "name": "Switch Agent Type",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [470, 300]
+      "position": [
+        470,
+        300
+      ]
     },
     {
       "parameters": {
@@ -51,7 +57,10 @@
       "name": "Prepare Code Review Workflow",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [690, 200]
+      "position": [
+        690,
+        200
+      ]
     },
     {
       "parameters": {
@@ -61,7 +70,10 @@
       "name": "Prepare Unit Test Workflow",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [690, 400]
+      "position": [
+        690,
+        400
+      ]
     },
     {
       "parameters": {
@@ -90,7 +102,10 @@
       "name": "Create Workflow via API",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [910, 300]
+      "position": [
+        910,
+        300
+      ]
     },
     {
       "parameters": {
@@ -102,7 +117,10 @@
       "name": "Respond Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1130, 300]
+      "position": [
+        1130,
+        300
+      ]
     }
   ],
   "connections": {
@@ -173,9 +191,6 @@
     "executionOrder": "v1"
   },
   "active": true,
-  "tags": [
-    {
-      "name": "marketplace"
-    }
-  ]
+  "tags": [],
+  "id": "ae79ca741c886255"
 }

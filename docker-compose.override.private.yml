@@ -10,6 +10,11 @@ services:
   n8n:
     ports:
       - 127.0.0.1:5678:5678
+    environment:
+      # Allow `require('fs')` in Code nodes so the Solution Architect agent
+      # workflow can read SP creds from /home/node/.n8n/.apim-sp.json.
+      - NODE_FUNCTION_ALLOW_BUILTIN=fs,crypto,buffer
+      - NODE_FUNCTION_ALLOW_EXTERNAL=*
 
   qdrant:
     ports:

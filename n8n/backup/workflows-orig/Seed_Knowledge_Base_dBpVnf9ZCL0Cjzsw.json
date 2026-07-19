@@ -1,0 +1,249 @@
+{
+  "updatedAt": "2026-01-24T06:51:18.356Z",
+  "createdAt": "2026-01-24T06:34:41.580Z",
+  "id": "dBpVnf9ZCL0Cjzsw",
+  "name": "Seed Knowledge Base",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "seed-knowledge-base",
+        "responseMode": "lastNode"
+      }
+    },
+    {
+      "id": "load-docs",
+      "name": "Load Knowledge Docs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst path = '/data/shared/knowledge/sahatna-knowledge-seed.json';\ntry {\n  const content = fs.readFileSync(path, 'utf8');\n  const documents = JSON.parse(content);\n  return documents.map(doc => ({ json: doc }));\n} catch (e) {\n  return [{ json: { id: 'error', content: e.message } }];\n}"
+      }
+    },
+    {
+      "id": "create-collection",
+      "name": "Create Qdrant Collection",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        300
+      ],
+      "parameters": {
+        "method": "PUT",
+        "url": "http://qdrant:6333/collections/agent-knowledge-business-analyst",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { vectors: { size: 768, distance: 'Cosine' } } }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "generate-embedding",
+      "name": "Generate Embedding",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/embeddings",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'nomic-embed-text', prompt: $json.content } }}",
+        "options": {
+          "timeout": 60000
+        }
+      }
+    },
+    {
+      "id": "prepare-point",
+      "name": "Prepare Qdrant Point",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst doc = $('Load Knowledge Docs').item(item.pairedItem.item);\n\nfunction hashCode(str) {\n  let hash = 0;\n  for (let i = 0; i < str.length; i++) {\n    const char = str.charCodeAt(i);\n    hash = ((hash << 5) - hash) + char;\n    hash = hash & hash;\n  }\n  return Math.abs(hash);\n}\n\nreturn [{\n  json: {\n    points: [{\n      id: hashCode(doc.json.id),\n      vector: item.json.embedding,\n      payload: {\n        doc_id: doc.json.id,\n        content: doc.json.content,\n        metadata: doc.json.metadata\n      }\n    }]\n  }\n}];"
+      }
+    },
+    {
+      "id": "upsert-point",
+      "name": "Upsert to Qdrant",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        300
+      ],
+      "parameters": {
+        "method": "PUT",
+        "url": "http://qdrant:6333/collections/agent-knowledge-business-analyst/points",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}"
+      }
+    },
+    {
+      "id": "result",
+      "name": "Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const items = $input.all();\nreturn [{\n  json: {\n    status: 'complete',\n    documentsProcessed: items.length,\n    message: 'Knowledge base seeded successfully'\n  }\n}];"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Load Knowledge Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Knowledge Docs": {
+      "main": [
+        [
+          {
+            "node": "Create Qdrant Collection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Qdrant Collection": {
+      "main": [
+        [
+          {
+            "node": "Generate Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Embedding": {
+      "main": [
+        [
+          {
+            "node": "Prepare Qdrant Point",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Qdrant Point": {
+      "main": [
+        [
+          {
+            "node": "Upsert to Qdrant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert to Qdrant": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-24T06:34:41.580Z",
+      "createdAt": "2026-01-24T06:34:41.580Z",
+      "role": "workflow:owner",
+      "workflowId": "dBpVnf9ZCL0Cjzsw",
+      "projectId": "nxaQcUOSSZTVQUEF",
+      "project": {
+        "updatedAt": "2025-12-23T15:34:38.321Z",
+        "createdAt": "2025-12-22T10:30:48.794Z",
+        "id": "nxaQcUOSSZTVQUEF",
+        "name": "socrates hlapolosa <socrates.hlapolosa@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "projectRelations": [
+          {
+            "updatedAt": "2025-12-22T10:30:48.794Z",
+            "createdAt": "2025-12-22T10:30:48.794Z",
+            "userId": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
+            "projectId": "nxaQcUOSSZTVQUEF",
+            "user": {
+              "updatedAt": "2026-01-26T05:03:20.891Z",
+              "createdAt": "2025-12-22T10:30:48.161Z",
+              "id": "62d33aea-de7b-4f3a-a5d0-3ff0384b322c",
+              "email": "socrates.hlapolosa@gmail.com",
+              "firstName": "socrates",
+              "lastName": "hlapolosa",
+              "personalizationAnswers": null,
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "dAk1DVxtHm85b9GC",
+                "userActivatedAt": 1766573710016
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-01-26",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": []
+}

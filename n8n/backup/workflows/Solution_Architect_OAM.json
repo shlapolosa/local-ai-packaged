@@ -1,0 +1,594 @@
+{
+  "id": "SolArchOAM01wf01",
+  "name": "Solution Architect - OAM",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "solution-architect-oam",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "n-webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        0
+      ],
+      "webhookId": "solution-architect-oam-v1"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Validate input: { projectSlug, intent \u2208 {oam, provision, provision_wait, propose, both}, dryRunOnly? }\nconst body = $input.all()[0].json.body || $input.all()[0].json || {};\nconst projectSlug = (body.projectSlug || '').trim();\nconst intentRaw = (body.intent || 'oam').toLowerCase().trim();\nconst allowed = ['oam','provision','provision_wait','propose','both'];\nconst errors = [];\nif (!projectSlug) errors.push('projectSlug is required');\nif (!allowed.includes(intentRaw)) errors.push(`intent must be one of ${allowed.join('|')}`);\nconst requiresOam = intentRaw === 'oam' || intentRaw === 'both' || intentRaw === 'provision' || intentRaw === 'provision_wait' || intentRaw === 'propose';\nconst requiresProvision = intentRaw === 'provision' || intentRaw === 'both' || intentRaw === 'provision_wait';\nreturn [{ json: {\n  projectSlug,\n  intent: intentRaw,\n  requiresOam, requiresProvision,\n  dryRunOnly: !!body.dryRunOnly,\n  __error: errors.length ? errors.join('; ') : null,\n  __requestId: $execution.id\n}}];"
+      },
+      "id": "n-validate",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.__error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "n-if-error",
+      "name": "If: Invalid Input",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {ok:false, error:$json.__error} }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "n-respond-bad",
+      "name": "Respond: 400 Bad Input",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1000,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, name FROM architecture.projects WHERE slug = $1 LIMIT 1",
+        "options": {
+          "queryReplacement": "={{ $json.projectSlug }}",
+          "outputColumns": []
+        }
+      },
+      "id": "n-q-project",
+      "name": "PG: Resolve project_id",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1000,
+        200
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// merge validated input + project row, fail if no project\nconst input = $('Validate Input').first().json;\nconst rows = $input.all();\nif (!rows.length || !rows[0].json || !rows[0].json.id) {\n  return [{ json: { ...input, __error: `no project with slug='${input.projectSlug}'` } }];\n}\nreturn [{ json: { ...input, projectId: rows[0].json.id, projectName: rows[0].json.name } }];"
+      },
+      "id": "n-merge-project",
+      "name": "Merge Project",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        200
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.__error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "n-if-noproject",
+      "name": "If: Project Missing",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -600,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {ok:false, error:$json.__error, projectSlug:$json.projectSlug} }}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "id": "n-respond-nopj",
+      "name": "Respond: 404 No Project",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT DISTINCT ON (type) type, content FROM architecture.artifacts WHERE project_id = $1 AND type IN ('infrastructure_arch','application_arch','data_arch','solution_arch_md') ORDER BY type, version DESC",
+        "options": {
+          "queryReplacement": "={{ $json.projectId }}"
+        }
+      },
+      "id": "n-q-artifacts",
+      "name": "PG: Fetch Artifacts",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -400,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// pull the artifact rows, verify all 4 present, attach to context\nconst ctx = $('Merge Project').first().json;\nconst rows = $input.all().map(x => x.json);\nconst byType = {};\nfor (const r of rows) byType[r.type] = r.content;\nconst required = ['infrastructure_arch','application_arch','data_arch','solution_arch_md'];\nconst missing = required.filter(t => !byType[t]);\nif (missing.length) {\n  return [{ json: { ...ctx, __error: `missing prerequisite artifacts: ${missing.join(', ')}` } }];\n}\nreturn [{ json: { ...ctx, artifacts: byType } }];"
+      },
+      "id": "n-merge-art",
+      "name": "Merge Artifacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.__error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "n-if-noart",
+      "name": "If: Artifacts Missing",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {ok:false, error:$json.__error, projectSlug:$json.projectSlug} }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "n-respond-noart",
+      "name": "Respond: 400 No Artifacts",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        200,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n// Solution Architect \u2014 consumer agent for the producer/consumer catalog model.\n//\n// Implements the 6-phase consumer protocol (compose \u2192 verify \u2192 diagnose \u2192\n// revise \u2192 submit \u2192 monitor) over the live Catalog + Factory MCPs at APIM.\n//\n// Intents (gated tool surface):\n//   oam            \u2014 compose + catalog.validate only. Never submits / proposes.\n//   provision      \u2014 compose + dry_run. If pass: app.submit. Else: WIP.\n//   provision_wait \u2014 compose + dry_run. If pass: app.submit. Else missing-CD\n//                    case: app.submit_wait (commit + 72h polling).\n//   propose        \u2014 compose + dry_run. For each unmappable, try Option A\n//                    (catalog.search alt). If still unmappable: factory.propose.\n//   both           \u2014 alias for provision (legacy).\n//\n// Reads SP creds + APIM config from /home/node/.n8n/.apim-sp.json.\n// Single JWT (audience api://fe225ae2-\u2026/.default) authorises catalog + factory\n// + Foundry AOAI in one round-trip.\n// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\nconst fs = require('fs');\nconst ctx = $input.all()[0].json;\nconst sp = JSON.parse(fs.readFileSync('/home/node/.n8n/.apim-sp.json', 'utf8'));\n\nconst APIM         = sp.apim_base;\nconst MCP_CATALOG  = APIM + sp.mcp_path;\nconst MCP_FACTORY  = APIM + (sp.factory_mcp_path || '/mcp/factory/mcp');\nconst DEPLOYMENT   = sp.deployment_default;\nconst MODE         = sp.mode || 'apim';\nconst FACTORY_REPO = sp.default_factory_repo || 'health-service-idp';\n\nconst AOAI_URL = (MODE === 'direct' && sp.foundry_direct_base)\n  ? (sp.foundry_direct_base + sp.aoai_chat_path_template.replace('{deployment}', DEPLOYMENT))\n  : (APIM + sp.aoai_chat_path_template.replace('{deployment}', DEPLOYMENT));\nconst AOAI_AUTH_HDR = (MODE === 'direct' && sp.foundry_api_key)\n  ? { 'api-key': sp.foundry_api_key }\n  : null;\n\nconst TICK = String.fromCharCode(96);\nconst FENCE = TICK + TICK + TICK;\n\n// \u2500\u2500\u2500 HTTP helper (n8n sandbox lacks global fetch; this.helpers.httpRequest used) \u2500\u2500\u2500\nasync function _sleep(ms) { await new Promise(r => setTimeout(r, ms)); }\nconst _BACKOFF_MS = [5000, 15000, 30000, 60000, 60000];\nasync function http(method, url, headers, body) {\n  const opts = {\n    method, url,\n    headers: headers || {},\n    returnFullResponse: true,\n    json: false,\n    encoding: 'utf8',\n    // Hard per-request cap so a single unresponsive upstream (AOAI / MCP) can't\n    // hang the agent indefinitely. With 6 retry attempts this still gives\n    // ~12 min worst case per call slot.\n    timeout: 120000,\n  };\n  if (body !== undefined) opts.body = body;\n  let attempt = 0;\n  const maxAttempts = _BACKOFF_MS.length + 1;\n  while (true) {\n    attempt++;\n    try {\n      const resp = await this.helpers.httpRequest(opts);\n      const sc = resp.statusCode || resp.status;\n      if ((sc === 429 || sc === 503) && attempt < maxAttempts) {\n        const ra = (resp.headers && (resp.headers['retry-after'] || resp.headers['Retry-After'])) || null;\n        const wait = ra ? Math.min(parseInt(ra, 10) * 1000, 60000) : _BACKOFF_MS[attempt - 1];\n        await _sleep(wait); continue;\n      }\n      return resp;\n    } catch (e) {\n      const status = e.statusCode || e.status || (e.response && e.response.status);\n      const code = (e && e.code) || '';\n      const msg  = String((e && e.message) || e);\n      // Transient = either a known retryable HTTP status, OR a connection-level\n      // failure with no status at all (socket hang up, reset, timeout, DNS blip).\n      const NET_RE = /socket hang up|ECONNRESET|ETIMEDOUT|EPIPE|EAI_AGAIN|ENOTFOUND|read ECONNRESET|aborted/i;\n      const isTransientStatus  = (status === 429 || status === 503 || status === 502 || status === 504);\n      const isTransientNetwork = (!status) && (NET_RE.test(msg) || NET_RE.test(code));\n      if ((isTransientStatus || isTransientNetwork) && attempt < maxAttempts) {\n        const ra = (e.response && e.response.headers && (e.response.headers['retry-after'] || e.response.headers['Retry-After'])) || null;\n        const wait = ra ? Math.min(parseInt(ra, 10) * 1000, 60000) : _BACKOFF_MS[attempt - 1];\n        await _sleep(wait); continue;\n      }\n      const ebody = (e.response && e.response.body) || msg;\n      const err = new Error('HTTP ' + (status || '?') + ' ' + method + ' ' + url + ': ' + String(ebody).slice(0, 400));\n      err.httpStatus = status || null;\n      err.httpUrl = url;\n      throw err;\n    }\n  }\n}\n\nfunction formEncode(obj) {\n  return Object.entries(obj).map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&');\n}\n\nasync function getToken() {\n  const body = formEncode({\n    grant_type: 'client_credentials',\n    client_id: sp.client_id,\n    client_secret: sp.client_secret,\n    scope: sp.audience,\n  });\n  const resp = await http.call(this, 'POST',\n    'https://login.microsoftonline.com/' + sp.tenant_id + '/oauth2/v2.0/token',\n    { 'Content-Type': 'application/x-www-form-urlencoded' },\n    body,\n  );\n  if (resp.statusCode >= 400) throw new Error('token mint ' + resp.statusCode + ': ' + String(resp.body).slice(0, 300));\n  return JSON.parse(resp.body).access_token;\n}\n\n// \u2500\u2500\u2500 Per-MCP JSON-RPC / SSE client \u2500\u2500\u2500\nfunction makeMcpClient(serverUrl, bearerH) {\n  let rpcId = 0;\n  let initialized = false;\n  async function call(method, params) {\n    const id = ++rpcId;\n    const payload = { jsonrpc: '2.0', method };\n    if (!method.startsWith('notifications/')) payload.id = id;\n    if (params) payload.params = params;\n    const resp = await http.call(this, 'POST', serverUrl,\n      { ...bearerH, 'Accept': 'application/json, text/event-stream' },\n      JSON.stringify(payload),\n    );\n    if (method.startsWith('notifications/')) return null;\n    if (resp.statusCode >= 400) throw new Error(`${serverUrl} ${method} ${resp.statusCode}: ${String(resp.body).slice(0,300)}`);\n    const text = String(resp.body);\n    const lines = text.split('\\n').map(l => l.trim()).filter(l => l.startsWith('data:'));\n    if (!lines.length) throw new Error(`${serverUrl} ${method}: no SSE data line. body=${text.slice(0,200)}`);\n    return JSON.parse(lines[lines.length - 1].slice(5).trim());\n  }\n  async function ensureInit() {\n    if (initialized) return;\n    await call.call(this, 'initialize', { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'n8n-sol-arch', version: '2.0' } });\n    await call.call(this, 'notifications/initialized');\n    initialized = true;\n  }\n  return { call, ensureInit };\n}\n\n// \u2500\u2500\u2500 Top-level guarded body \u2014 never throw, always return structured WIP/OK \u2500\u2500\u2500\nlet __agentResult = null;\ntry {\n\nconst tok = await getToken.call(this);\nconst H = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok };\n\nconst catalogMcp = makeMcpClient(MCP_CATALOG, H);\nconst factoryMcp = makeMcpClient(MCP_FACTORY, H);\nawait catalogMcp.ensureInit.call(this);\n// Lazy-init factory only if the intent allows propose (avoid unnecessary RTT).\n\n// \u2500\u2500\u2500 Intent-gated tool surface \u2500\u2500\u2500\nconst intent = ctx.intent; // already normalised by Validate Input\nconst allowSubmit     = (intent === 'provision' || intent === 'both' || intent === 'provision_wait');\nconst allowSubmitWait = (intent === 'provision_wait');\nconst allowPropose    = (intent === 'propose');\n\nconst baseTools = [\n  { name: 'catalog.list',     desc: 'List published OAM capabilities (live ComponentDefinitions). Call this first.',\n    params: { type: 'object', properties: { provisionable_only: { type: 'boolean' } } } },\n  { name: 'catalog.describe', desc: 'Describe a component incl. its parameter schema (`parameters[]` with name/type/required/default), `applicable_traits[]`, `description_completeness`. The `parameters[]` list is AUTHORITATIVE \u2014 use ONLY those names; never invent fields.',\n    params: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] } },\n  { name: 'catalog.search',   desc: 'Rank KB technologies for a structured CapabilityRequest (category + qualityAttributes [+ weights]).',\n    params: { type: 'object', properties: { category: { type: 'string' }, qualityAttributes: { type: 'object' }, weights: { type: 'object' } }, required: ['category', 'qualityAttributes'] } },\n  { name: 'catalog.scaffold', desc: 'Return a minimal valid OAM Application snippet for a component.',\n    params: { type: 'object', properties: { component: { type: 'string' }, app_name: { type: 'string' }, namespace: { type: 'string' } }, required: ['component'] } },\n  { name: 'catalog.validate',      desc: 'vela dry-run over an OAM Application. Returns {ok, diagnostics}. PREFERRED validate tool per the consumer protocol.',\n    params: { type: 'object', properties: { oam_yaml: { type: 'string' } }, required: ['oam_yaml'] } },\n  // \u2500\u2500 New cluster-wide discovery tools (live as of 2026-05-30) \u2500\u2500\n  { name: 'catalog.traits', desc: 'List all TraitDefinitions cluster-wide.',\n    params: { type: 'object', properties: {} } },\n  { name: 'catalog.describe_trait', desc: 'Trait parameter schema (live vela show). Call BEFORE attaching any trait.',\n    params: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] } },\n  { name: 'catalog.traits_for', desc: 'List the traits applicable to a given component type. Authoritative gate: if a trait is NOT in this result for component X, you may NOT attach it to X.',\n    params: { type: 'object', properties: { component_type: { type: 'string' } }, required: ['component_type'] } },\n  { name: 'catalog.policies', desc: 'List all PolicyDefinitions cluster-wide.',\n    params: { type: 'object', properties: {} } },\n  { name: 'catalog.describe_policy', desc: 'Policy parameter schema (parsed from CUE). Call BEFORE referencing any policy.',\n    params: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] } },\n  { name: 'catalog.workflow_steps', desc: 'List all WorkflowStepDefinitions.',\n    params: { type: 'object', properties: {} } },\n  { name: 'catalog.describe_workflow_step', desc: 'Workflow step parameter schema. Call BEFORE referencing any workflow step.',\n    params: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] } },\n  { name: 'catalog.connectivity_recipes', desc: 'Pre-approved trait/policy wiring for composite components (e.g. compute-service + datastore). If a recipe matches, emit its `emit:` files alongside the components. Never invent a connectivity pattern.',\n    params: { type: 'object', properties: { a: { type: 'string' }, b: { type: 'string' } } } },\n];\n\nconst submitTools = !allowSubmit ? [] : [\n  { name: 'app.submit', desc: 'OAM-first provisioning: re-validate + commit OAM to gitops + trigger oam-apply workflow. SYNC. Requires the OAM to already pass catalog.validate.',\n    params: { type: 'object', properties: { oam_yaml: { type: 'string' } }, required: ['oam_yaml'] } },\n];\n\nconst submitWaitTools = !allowSubmitWait ? [] : [\n  { name: 'app.submit_wait', desc: 'Commit OAM + trigger oam-apply-wait workflow that polls vela dry-run every 60s until prereqs land (up to 72h), then deploys. USE THIS when some referenced ComponentDefinitions are missing and you have already filed (or will file) a factory.propose request.',\n    params: { type: 'object', properties: { oam_yaml: { type: 'string' } }, required: ['oam_yaml'] } },\n];\n\nconst proposeTools = !allowPropose ? [] : [\n  { name: 'factory.propose', desc: 'Open a PR to file a CapabilityRequest. files MUST map paths under \"capability-factory/requests/REQ-NNN-<slug>.yaml\" to YAML bodies. Never push implementation files (crossplane/, kb/, docs/adr/). Repo defaults to ' + JSON.stringify(FACTORY_REPO) + '.',\n    params: { type: 'object', properties: {\n      repo: { type: 'string' },\n      title: { type: 'string' },\n      body: { type: 'string' },\n      files: { type: 'object' },\n      base: { type: 'string' },\n      branch_prefix: { type: 'string' },\n    }, required: ['title', 'body', 'files'] } },\n  { name: 'factory.list_open_prs', desc: 'List currently-open consumer/factory PRs in repo (for awareness \u2014 avoid duplicating an in-flight request).',\n    params: { type: 'object', properties: { repo: { type: 'string' }, head_prefix: { type: 'string' } } } },\n];\n\nconst toolDefs = [...baseTools, ...submitTools, ...submitWaitTools, ...proposeTools];\nconst aoaiTools = toolDefs.map(t => ({ type: 'function', function: { name: t.name, description: t.desc, parameters: t.params } }));\nconst allowedNames = new Set(toolDefs.map(t => t.name));\n\n// \u2500\u2500\u2500 System prompt \u2500\u2500\u2500\nconst archContext = {\n  infrastructure_arch: ctx.artifacts.infrastructure_arch,\n  application_arch:    ctx.artifacts.application_arch,\n  data_arch:           ctx.artifacts.data_arch,\n  solution_arch_md:    ctx.artifacts.solution_arch_md,\n};\n\nconst systemPrompt = [\n  'You are the Solution Architect consumer agent. Your job: compose ONE KubeVela OAM Application from the project architecture below using only components from the live capability catalog, verify it with catalog.validate, then (per intent) submit or propose.',\n  '',\n  'Current request:',\n  '  projectSlug: ' + ctx.projectSlug,\n  '  intent: ' + intent,\n  '  tools available this run: ' + [...allowedNames].sort().join(', '),\n  '',\n  '\u2550\u2550\u2550 Non-negotiable rules \u2550\u2550\u2550',\n  'R0. EVIDENCE. Do not emit a final answer until you have called catalog.validate on a complete assembled OAM YAML and observed the response. Never predict outcomes; always observe them. You may call catalog.validate up to 3 times \u2014 if it still fails after the third try, follow the consumer protocol (Option A/B/C) rather than re-trying further.',\n  'R1. SUBMIT GUARD. Never call app.submit / app.submit_wait without a successful catalog.validate on the exact YAML you intend to submit.',\n  'R2. CLOSED VOCABULARY. The `type:` under spec.components[*] is exactly what catalog.list returns. Don\\'t invent. Don\\'t alias to generic strings.',\n  'R3. AVOID ApplicationClaim/* components. Known cluster RBAC gap; they fail catalog.validate.',\n  'R4. NAMING and NAMESPACE. metadata.name MUST be \"' + ctx.projectSlug + '-app\". metadata.namespace MUST be \"default\" (the catalog cluster currently has namespace-scoped RBAC that breaks catalog.validate for any non-default namespace; revisit once that is widened). Initiative-scoped components: `' + ctx.projectSlug + '-{role}`. Shared infra: `shared-{type}`. Component names disambiguate projects; namespace is shared by design.',\n  'R5. SOURCE-OF-TRUTH HIERARCHY (replaces \"be exhaustive across all four artifacts\"):',\n  '   The OAM must model THE COMPONENTS THIS APPLICATION ACTUALLY USES, derived in this order:',\n  '     1. solution_arch_md \u2014 primary source. The \"## Components:\" + \"## Data Flow:\" / \"## Component Mappings:\" sections describe what the app consumes.',\n  '     2. application_arch \u2014 secondary; itemises the same components in structured form. Use it to disambiguate names/technologies named in solution_arch_md.',\n  '     3. data_arch \u2014 describes specifically-named stores the app uses (e.g. \"Invoice DB\"). Only include those that solution_arch_md or application_arch references.',\n  '     4. infrastructure_arch \u2014 PLATFORM CONTEXT, NOT A CHECKLIST. It enumerates what the cluster CAN provide (MongoDB, Event Hubs, APIM, AGIC, IdPs, etc.). Include an infrastructure_arch component in the OAM ONLY IF solution_arch_md or application_arch directly references it as something this app uses. Treat platform-only items (e.g. APIM, AGIC, generic IdP, generic MongoDB/Cosmos/Event Hubs) as platform-managed unless the application explicitly consumes them.',\n  '   Rule of thumb: if a component appears in your final OAM but no other component\\'s `properties` references its `component_name` (via `database:`, `cache:`, `messaging:`, `identityProvider:`, env vars, etc.), it is almost certainly an orphan \u2014 either wire it in or remove it.',\n  '',\n  '   Concretely for the live MFG-TC catalog: APIM, AGIC, and external IdPs that solution_arch_md describes as platform-level concerns (auth handled by APIM, ingress handled by AGIC) are NOT separate OAM components \u2014 they\\'re ambient platform services. Only emit an `auth0-idp` / `identity-service` component when the application code explicitly integrates with one beyond what APIM provides.',\n  '',\n  '\u2550\u2550\u2550 Working principles (not enumerations \u2014 guides) \u2550\u2550\u2550',\n  '\u2022 Generic primitives are reusable. Many capabilities legitimately share the same `type:` while differing by `component_name`. That\\'s the point of generic components.',\n  '\u2022 Translate before you search. Architecture artifacts name things in domain or vendor terms (\"Invoice Database\", \"AKS\", \"Event Hubs\"). Search on the functional category (\"relational database\", \"kubernetes runtime\", \"event streaming\"), not the literal name.',\n  '\u2022 Vendor names are aliases. AKS/Event Hubs/Cosmos DB/APIM/etc. \u2192 find the closest catalog primitive. Don\\'t mark UNMAPPABLE just because vendor branding is missing.',\n  '',\n  '\u2550\u2550\u2550 AUTHORING RULES (mandatory checks before catalog.validate / app.submit) \u2550\u2550\u2550',\n  'A1. For EACH component you place, BEFORE writing its `properties:`, call catalog.describe(<component_type>) and treat the returned `parameters[]` list as AUTHORITATIVE. Use only those parameter names, with the documented types/required/default. Do NOT invent parameter names. If a parameter is marked `required:true`, you MUST set it (or apply A5/A6 below).',\n  'A2. For EACH trait you intend to attach to a component, call catalog.traits_for(<component_type>) FIRST. If the trait is not in the returned list, you may NOT attach it to that component \u2014 find another way to express the requirement. After confirming applicability, call catalog.describe_trait(<trait_name>) and treat its parameters as authoritative just like A1.',\n  'A3. For EACH policy you reference in `spec.policies`, call catalog.describe_policy(<policy_name>) and follow its parameter schema. For EACH workflow step in `spec.workflow.steps`, call catalog.describe_workflow_step(<step_name>) and respect its schema.',\n  'A4. For COMPOSITE component splits (e.g. a webservice that needs a postgres datastore, or a webservice that needs a redis cache) \u2014 call catalog.connectivity_recipes(<a>, <b>) using broad categories (\"compute-service\", \"datastore\", \"cache\", \"messaging\" \u2026). If a recipe matches, emit each file from the recipe\\'s `emit:` block alongside the components, in the order the recipe specifies. NEVER invent a connectivity pattern.',\n  'A5. IMAGES \u2014 schema-driven (DO NOT hard-code enums; trust catalog.describe at runtime).',\n  '   The webservice schema makes `image` auto-derived by default. The canonical path is `language:` + optional `framework:`. CRITICAL: the live enum values for both `language` and `framework` come from the CURRENT `catalog.describe(webservice).parameters` response \u2014 they have changed multiple times this week (e.g. {python,java,nodejs,rasa} \u2192 narrowed to {python,java}; framework \"auto\" \u2192 narrowed to {fastapi,springboot}). YOU MUST honour whatever enum is live RIGHT NOW, not a remembered enum. Procedure, per component:',\n  '     (a) Read `catalog.describe(webservice)` BEFORE composing properties; locate the `language` and `framework` parameter entries; the `type` field carries the current enum (e.g. `\"python\" or \"java\"`).',\n  '     (b) Map the architecture\\'s technology hint (e.g. \"Python/FastAPI\", \"Java/Spring Boot\", \"Node.js/Express\") to the closest LIVE enum value. If the exact match is in the live enum, use it. If the architecture\\'s technology is OUTSIDE the live enum (e.g. architecture says \"Node.js/Express\" but live enum is only `{python, java}`), DO NOT silently substitute. Emit a clarifying_questions entry: {\"component\":\"<name>\",\"field\":\"language\",\"question\":\"Architecture specifies <X> but the live catalog enum is <enum>; defaulting to <closest> unless told otherwise.\"} and either (i) proceed with the closest live-enum value AND record the substitution in `placeholder_images` style notice, or (ii) emit wip and wait. Prefer (ii) for `intent=provision`; (i) is acceptable for `intent=oam`.',\n  '     (c) Set `framework:` only when the architecture is specific AND the framework value is in the live `framework` enum. Otherwise omit `framework:` \u2014 it defaults harmlessly.',\n  '     (d) ONLY when the architecture explicitly names a fully-qualified container image AND that image points at this cluster\\'s registered ACR registry, set `image:` to that exact string.',\n  '     (e) When the architecture names neither a usable language nor an image, emit a clarifying_questions entry of the form {\"component\":\"<name>\",\"field\":\"image\",\"question\":\"No language in live enum matched, and no image was provided. What should this component run?\"} and emit a wip shape.',\n  '   NEVER set `image:` to any stock-vendor string (nginx, httpd, busybox, alpine, ubuntu, debian, redis:*, postgres:*, node:*, python:*, eclipse-temurin:*, golang:*, etc.). Schema regex requires a cluster-registered registry; catalog.validate rejects all stock images.',\n  'A6. SCHEMA enums. If a `parameters[]` entry shows an enum type (e.g. registry = \"dockerhub\" or \"acr\" or \"custom\"), the value MUST be one of those strings. Don\\'t paraphrase.',\n  '',\n  '\u2550\u2550\u2550 Working principles continued \u2550\u2550\u2550',\n  '\u2022 Thin schemas mean defaults work. catalog.scaffold + minimal overrides is the play.',\n  '',\n  '\u2550\u2550\u2550 Consumer protocol \u2014 apply per missing ComponentDefinition \u2550\u2550\u2550',\n  'When catalog.validate keeps reporting ok:false after at most 3 retries because a referenced ComponentDefinition is not found (or its CD is forbidden in the cluster), follow this priority \u2014 the design intent is: validate, submit-if-valid, else propose and queue:',\n  '  A. REUSE/REPURPOSE: catalog.search with the QA you actually need; relax soft attributes. If a near-fit (score \u2264 2.0) is in catalog.list and not ApplicationClaim-backed, revise the OAM and re-run catalog.validate.',\n  (allowPropose\n    ? '  B. REQUEST NEW: if no acceptable substitute, call factory.propose. files MUST be under `capability-factory/requests/REQ-<id>-<slug>.yaml`. Never push implementation files. One PR per missing capability. Body must list what you considered and rejected.'\n    : '  B. REQUEST NEW: not authorised for intent=' + intent + '. Surface what you would propose in `factory_propose_drafts` so the user can re-run with intent=propose.'),\n  (allowSubmitWait\n    ? '  C. QUEUE: call app.submit_wait \u2014 commits the OAM and polls vela dry-run for up to 72h, deploys when prereqs land.'\n    : '  C. QUEUE: not authorised for intent=' + intent + '. Surface intent_hint=\"provision_wait\" in WIP so the user can re-run with it.'),\n  '',\n  '\u2550\u2550\u2550 Per-intent submission step \u2550\u2550\u2550',\n  intent === 'oam'            ? '  intent=oam \u2192 do nothing further once dry_run is ok. Return the validated YAML.' :\n  intent === 'provision'      ? '  intent=provision \u2192 if dry_run ok, call app.submit. If dry_run failed and protocol A/B/C cannot fully recover, emit WIP.' :\n  intent === 'both'           ? '  intent=both (alias of provision) \u2192 if dry_run ok, call app.submit.' :\n  intent === 'provision_wait' ? '  intent=provision_wait \u2192 if dry_run ok, app.submit; else if missing CDs, app.submit_wait (commit anyway; will deploy when prereqs land).' :\n  intent === 'propose'        ? '  intent=propose \u2192 if dry_run ok, simply return YAML. If dry_run fails due to missing CDs and Option A finds no fit, call factory.propose for each gap. Do not submit OAM.' :\n  '  unknown intent (defensive): treat as oam.',\n  '',\n  '\u2550\u2550\u2550 Output format \u2550\u2550\u2550',\n  'OK (dry_run passed, no unanswered clarifying questions) \u2014 exactly:',\n  '  ' + FENCE + 'yaml',\n  '  <validated OAM YAML>',\n  '  ' + FENCE,\n  '  ' + FENCE + 'json',\n  '  {\"dry_run\": <catalog.validate result>, \"submit\": <app.submit result|null>, \"submit_wait\": <app.submit_wait result|null>, \"proposed_prs\": [<factory.propose results>] or [], \"capability_coverage\": [{\"capability\": \"...\", \"component_name\": \"...\", \"type\": \"...\"}, ...], \"placeholder_images\": [], \"clarifying_questions\": []}',\n  '  ' + FENCE,\n  '',\n  'WIP \u2014 any of these conditions hold: capabilities unmappable; image source missing (A5(c)); OR `clarifying_questions` has any items. JSON only, no YAML:',\n  '  ' + FENCE + 'json',\n  '  {\"status\": \"wip\", \"reason\": \"...\", \"mapped_capabilities\": [{\"capability\",\"component_name\",\"type\"} ...], \"unmappable_capabilities\": [{\"capability\",\"tried_components\":[...],\"why\"} ...], \"factory_propose_drafts\": [{\"repo\":\"' + FACTORY_REPO + '\",\"title\":\"...\",\"body\":\"...\",\"files\":{\"capability-factory/requests/REQ-<id>-<slug>.yaml\":\"<YAML>\"}} ...], \"clarifying_questions\": [{\"component\":\"<name>\",\"field\":\"<param>\",\"question\":\"...\"} ...]}',\n  '  ' + FENCE,\n  '',\n  'INVARIANT: `placeholder_images` in an OK response MUST be empty. If you would have populated it, you violated A5 \u2014 emit WIP with `clarifying_questions` instead.',\n].join('\\n');\n\nconst userMsg = 'projectSlug: ' + ctx.projectSlug + '\\nintent: ' + intent + '\\n\\nArchitecture artifacts:\\n' + JSON.stringify(archContext);\n\nlet messages = [\n  { role: 'system', content: systemPrompt },\n  { role: 'user',   content: userMsg },\n];\n\n// \u2500\u2500\u2500 Agent loop \u2500\u2500\u2500\nconst transcript = [];\nconst MAX_TURNS = 18;\nlet finalText = null;\nlet validateResult = null;\nlet submitResult = null;\nlet submitWaitResult = null;\nlet proposedPrs = [];\n\nconst self = this;\nfor (let turn = 1; turn <= MAX_TURNS; turn++) {\n  const aoaiBody = { messages, tools: aoaiTools, tool_choice: 'auto', temperature: 1, max_completion_tokens: 16384 };\n  const aoaiHeaders = AOAI_AUTH_HDR ? { 'Content-Type': 'application/json', ...AOAI_AUTH_HDR } : H;\n  const aoaiResp = await http.call(self, 'POST', AOAI_URL, aoaiHeaders, JSON.stringify(aoaiBody));\n  if (aoaiResp.statusCode >= 400) throw new Error('AOAI turn ' + turn + ' failed ' + aoaiResp.statusCode + ': ' + String(aoaiResp.body).slice(0, 500));\n  const resp = JSON.parse(aoaiResp.body);\n  const msg = resp.choices && resp.choices[0] && resp.choices[0].message;\n  if (!msg) throw new Error('AOAI turn ' + turn + ': no message in response');\n\n  transcript.push({ turn, role: 'assistant',\n    tool_calls: (msg.tool_calls || []).map(tc => ({ id: tc.id, name: tc.function.name, args: tc.function.arguments })),\n    content_preview: (msg.content || '').slice(0, 200) });\n  messages.push(msg);\n\n  const toolCalls = msg.tool_calls || [];\n  if (!toolCalls.length) { finalText = msg.content || ''; break; }\n\n  // Dispatch each tool_call to the correct MCP (catalog vs factory); refuse non-allowed tools.\n  const toolResults = await Promise.all(toolCalls.map(async (tc) => {\n    let args = {};\n    try { args = JSON.parse(tc.function.arguments || '{}'); } catch (e) {}\n    let result;\n    const name = tc.function.name;\n\n    // Hard-deny tools the intent does not authorise (defence in depth \u2014 already excluded from toolDefs)\n    if (!allowedNames.has(name)) {\n      result = { error: `tool \"${name}\" is not authorised for intent \"${intent}\"` };\n    } else {\n      try {\n        let rpc;\n        if (name.startsWith('factory.')) {\n          // Auto-fill repo default\n          if (name === 'factory.propose' && !args.repo) args.repo = FACTORY_REPO;\n          if (name === 'factory.list_open_prs' && !args.repo) args.repo = FACTORY_REPO;\n          await factoryMcp.ensureInit.call(self);\n          rpc = await factoryMcp.call.call(self, 'tools/call', { name, arguments: args });\n        } else {\n          rpc = await catalogMcp.call.call(self, 'tools/call', { name, arguments: args });\n        }\n        result = rpc.result;\n      } catch (e) {\n        result = { error: String(e).slice(0, 300) };\n      }\n    }\n\n    // Capture key results so the outer wrapper can return them faithfully\n    if (name === 'catalog.validate' || name === 'oam.dry_run') validateResult = result;\n    if (name === 'app.submit')       submitResult     = result;\n    if (name === 'app.submit_wait')  submitWaitResult = result;\n    if (name === 'factory.propose')  proposedPrs.push(result);\n\n    return { tool_call_id: tc.id, role: 'tool', name, content: typeof result === 'string' ? result : JSON.stringify(result) };\n  }));\n  for (const tr of toolResults) {\n    messages.push(tr);\n    transcript.push({ turn, role: 'tool', name: tr.name, content_preview: (tr.content || '').slice(0, 300) });\n  }\n}\n\nif (finalText === null) throw new Error('agent did not finish within ' + MAX_TURNS + ' turns');\n\n// \u2500\u2500\u2500 Extract YAML + trailing JSON \u2500\u2500\u2500\nfunction extractFenced(text, lang) {\n  const fence = TICK + TICK + TICK;\n  const escFence = fence.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n  const re = new RegExp(escFence + '\\\\s*' + lang + '\\\\s*\\\\n([\\\\s\\\\S]*?)\\\\n' + escFence, 'i');\n  const m = text.match(re);\n  return m ? m[1].trim() : null;\n}\nconst oamYaml = extractFenced(finalText, 'yaml') || extractFenced(finalText, 'yml') || '';\nlet trailingJson = null;\nlet trailingJsonRaw = null;\ntry {\n  trailingJsonRaw = extractFenced(finalText, 'json');\n  trailingJson = trailingJsonRaw ? JSON.parse(trailingJsonRaw) : null;\n} catch (e) { /* may be truncated \u2014 handled below */ }\n\n// Tolerant WIP detection: if trailing JSON failed to parse but obviously contains a wip status,\n// salvage what we can rather than emitting a generic \"no yaml block\" error.\nlet agentWipSignal = (trailingJson && trailingJson.status === 'wip') ? trailingJson : null;\nif (!agentWipSignal && !oamYaml && trailingJsonRaw && /\"status\"\\s*:\\s*\"wip\"/.test(trailingJsonRaw)) {\n  agentWipSignal = { status: 'wip',\n    reason: 'agent emitted a WIP signal but the JSON block was truncated/malformed',\n    truncated_raw_head: trailingJsonRaw.slice(0, 1200),\n  };\n}\n\nfunction parseValidateOk(vr) {\n  if (!vr) return { ok: null, reason: 'no catalog.validate / catalog.validate result was captured' };\n  try {\n    const inner = (vr.content && vr.content[0] && vr.content[0].text) || '';\n    const parsed = inner ? JSON.parse(inner) : null;\n    if (parsed && typeof parsed.ok === 'boolean') return { ok: parsed.ok, reason: parsed.diagnostics || parsed.error || null };\n    return { ok: null, reason: 'unrecognised dry_run result shape' };\n  } catch (e) { return { ok: null, reason: 'dry_run result not JSON: ' + String(e).slice(0,120) }; }\n}\nfunction pickedTypes(yamlStr) {\n  if (!yamlStr) return [];\n  const re = /^\\s+type:\\s*(\\S+)/gm; const out = []; let m;\n  while ((m = re.exec(yamlStr)) !== null) out.push(m[1]);\n  return Array.from(new Set(out));\n}\n\n// A5 defense-in-depth: refuse OK if the YAML contains stock-vendor image\n// strings as `image:` values. The model is told not to do this; this catches\n// regressions in the model's adherence.\nconst STOCK_IMAGE_RE = /^(?:nginx|httpd|apache|busybox|alpine|ubuntu|debian|centos|fedora|redis|postgres|postgresql|mongo|mongodb|node|python|golang|go|java|openjdk|eclipse-temurin|amazoncorretto|ruby|php|rust|haskell|scala|elixir|maven|gradle)(?::|$)/i;\nfunction stockImageOffenders(yamlStr) {\n  if (!yamlStr) return [];\n  const offenders = [];\n  const re = /^\\s*image:\\s*([\"']?)([^\\s\"']+)\\1\\s*$/gm;\n  let m;\n  while ((m = re.exec(yamlStr)) !== null) {\n    const img = m[2];\n    if (STOCK_IMAGE_RE.test(img)) offenders.push(img);\n  }\n  return Array.from(new Set(offenders));\n}\n\nconst vCheck = parseValidateOk(validateResult);\n\n// \u2500\u2500\u2500 Resolve final result \u2500\u2500\u2500\nif (agentWipSignal) {\n  __agentResult = {\n    __status: 'wip', ok: false, status: 'wip',\n    reason: agentWipSignal.reason || 'agent reported unmappable capabilities',\n    unmappable_capabilities: agentWipSignal.unmappable_capabilities || [],\n    mapped_capabilities: agentWipSignal.mapped_capabilities || [],\n    factory_propose_drafts: agentWipSignal.factory_propose_drafts || [],\n    clarifying_questions: agentWipSignal.clarifying_questions || [],\n    agent: { turns_used: transcript.filter(t => t.role === 'assistant').length, transcript_brief: transcript },\n    model: { deployment: DEPLOYMENT, mode: sp.mode || 'apim' },\n  };\n} else if (!oamYaml) {\n  __agentResult = {\n    __status: 'wip', ok: false, status: 'wip',\n    reason: 'agent finished without a fenced yaml block',\n    agent_final_text_preview: (finalText || '').slice(0, 800),\n    agent: { turns_used: transcript.filter(t => t.role === 'assistant').length, transcript_brief: transcript },\n    model: { deployment: DEPLOYMENT, mode: sp.mode || 'apim' },\n  };\n} else if (vCheck.ok !== true) {\n  const neverCalledDryRun = !validateResult;\n  __agentResult = {\n    __status: 'wip', ok: false, status: 'wip',\n    reason: neverCalledDryRun\n      ? 'R0 violation: agent emitted final YAML without ever calling catalog.validate / catalog.validate. No evidence to claim ok or wip.'\n      : 'catalog.validate did not pass \u2014 refusing to persist OAM that fails dry-run',\n    validate_diagnostics: (vCheck.reason || '').toString().slice(0, 4000),\n    agent_picked_types: pickedTypes(oamYaml),\n    agent: { turns_used: transcript.filter(t => t.role === 'assistant').length, transcript_brief: transcript },\n    model: { deployment: DEPLOYMENT, mode: sp.mode || 'apim' },\n  };\n} else {\n  // \u2500\u2500 A5 defense-in-depth: stock-vendor image strings as `image:` values\n  //    are forbidden. If the model slipped one in (despite the prompt\n  //    saying not to), force WIP instead of persisting it.\n  const stock = stockImageOffenders(oamYaml);\n  if (stock.length > 0) {\n    __agentResult = {\n      __status: 'wip', ok: false, status: 'wip',\n      reason: 'A5 violation: stock-vendor image strings detected in OAM \u2014 refusing to persist OAM that uses stock placeholders (' + stock.join(', ') + '). Use language:/framework: for platform auto-scaffold or surface a clarifying_question.',\n      stock_image_offenders: stock,\n      agent_picked_types: pickedTypes(oamYaml),\n      clarifying_questions: (trailingJson && trailingJson.clarifying_questions) || [],\n      agent: { turns_used: transcript.filter(t => t.role === 'assistant').length, transcript_brief: transcript },\n      model: { deployment: DEPLOYMENT, mode: sp.mode || 'apim' },\n    };\n  } else {\n    __agentResult = {\n      __status: 'ok',\n      oam: { yaml: oamYaml },\n      dry_run: validateResult,\n      submit: submitResult || (trailingJson && trailingJson.submit) || null,\n      submit_wait: submitWaitResult || (trailingJson && trailingJson.submit_wait) || null,\n      proposed_prs: (proposedPrs && proposedPrs.length) ? proposedPrs : ((trailingJson && trailingJson.proposed_prs) || []),\n      capability_coverage: (trailingJson && trailingJson.capability_coverage) || null,\n      placeholder_images: (trailingJson && trailingJson.placeholder_images) || [],\n      clarifying_questions: (trailingJson && trailingJson.clarifying_questions) || [],\n      agent: { turns_used: transcript.filter(t => t.role === 'assistant').length, transcript_brief: transcript },\n      model: { deployment: DEPLOYMENT, mode: sp.mode || 'apim' },\n    };\n  }\n}\n\n} catch (e) {\n  const status = e && e.httpStatus;\n  const isRateLimit = status === 429 || status === 503;\n  __agentResult = {\n    __status: 'wip', ok: false,\n    status: isRateLimit ? 'wip' : 'error',\n    reason: isRateLimit\n      ? ('AOAI/MCP transient failure (' + status + '). Try again in a minute.')\n      : ('agent threw: ' + String((e && e.message) || e).slice(0, 600)),\n    error: { message: String((e && e.message) || e).slice(0, 800), httpStatus: status || null, httpUrl: (e && e.httpUrl) || null },\n    model: { deployment: sp.deployment_default, mode: sp.mode || 'apim' },\n  };\n}\n\nreturn [{ json: { ...ctx, ...__agentResult } }];\n"
+      },
+      "id": "n-agent",
+      "name": "Code: Solution Architect Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Pack everything for the insert into ONE base64 param to dodge n8n queryReplacement's comma-split bug.\nconst a = $input.all()[0].json;\nconst payload = {\n  projectId: a.projectId,\n  content: {\n    yaml: a.oam.yaml,\n    dry_run: a.dry_run,\n    submit: a.submit || null,\n    submit_wait: a.submit_wait || null,\n    proposed_prs: a.proposed_prs || [],\n    capability_coverage: a.capability_coverage || null,\n    intent: a.intent,\n    model: a.model,\n    agent: { turns_used: a.agent && a.agent.turns_used }\n  },\n  meta: { source: 'solution-architect-oam', request_id: a.__requestId, intent: a.intent }\n};\nconst b64 = Buffer.from(JSON.stringify(payload)).toString('base64');\nreturn [{ json: { ...a, insertParamB64: b64 } }];"
+      },
+      "id": "n-prep-insert",
+      "name": "Prep Insert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH params AS (SELECT convert_from(decode($1,'base64'),'UTF8')::jsonb AS p),\n     v AS (SELECT COALESCE(MAX(version),0)+1 AS next_version FROM architecture.artifacts, params WHERE project_id=(SELECT (p->>'projectId')::uuid FROM params) AND type='oam_application')\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT (p->>'projectId')::uuid, 'oam_application', v.next_version, p->'content', md5((p->'content')::text), p->'meta'\nFROM params, v\nRETURNING version, created_at",
+        "options": {
+          "queryReplacement": "={{ $json.insertParamB64 }}"
+        }
+      },
+      "id": "n-insert",
+      "name": "PG: Insert OAM Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        500,
+        400
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// merge the insert result back into the response payload\nconst agentJson = $('Code: Solution Architect Agent').first().json;\nconst inserted = $input.all()[0].json;\nreturn [{ json: {\n  ok: true,\n  projectSlug: agentJson.projectSlug,\n  projectName: agentJson.projectName,\n  intent: agentJson.intent,\n  type: 'oam_application',\n  version: inserted.version,\n  created_at: inserted.created_at,\n  oam: agentJson.oam,\n  dry_run: agentJson.dry_run,\n  submit: agentJson.submit || null,\n  submit_wait: agentJson.submit_wait || null,\n  proposed_prs: agentJson.proposed_prs || [],\n  capability_coverage: agentJson.capability_coverage || null,\n  model: agentJson.model,\n  agent: { turns_used: agentJson.agent.turns_used }\n}}];"
+      },
+      "id": "n-shape-response",
+      "name": "Shape Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "n-respond-ok",
+      "name": "Respond: 200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        800,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.__status }}",
+              "rightValue": "wip",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "n-if-wip",
+      "name": "If: Agent WIP",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        250,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok:false, status:$json.status, projectSlug:$json.projectSlug, intent:$json.intent, reason:$json.reason, unmappable_capabilities:$json.unmappable_capabilities, mapped_capabilities:$json.mapped_capabilities, factory_propose_drafts:$json.factory_propose_drafts, validate_diagnostics:$json.validate_diagnostics, agent_picked_types:$json.agent_picked_types, error:$json.error, agent:{ turns_used: ($json.agent||{}).turns_used }, model:$json.model, note:'Strict catalog-or-fail policy. For unmappable capabilities, re-run with intent=propose to fire factory.propose, or intent=provision_wait to queue OAM with app.submit_wait.' } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "n-respond-wip",
+      "name": "Respond: 200 WIP",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        450,
+        250
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "If: Invalid Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Invalid Input": {
+      "main": [
+        [
+          {
+            "node": "Respond: 400 Bad Input",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PG: Resolve project_id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Resolve project_id": {
+      "main": [
+        [
+          {
+            "node": "Merge Project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Project": {
+      "main": [
+        [
+          {
+            "node": "If: Project Missing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Project Missing": {
+      "main": [
+        [
+          {
+            "node": "Respond: 404 No Project",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PG: Fetch Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Fetch Artifacts": {
+      "main": [
+        [
+          {
+            "node": "Merge Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Artifacts": {
+      "main": [
+        [
+          {
+            "node": "If: Artifacts Missing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Artifacts Missing": {
+      "main": [
+        [
+          {
+            "node": "Respond: 400 No Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Solution Architect Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Solution Architect Agent": {
+      "main": [
+        [
+          {
+            "node": "If: Agent WIP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Insert": {
+      "main": [
+        [
+          {
+            "node": "PG: Insert OAM Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Insert OAM Artifact": {
+      "main": [
+        [
+          {
+            "node": "Shape Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape Response": {
+      "main": [
+        [
+          {
+            "node": "Respond: 200 OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Agent WIP": {
+      "main": [
+        [
+          {
+            "node": "Respond: 200 WIP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prep Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "executionTimeout": 900,
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "active": false
+}

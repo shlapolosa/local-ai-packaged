@@ -12,7 +12,10 @@
       "name": "Webhook - License Request",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 300]
+      "position": [
+        250,
+        300
+      ]
     },
     {
       "parameters": {
@@ -22,7 +25,10 @@
       "name": "Process License Request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [470, 300]
+      "position": [
+        470,
+        300
+      ]
     },
     {
       "parameters": {
@@ -34,7 +40,10 @@
       "name": "Store in Postgres",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [690, 300],
+      "position": [
+        690,
+        300
+      ],
       "credentials": {
         "postgres": {
           "id": "1",
@@ -52,7 +61,10 @@
       "name": "Respond Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [910, 300]
+      "position": [
+        910,
+        300
+      ]
     }
   ],
   "connections": {
@@ -94,9 +106,6 @@
     "executionOrder": "v1"
   },
   "active": true,
-  "tags": [
-    {
-      "name": "marketplace"
-    }
-  ]
+  "tags": [],
+  "id": "e490c8bb8b57d8c3"
 }

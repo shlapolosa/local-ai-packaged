@@ -1,0 +1,3086 @@
+{
+  "id": "iKBlJTWf5HPkKAVX",
+  "name": "Architecture Pipeline - AI Agent with Ollama",
+  "description": null,
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Architecture Pipeline with AI Agents\n\n**Pattern:** Two-step capability lookup\n1. Search Qdrant for capabilities\n2. Pass results to agent (no tools)\n\n**Trigger:** POST /webhook/architecture-pipeline",
+        "height": 340,
+        "width": 300,
+        "color": 6
+      },
+      "id": "intro-note",
+      "name": "Pipeline Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "path": "architecture-pipeline",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {
+          "responseData": "allEntries",
+          "rawBody": false
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        304
+      ],
+      "webhookId": "architecture-pipeline-v2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "text",
+              "name": "text",
+              "value": "={{ (() => { const b = $json.body ?? $json; const obj = (typeof b === 'string') ? JSON.parse(b) : b; return obj.text || obj.requirements || ''; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "projectName",
+              "name": "projectName",
+              "value": "={{ (() => { const b = $json.body ?? $json; const obj = (typeof b === 'string') ? JSON.parse(b) : b; return obj.projectName || 'architecture-project'; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "projectSlug",
+              "name": "projectSlug",
+              "value": "={{ (() => { const b = $json.body ?? $json; const obj = (typeof b === 'string') ? JSON.parse(b) : b; const pn = obj.projectName || 'architecture-project'; return pn.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').replace(/--+/g,'-'); })() }}",
+              "type": "string"
+            },
+            {
+              "id": "startAt",
+              "name": "startAt",
+              "value": "={{ (() => { const b = $json.body ?? $json; const obj = (typeof b === 'string') ? JSON.parse(b) : b; return obj.startAt || ''; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "jobId",
+              "name": "jobId",
+              "value": "={{ (() => { const b = $json.body ?? $json; const obj = (typeof b === 'string') ? JSON.parse(b) : b; return obj.jobId || null; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "sessionId",
+              "name": "sessionId",
+              "value": "={{ $now.format('yyyyMMdd-HHmmss') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "init-params",
+      "name": "Initialize Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Phase 1: BRD Generation",
+        "height": 60,
+        "width": 280,
+        "color": 4
+      },
+      "id": "brd-agent-note",
+      "name": "BRD Agent Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        208,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Phase 2: Business Architecture\nDeterministic Qdrant retrieval",
+        "height": 80,
+        "width": 300,
+        "color": 5
+      },
+      "id": "business-arch-note",
+      "name": "Business Arch Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text"
+      },
+      "id": "qdrant-embeddings",
+      "name": "Search Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        720,
+        528
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "wBImjsvQ8UxvUDz2",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "ollamaUrl",
+              "value": "http://host.docker.internal:11434/api/chat",
+              "type": "string"
+            },
+            {
+              "name": "ollamaModel",
+              "value": "qwen3:14b",
+              "type": "string"
+            },
+            {
+              "name": "ollamaTemperature",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "name": "ollamaSeed",
+              "value": 42,
+              "type": "number"
+            },
+            {
+              "name": "maxRetries",
+              "value": 2,
+              "type": "number"
+            },
+            {
+              "name": "qdrantTopK",
+              "value": 40,
+              "type": "number"
+            },
+            {
+              "name": "capabilityRelevanceThreshold",
+              "value": 0.7,
+              "type": "number"
+            },
+            {
+              "name": "knowledgeConfigPath",
+              "value": "/data/shared/knowledge/knowledge-config.json",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "keepOnlySet": false
+        }
+      },
+      "id": "8c25ae25-84da-4002-a76f-99d86c2bb1b5",
+      "name": "Run Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -48,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"think\": false,\n  \"model\": \"{{ $('Run Config').first().json.ollamaModel }}\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an intent classifier for an architecture pipeline. Output ONLY JSON.\\n\\nReturn: {\\\\\"intent\\\\\":\\\\\"create_project|update_project|regenerate_from_stage\\\\\",\\\\\"proposedProjectName\\\\\":string,\\\\\"startAt\\\\\":\\\\\"business_analyst|business_architect\\\\\",\\\\\"confidence\\\\\":number,\\\\\"notes\\\\\":string}.\\n\\nRules:\\n- If user provided startAt, use it.\\n- If no startAt, default to business_analyst unless the user clearly requests business architecture only.\\n- If projectName not provided, propose a short name.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"text={{ $('Initialize Parameters').first().json.text }}\\nprojectName={{ $('Initialize Parameters').first().json.projectName }}\\nstartAt={{ $('Initialize Parameters').first().json.startAt }}\"\n    }\n  ],\n  \"stream\": false,\n  \"options\": {\n    \"num_ctx\": 16384, \"temperature\": {{ $('Run Config').first().json.ollamaTemperature }},\n    \"seed\": {{ $('Run Config').first().json.ollamaSeed }}\n  }\n}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "id": "7fca9f84-b7f2-4609-93af-682411ebc292",
+      "name": "Classify Intent (Ollama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        224,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const init = $('Initialize Parameters').first().json;\nconst classified = $json.message?.content ? JSON.parse($json.message.content) : {};\n\nconst projectName = (init.projectName && init.projectName.trim()) ? init.projectName.trim() : (classified.proposedProjectName || 'architecture-project');\nconst startAt = (init.startAt && init.startAt.trim()) ? init.startAt.trim() : (classified.startAt || 'business_analyst');\n\nconst slugify = (s) => String(s || '')\n  .toLowerCase()\n  .trim()\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-+|-+$/g, '')\n  .replace(/--+/g, '-');\n\nconst projectSlug = slugify(projectName) || 'architecture-project';\n\n// Non-crypto stable hash (FNV-1a 32-bit)\nconst fnv1a = (str) => {\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst requestHash = fnv1a(String(init.text || ''));\n\nreturn [{\n  json: {\n    ...init,\n    intent: classified.intent || 'create_project',\n    confidence: classified.confidence ?? null,\n    notes: classified.notes || null,\n    projectName,\n    projectSlug,\n    startAt,\n    runConfig: $('Run Config').first().json,\n    requestHash,\n  }\n}];"
+      },
+      "id": "07f878eb-8ebe-4afd-9908-403a34ee33ab",
+      "name": "Apply Classification + Slugify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE SCHEMA IF NOT EXISTS architecture;\n\nCREATE TABLE IF NOT EXISTS architecture.projects (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  slug text UNIQUE NOT NULL,\n  name text,\n  created_at timestamptz DEFAULT now(),\n  updated_at timestamptz DEFAULT now()\n);\n\nCREATE TABLE IF NOT EXISTS architecture.artifacts (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  project_id uuid NOT NULL REFERENCES architecture.projects(id),\n  type text NOT NULL,\n  version int NOT NULL,\n  content jsonb NOT NULL,\n  content_hash text NOT NULL,\n  meta jsonb NOT NULL DEFAULT '{}'::jsonb,\n  created_at timestamptz DEFAULT now()\n);\n\nCREATE INDEX IF NOT EXISTS artifacts_project_type_version_idx ON architecture.artifacts(project_id, type, version DESC);",
+        "options": {}
+      },
+      "id": "f0ad5120-1342-47d5-adec-b778bf000449",
+      "name": "Ensure DB Schema",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        704,
+        128
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      },
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO architecture.projects (slug, name, updated_at)\nVALUES ($1, $2, now())\nON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, updated_at = now()\nRETURNING id, slug, name;",
+        "options": {
+          "queryReplacement": "={{ [ $json.projectSlug, $json.projectName ] }}"
+        }
+      },
+      "id": "7a066ccb-99e7-4163-85ee-be26e84fe7ab",
+      "name": "Upsert Project",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        704,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT content, version, content_hash, created_at\nFROM architecture.artifacts\nWHERE project_id = $1 AND type = 'brd'\nORDER BY version DESC\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ [ $json.id ] }}"
+        }
+      },
+      "id": "b0810fac-157f-43d8-8016-98441984c6bb",
+      "name": "Load Latest BRD",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        944,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 4,
+        "output": "={{ (() => { const s = $('Apply Classification + Slugify').first().json.startAt; if (s === 'infrastructure_architect') return 3; if (s === 'data_architect') return 2; if (s === 'business_architect') return 1; return 0; })() }}",
+        "options": {}
+      },
+      "id": "638b0e6a-73c3-415b-9611-33feb44459ec",
+      "name": "StartAt Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    { role: 'system', content: 'You are a Business Analyst. Output ONLY JSON that matches the schema. No markdown.' },\n    { role: 'user', content: $('Apply Classification + Slugify').first().json.text }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['type','title','version','executiveSummary','problemStatement','businessObjectives','stakeholders','scope','constraints','assumptions','successCriteria'],\n    properties: {\n      type: { const: 'brd' },\n      title: { type: 'string' },\n      version: { type: 'string' },\n      executiveSummary: { type: 'string' },\n      problemStatement: {\n        type: 'object',\n        additionalProperties: false,\n        required: ['currentState','painPoints','impact'],\n        properties: {\n          currentState: { type: 'string' },\n          painPoints: { type: 'array', items: { type: 'string' } },\n          impact: { type: 'string' }\n        }\n      },\n      businessObjectives: { type: 'array' },\n      stakeholders: { type: 'array' },\n      scope: { type: 'object' },\n      constraints: { type: 'array' },\n      assumptions: { type: 'array' },\n      successCriteria: { type: 'array' }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "id": "9e836322-af37-4dec-a317-d16cccb80191",
+      "name": "Generate BRD (Llama HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1664,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Basic BRD validation without external modules\nconst raw = $json.message?.content;\nlet brd;\ntry {\n  brd = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { ...$json, valid: false, errors: ['BRD JSON parse failed: ' + e.message], brd: null } }];\n}\n\nconst errors = [];\nif (brd?.type !== 'brd') errors.push('type must be brd');\nif (!brd?.title) errors.push('title is required');\nif (!brd?.executiveSummary) errors.push('executiveSummary is required');\nif (!brd?.problemStatement) errors.push('problemStatement is required');\nif (!Array.isArray(brd?.businessObjectives)) errors.push('businessObjectives must be array');\nif (!Array.isArray(brd?.stakeholders)) errors.push('stakeholders must be array');\nif (!brd?.scope) errors.push('scope is required');\n\n// Non-crypto hash (FNV-1a)\nconst fnv1a = (input) => {\n  const str = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst brdHash = fnv1a(JSON.stringify(brd));\n\nreturn [{ json: { ...$json, valid, errors, brd, brdHash } }];"
+      },
+      "id": "0f3fd4c0-49bc-44ac-9cd8-bdd37cc2fb8e",
+      "name": "Validate BRD",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1904,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'brd'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'brd', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify($json.brd), $json.brdHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+        }
+      },
+      "id": "36e27cd1-6d30-4727-9134-4fdd20fb45e1",
+      "name": "Store BRD Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2144,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "qdrantCollection": {
+          "__rl": true,
+          "mode": "id",
+          "value": "capability-maps"
+        },
+        "prompt": "=healthcare capabilities relevant to this project: {{ JSON.stringify($('Validate BRD').first().json.brd).substring(0, 600) }}",
+        "topK": "={{ $('Run Config').first().json.qdrantTopK }}",
+        "options": {}
+      },
+      "id": "e2bb7059-fff7-4a2c-85c1-575c3f336ac5",
+      "name": "Qdrant Search (Capabilities) v2",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        2384,
+        304
+      ],
+      "credentials": {
+        "qdrantApi": {
+          "id": "dh1JSfFyrr9rh7Xr",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize Qdrant docs into deterministic candidate list with stable ids\nconst items = $input.all();\n\nconst normalizeId = (doc) => {\n  const md = doc.metadata || {};\n  const mdId = md.id || md.path || md.l4 || md.l3 || md.l2 || md.l1;\n  if (mdId) return String(mdId);\n  const firstLine = String(doc.pageContent || '').split('\\n')[0].trim();\n  if (firstLine) return firstLine;\n  return String(doc.pageContent || '').slice(0, 80);\n};\n\nconst candidates = items\n  .map(i => i.json.document)\n  .filter(Boolean)\n  .map((d) => ({\n    id: normalizeId(d),\n    text: d.pageContent,\n    metadata: d.metadata || {},\n    score: typeof d.score === 'number' ? d.score : null,\n  }));\n\ncandidates.sort((a,b) => {\n  const sa = (a.score ?? -1);\n  const sb = (b.score ?? -1);\n  if (sb !== sa) return sb - sa;\n  return String(a.id).localeCompare(String(b.id));\n});\n\nreturn [{ json: { ...$('Validate BRD').first().json, capabilityCandidates: candidates } }];"
+      },
+      "id": "6a8c008b-f445-4725-a661-40bb0cf7b6a3",
+      "name": "Aggregate Capability Candidates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2624,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'Select capabilities relevant to the project.',\n        'Return selection by INDEX into the candidates array (0-based).',\n        'Return integer indexes only.',\n        'Prefer recall over precision (include borderline-relevant capabilities).',\n        'Output ONLY JSON.'\n      ].join('\\n')\n    },\n    {\n      role: 'user',\n      content: 'PROJECT: ' + $('Apply Classification + Slugify').first().json.text +\n        '\\n\\nCANDIDATES (index, preview): ' +\n        JSON.stringify(( $('Aggregate Capability Candidates').first().json.capabilityCandidates || [] ).map((c, idx) => ({ idx, preview: (c.text || '').slice(0, 140) }))).slice(0, 6000)\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['selected'],\n    properties: {\n      selected: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['index','relevanceScore','reason'],\n          properties: {\n            index: { type: 'integer', minimum: 0 },\n            relevanceScore: { type: 'number' },\n            reason: { type: 'string' }\n          }\n        }\n      }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "id": "091189a0-110a-40b0-afc8-196fbe3125e5",
+      "name": "Select Relevant Capabilities (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2864,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const threshold = $('Run Config').first().json.capabilityRelevanceThreshold;\nconst candidates = $('Aggregate Capability Candidates').first().json.capabilityCandidates || [];\n\nconst selectionRaw = $json.message?.content;\nlet selection;\ntry { selection = typeof selectionRaw === 'string' ? JSON.parse(selectionRaw) : selectionRaw; }\ncatch (e) { selection = { selected: [] }; }\n\nconst picked = new Set();\nconst selected = [];\nfor (const s of (selection.selected || [])) {\n  const idx = s?.index;\n  if (typeof idx !== 'number') continue;\n  if ((s.relevanceScore ?? 0) < threshold) continue;\n  if (picked.has(idx)) continue;\n\n  const c = candidates[idx];\n  if (!c) continue;\n\n  picked.add(idx);\n  selected.push(c);\n}\n\nconst capabilityContext = selected.map(s => s.text).join('\\n\\n');\n\nreturn [{\n  json: {\n    ...$('Aggregate Capability Candidates').first().json,\n    selectedCapabilities: selected,\n    capabilityContext,\n    capabilitySelection: selection\n  }\n}];"
+      },
+      "id": "3edbee22-0c84-41ef-9930-65ac9378319d",
+      "name": "Build Capability Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3104,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are a Business Architect.',\n        'Generate an architecture model as JSON with elements and relationships.',\n        'Coverage: represent each key BRD scope item as at least one element.',\n        'Output ONLY JSON. Relationships must reference existing element ids.',\n        'Use stable kebab-case ids.'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'PROJECT: ' + $('Apply Classification + Slugify').first().json.text,\n        'BRD_EXEC_SUMMARY: ' + String((($('Validate BRD').first().json.brd || {}).executiveSummary) || '').slice(0, 800),\n        'BRD_SCOPE_KEYS: ' + JSON.stringify(Object.keys((($('Validate BRD').first().json.brd || {}).scope || {}))),\n        'CAPABILITY_PREVIEWS: ' + JSON.stringify((($('Build Capability Context').first().json.capabilityCandidates || [])).slice(0, 10).map((c, idx) => ({ idx, id: c.id, preview: (c.text || '').slice(0, 120) })))\n      ].join('\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','elements','relationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { type: 'string' },\n      elements: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['id','type','name'],\n          properties: {\n            id: { type: 'string' },\n            type: { type: 'string' },\n            name: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      relationships: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['type','source','target'],\n          properties: {\n            type: { type: 'string' },\n            source: { type: 'string' },\n            target: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "id": "e0b81ed5-f83e-4848-9e1e-13c7fff2c43f",
+      "name": "Generate Business Architecture (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3344,
+        304
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate Business Architecture without external modules\nlet model;\ntry { model = JSON.parse($json.message.content); }\ncatch (e) {\n  return [{ json: { ...$json, valid: false, errors: ['Business arch parse failed: ' + e.message], businessArch: null } }];\n}\n\nconst errors = [];\nif (!model?.name) errors.push('name is required');\nif (!model?.layer) errors.push('layer is required');\nif (!Array.isArray(model?.elements)) errors.push('elements must be array');\nif (!Array.isArray(model?.relationships)) errors.push('relationships must be array');\n\nconst elementIds = new Set((model.elements || []).map(e => e.id));\nfor (const rel of (model.relationships || [])) {\n  if (!elementIds.has(rel.source)) errors.push(`Relationship source not found: ${rel.source}`);\n  if (!elementIds.has(rel.target)) errors.push(`Relationship target not found: ${rel.target}`);\n}\n\nconst fnv1a = (str) => {\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst businessArchHash = fnv1a(JSON.stringify(model));\n\nreturn [{ json: { ...$('Build Capability Context').first().json, valid, errors, businessArch: model, businessArchHash } }];"
+      },
+      "id": "fc58c01d-8126-49ac-bd9d-0040b490be5d",
+      "name": "Validate Business Architecture",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3584,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'business_arch'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'business_arch', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify($json.businessArch), $json.businessArchHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature, capabilitySelection: $('Build Capability Context').first().json.capabilitySelection }) ] }}"
+        }
+      },
+      "id": "a4bedef5-f738-401f-a1b2-7dccab9da97e",
+      "name": "Store Business Arch Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3824,
+        304
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Business-only deterministic ArchiMate XML (single output item)\nconst inputItems = $input.all();\nconst item = (inputItems[0] && inputItems[0].json) ? inputItems[0].json : {};\n\nconst projectSlug = item.projectSlug || $('Apply Classification + Slugify').first().json.projectSlug;\nconst model = item.businessArch;\n\nif (!model || !Array.isArray(model.elements) || !Array.isArray(model.relationships)) {\n  return [{ json: { ...item, archimateXml: '', elementCount: 0, relationshipCount: 0, xmlError: 'Missing or invalid businessArch for XML conversion' } }];\n}\n\nconst escapeXml = (t) => String(t ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&apos;');\n\n// FNV-1a 32-bit, no explicit returns (validator workaround)\nconst fnv1a32 = (str) => String(str ?? '')\n  .split('')\n  .reduce((hash, ch) => (((hash ^ ch.charCodeAt(0)) * 0x01000193) >>> 0), 0x811c9dc5);\n\nconst stableId = (s) => ('000000000000' + fnv1a32(String(s)).toString(16)).slice(-12);\n\nconst mapElementType = (t) => {\n  const s = String(t || '').toLowerCase();\n  const result = s.includes('capability') ? 'Capability'\n    : (s.includes('actor') || s.includes('user') || s.includes('person')) ? 'BusinessActor'\n    : (s.includes('businessservice') || s.includes('business service')) ? 'BusinessService'\n    : 'BusinessProcess';\n  return result;\n};\n\nconst mapRelType = (kind, typeHint) => {\n  const hint = String(typeHint || '').toLowerCase();\n  const typeMap = {\n    bizapp: 'RealizationRelationship',\n    appdata: 'AccessRelationship',\n    bizdata: 'AccessRelationship',\n    datastore: 'AssignmentRelationship',\n    appinfra: 'ServingRelationship'\n  };\n  let result = typeMap[kind];\n  if (!result) {\n    if (kind === 'infra') {\n      result = (hint.includes('compose') || hint.includes('contain')) ? 'CompositionRelationship'\n        : (hint.includes('deploy') || hint.includes('assign')) ? 'AssignmentRelationship'\n        : (hint.includes('serve') || hint.includes('provide')) ? 'ServingRelationship'\n        : 'AssociationRelationship';\n    } else if (kind === 'biz') {\n      result = (hint.includes('trigger') || hint.includes('flow')) ? 'TriggeringRelationship'\n        : (hint.includes('serve') || hint.includes('support')) ? 'ServingRelationship'\n        : 'AssociationRelationship';\n    } else if (kind === 'app') {\n      result = (hint.includes('flow') || hint.includes('call')) ? 'FlowRelationship'\n        : (hint.includes('serve') || hint.includes('use')) ? 'ServingRelationship'\n        : hint.includes('access') ? 'AccessRelationship'\n        : 'AssociationRelationship';\n    } else {\n      result = 'AssociationRelationship';\n    }\n  }\n  return result;\n};\n\nconst elementXmlId = (el) => 'e-' + stableId(projectSlug + ':business_arch:' + el.id);\nconst relXmlId = (rel) => 'r-' + stableId(projectSlug + ':' + rel.type + ':' + rel.source + '->' + rel.target);\n\nconst elements = [...model.elements].sort((a, b) => String(a.id).localeCompare(String(b.id)));\nconst relationships = [...model.relationships].sort((a, b) => (String(a.type) + '|' + a.source + '|' + a.target).localeCompare(String(b.type) + '|' + b.source + '|' + b.target));\n\nconst elementIdMap = {};\nfor (const el of elements) elementIdMap[el.id] = elementXmlId(el);\n\nconst modelId = 'm-' + stableId(projectSlug + ':model:business');\nconst folderId = 'f-' + stableId(projectSlug + ':folder:business-elements');\nconst relFolderId = 'f-' + stableId(projectSlug + ':folder:business-relations');\n\nlet xml = '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\\n' +\n  '<archimate:model xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:archimate=\"http://www.archimatetool.com/archimate\" name=\"' + escapeXml(model.name || 'Business Model') + '\" id=\"' + modelId + '\" version=\"5.0.0\">\\n';\n\nxml += '  <folder name=\"Business\" id=\"' + folderId + '\" type=\"elements\">\\n';\nfor (const el of elements) {\n  xml += '    <element xsi:type=\"archimate:' + mapElementType(el.type) + '\" name=\"' + escapeXml(el.name) + '\" id=\"' + elementIdMap[el.id] + '\"/>\\n';\n}\nxml += '  </folder>\\n';\n\nlet relCount = 0;\nxml += '  <folder name=\"Relations\" id=\"' + relFolderId + '\" type=\"relations\">\\n';\nfor (const rel of relationships) {\n  const sid = elementIdMap[rel.source];\n  const tid = elementIdMap[rel.target];\n  if (!sid || !tid) continue;\n  xml += '    <element xsi:type=\"archimate:' + mapRelType(rel.type) + '\" id=\"' + relXmlId(rel) + '\" source=\"' + sid + '\" target=\"' + tid + '\"/>\\n';\n  relCount++;\n}\nxml += '  </folder>\\n</archimate:model>';\n\nreturn [{ json: { ...item, archimateXml: xml, elementCount: elements.length, relationshipCount: relCount } }];"
+      },
+      "id": "c8cd3413-16ff-445e-8d5f-9c4f655f15b7",
+      "name": "Convert to ArchiMate XML (Deterministic)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4064,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "status",
+              "value": "={{ ($json.valid === false) ? 'failed' : 'completed' }}",
+              "type": "string"
+            },
+            {
+              "name": "projectSlug",
+              "value": "={{ $('Apply Classification + Slugify').first().json.projectSlug }}",
+              "type": "string"
+            },
+            {
+              "name": "projectName",
+              "value": "={{ $('Apply Classification + Slugify').first().json.projectName }}",
+              "type": "string"
+            },
+            {
+              "name": "startAt",
+              "value": "={{ $('Apply Classification + Slugify').first().json.startAt }}",
+              "type": "string"
+            },
+            {
+              "name": "artifactRefs",
+              "value": "={{ $json.artifactRefs }}",
+              "type": "object"
+            },
+            {
+              "name": "counts",
+              "value": "={{ $json.counts }}",
+              "type": "object"
+            },
+            {
+              "name": "validation",
+              "value": "={{ { brd: { valid: $('Validate BRD').first().json.valid, errors: $('Validate BRD').first().json.errors }, businessArch: { valid: $('Validate Business Architecture').first().json.valid, errors: $('Validate Business Architecture').first().json.errors } } }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2f32eea1-6568-444c-a379-1e2f2bcda299",
+      "name": "Compile Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4304,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input is output of \"Normalize BRD Rows\" which returns { rows: [...] }\nconst rows = Array.isArray($json.rows) ? $json.rows : [];\nconst first = rows[0] || null;\nconst brd = first && typeof first.content === 'object' ? first.content : null;\n\n// Consider BRD present only if it looks like a real BRD\nconst hasBrd = !!(brd && brd.type === 'brd' && brd.title && brd.executiveSummary);\n\nreturn hasBrd\n  ? [{ json: { hasBrd: true, brdFromDb: brd } }]\n  : [{ json: { hasBrd: false } }];"
+      },
+      "id": "5166e003-7622-4fc6-9f85-edf9c99a0b41",
+      "name": "Determine BRD Flow",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        304
+      ],
+      "notes": "Output 0=generate BRD if missing, Output 1=use existing BRD (TODO: load into validator)"
+    },
+    {
+      "id": "c796f144-ea41-466f-94dd-426d4928735b",
+      "name": "Pass Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        216
+      ],
+      "parameters": {
+        "jsCode": "// Carry forward the original request context (slug/name/startAt)\nreturn [{ json: $('Apply Classification + Slugify').first().json }];"
+      }
+    },
+    {
+      "id": "cad4012d-f94b-45cc-9291-52e07583e31d",
+      "name": "Normalize BRD Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        304
+      ],
+      "parameters": {
+        "jsCode": "// Ensure we always output exactly one item with rows[]\nconst items = $input.all();\nif (!items.length) return [{ json: { rows: [] } }];\n\n// Postgres node returns one item per row. Normalize into rows array.\nconst rows = items.map(i => i.json);\nreturn [{ json: { rows } }];"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "4ec1a860-b143-4192-812f-a20d6b4b1686",
+      "name": "BRD Source Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        304
+      ],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $('Determine BRD Flow').first().json.hasBrd ? 0 : 1 }}"
+      }
+    },
+    {
+      "id": "bdf0a07b-f38c-4866-afe6-7a1056b18ece",
+      "name": "Use Existing BRD",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        192
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "brdSource",
+              "name": "brdSource",
+              "type": "string",
+              "value": "db"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "type": "object",
+              "value": "={{ { content: JSON.stringify($('Determine BRD Flow').first().json.brdFromDb) } }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "453fd4ba-2fd5-4b2f-b746-feb960525716",
+      "name": "Mark BRD Generated",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        304
+      ],
+      "parameters": {
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "brdSource",
+              "name": "brdSource",
+              "type": "string",
+              "value": "generated"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "eb9825be-34da-4828-9834-3c9cab7b62af",
+      "name": "BRD Post-Validate Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2032,
+        304
+      ],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.brdSource === 'generated' ? 0 : 1 }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "fbaa4f18-4179-4aff-bcab-b60498f62870",
+      "name": "Reload Business Arch For XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3968,
+        304
+      ],
+      "parameters": {
+        "jsCode": "// Prefer in-flight businessArch, fallback to DB insert output (no businessArch)\nif ($json.businessArch) return [{ json: $json }];\nreturn [{ json: { ...$json, businessArch: $('Validate Business Architecture').first().json.businessArch } }];"
+      }
+    },
+    {
+      "id": "248993f4-48f0-43be-8439-7776d19dab0e",
+      "name": "Repair Business Architecture (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3584,
+        512
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You repair a Business Architecture JSON model.',\n        'Input may have relationship source/target IDs that do not exist in elements.',\n        'Fix by either: (a) changing relationship source/target to existing element ids, or (b) adding missing elements.',\n        'Return ONLY corrected JSON matching the same schema.',\n        'Do not introduce medication/formulary unless project requires it.'\n      ].join('\\n')\n    },\n    {\n      role: 'user',\n      content: 'PROJECT: ' + $('Apply Classification + Slugify').first().json.text +\n        '\\n\\nVALIDATION_ERRORS: ' + JSON.stringify($json.errors || []) +\n        '\\n\\nBUSINESS_ARCH_JSON: ' + JSON.stringify($json.businessArch)\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','elements','relationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { type: 'string' },\n      elements: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['id','type','name'],\n          properties: {\n            id: { type: 'string' },\n            type: { type: 'string' },\n            name: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      relationships: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['type','source','target'],\n          properties: {\n            type: { type: 'string' },\n            source: { type: 'string' },\n            target: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      }
+    },
+    {
+      "id": "580299f5-8df0-44f8-a23d-9400d42515cb",
+      "name": "Business Arch Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3824,
+        512
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "id": "condition-1768746774228-vmrzugjrd"
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "f103d140-5788-4751-8d9a-56655890d73b",
+      "name": "Validate Repaired Business Arch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4064,
+        512
+      ],
+      "parameters": {
+        "jsCode": "// Validate repaired Business Architecture\nlet model;\ntry { model = JSON.parse($json.message.content); }\ncatch (e) {\n  return [{ json: { ...$json, valid: false, errors: ['Repair parse failed: ' + e.message], businessArch: null } }];\n}\n\nconst errors = [];\nconst elementIds = new Set((model.elements || []).map(e => e.id));\nfor (const rel of (model.relationships || [])) {\n  if (!elementIds.has(rel.source)) errors.push(`Relationship source not found: ${rel.source}`);\n  if (!elementIds.has(rel.target)) errors.push(`Relationship target not found: ${rel.target}`);\n}\n\nconst valid = errors.length === 0;\n\n// Hash (FNV-1a)\nconst fnv1a = (str) => {\n  let hash = 0x811c9dc5;\n  const s = String(str ?? '');\n  for (let i = 0; i < s.length; i++) {\n    hash ^= s.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst businessArchHash = fnv1a(JSON.stringify(model));\n\nreturn [{ json: { ...$('Build Capability Context').first().json, valid, errors, businessArch: model, businessArchHash, repaired: true } }];"
+      }
+    },
+    {
+      "id": "80a1ce19-5008-49e1-a5d8-30792252a85e",
+      "name": "Hash Business XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4224,
+        304
+      ],
+      "parameters": {
+        "jsCode": "const fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) {\n    hash ^= s.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nreturn [{ json: { ...$json, archimateXmlHash: fnv1a($json.archimateXml) } }];"
+      }
+    },
+    {
+      "id": "d36b1580-dea1-46cc-8494-9a267de608f3",
+      "name": "Store Business XML Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4464,
+        304
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'archimate_xml_business'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'archimate_xml_business', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify({ xml: $json.archimateXml }), $json.archimateXmlHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, stage: 'business_architect', model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "8b5973a7-8b29-499e-b722-1c2193c69363",
+      "name": "Generate Application Architecture (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3984,
+        512
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are an Application Architect.',\n        'Output ONLY JSON matching the schema.',\n        'Include Web Client and Mobile Client as first-class application components.',\n        'Include API boundary elements (Backend API / BFF) as needed.',\n        'crossLayerRelationships must link BUSINESS_ARCH element ids to application element ids (businessSourceId -> applicationTargetId).',\n        'relationships must be only between application element ids.'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'PROJECT: ' + $('Apply Classification + Slugify').first().json.projectName,\n        'BRD_EXEC_SUMMARY: ' + String((($('Validate BRD').first().json.brd || {}).executiveSummary) || '').slice(0, 800),\n        'BUSINESS_ARCH_ELEMENT_IDS: ' + JSON.stringify((($('Validate Business Architecture').first().json.businessArch || {}).elements || []).map(e => e.id)),\n        'BUSINESS_ARCH_SUMMARY: ' + JSON.stringify((($('Validate Business Architecture').first().json.businessArch || {}).elements || []).map(e => ({ id: e.id, type: e.type, name: e.name }))).slice(0, 4000)\n      ].join('\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','elements','relationships','crossLayerRelationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { const: 'Application' },\n      elements: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['id','type','name'],\n          properties: {\n            id: { type: 'string' },\n            type: { type: 'string' },\n            name: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      relationships: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['type','source','target'],\n          properties: {\n            type: { type: 'string' },\n            source: { type: 'string' },\n            target: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      crossLayerRelationships: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['type','businessSourceId','applicationTargetId'],\n          properties: {\n            type: { type: 'string' },\n            businessSourceId: { type: 'string' },\n            applicationTargetId: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      }
+    },
+    {
+      "id": "67c58af5-ab41-4e7f-a1fe-fc5217a30314",
+      "name": "Validate Application Architecture",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4224,
+        512
+      ],
+      "parameters": {
+        "jsCode": "let model;\ntry { model = JSON.parse($json.message.content); }\ncatch (e) {\n  return [{ json: { valid: false, errors: ['Application arch parse failed: ' + e.message], applicationArch: null } }];\n}\n\nconst errors = [];\nif (model.layer !== 'Application') errors.push('layer must be Application');\nif (!Array.isArray(model.elements)) errors.push('elements must be array');\nif (!Array.isArray(model.relationships)) errors.push('relationships must be array');\nif (!Array.isArray(model.crossLayerRelationships)) errors.push('crossLayerRelationships must be array');\n\nconst appIds = new Set((model.elements || []).map(e => e.id));\nfor (const rel of (model.relationships || [])) {\n  if (!appIds.has(rel.source)) errors.push(`App relationship source not found: ${rel.source}`);\n  if (!appIds.has(rel.target)) errors.push(`App relationship target not found: ${rel.target}`);\n}\n\nconst businessArch = $('Validate Business Architecture').first().json.businessArch;\nconst bizIds = new Set((businessArch?.elements || []).map(e => e.id));\nfor (const rel of (model.crossLayerRelationships || [])) {\n  if (!bizIds.has(rel.businessSourceId)) errors.push(`Cross-layer businessSourceId not found: ${rel.businessSourceId}`);\n  if (!appIds.has(rel.applicationTargetId)) errors.push(`Cross-layer applicationTargetId not found: ${rel.applicationTargetId}`);\n}\n\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) {\n    hash ^= s.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst applicationArchHash = fnv1a(JSON.stringify(model));\n\nreturn [{ json: { ...$('Validate Business Architecture').first().json, valid, errors, applicationArch: model, applicationArchHash } }];"
+      }
+    },
+    {
+      "id": "695ee2ac-06ae-49c6-a6a4-0aa18757d6bd",
+      "name": "Store Application Arch Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4464,
+        512
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'application_arch'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'application_arch', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify($json.applicationArch), $json.applicationArchHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, stage: 'application_architect', model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "83b0d411-bab9-4611-83fe-deb2103f0a44",
+      "name": "Convert to ArchiMate XML (Business+App)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4704,
+        512
+      ],
+      "parameters": {
+        "jsCode": "// Combined Business + Application ArchiMate XML (single output item)\nconst all = $input.all();\nconst item = (all[0] && all[0].json) ? all[0].json : {};\nconst projectSlug = item.projectSlug || $('Apply Classification + Slugify').first().json.projectSlug;\nconst biz = item.businessArch || $('Validate Business Architecture').first().json.businessArch;\nconst app = item.applicationArch || $('Validate Application Architecture').first().json.applicationArch;\n\nif (!biz || !app) {\n  return [{ json: { ...item, archimateXml: '', xmlError: 'Missing businessArch or applicationArch' } }];\n}\n\nconst escapeXml = (t) => String(t ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\\\"/g, '&quot;')\n  .replace(/'/g, '&apos;');\n\nconst fnv1a32 = (str) => String(str ?? '').split('').reduce((h, ch) => (((h ^ ch.charCodeAt(0)) * 0x01000193) >>> 0), 0x811c9dc5);\nconst stableId = (s) => ('000000000000' + fnv1a32(String(s)).toString(16)).slice(-12);\n\nconst mapBizType = (t) => {\n  const s = String(t || '').toLowerCase();\n  const result = s.includes('capability') ? 'Capability'\n    : (s.includes('actor') || s.includes('user') || s.includes('person')) ? 'BusinessActor'\n    : (s.includes('businessservice') || s.includes('business service')) ? 'BusinessService'\n    : 'BusinessProcess';\n  return result;\n};\n\nconst mapAppType = (t, id) => {\n  const s = String(t || '').toLowerCase();\n  const sid = String(id || '').toLowerCase();\n  return (sid.includes('web-client') || sid.includes('mobile-client') || s.includes('client')) ? 'ApplicationComponent'\n    : (s.includes('interface') || s.includes('api')) ? 'ApplicationInterface'\n    : s.includes('service') ? 'ApplicationService'\n    : 'ApplicationComponent';\n};\n\nconst mapRelType = (kind, typeHint) => {\n  const hint = String(typeHint || '').toLowerCase();\n  const typeMap = {\n    bizapp: 'RealizationRelationship',\n    appdata: 'AccessRelationship',\n    bizdata: 'AccessRelationship',\n    datastore: 'AssignmentRelationship',\n    appinfra: 'ServingRelationship'\n  };\n  let result = typeMap[kind];\n  if (!result) {\n    if (kind === 'infra') {\n      result = (hint.includes('compose') || hint.includes('contain')) ? 'CompositionRelationship'\n        : (hint.includes('deploy') || hint.includes('assign')) ? 'AssignmentRelationship'\n        : (hint.includes('serve') || hint.includes('provide')) ? 'ServingRelationship'\n        : 'AssociationRelationship';\n    } else if (kind === 'biz') {\n      result = (hint.includes('trigger') || hint.includes('flow')) ? 'TriggeringRelationship'\n        : (hint.includes('serve') || hint.includes('support')) ? 'ServingRelationship'\n        : 'AssociationRelationship';\n    } else if (kind === 'app') {\n      result = (hint.includes('flow') || hint.includes('call')) ? 'FlowRelationship'\n        : (hint.includes('serve') || hint.includes('use')) ? 'ServingRelationship'\n        : hint.includes('access') ? 'AccessRelationship'\n        : 'AssociationRelationship';\n    } else {\n      result = 'AssociationRelationship';\n    }\n  }\n  return result;\n};\n\nconst bizElements = [...(biz.elements || [])].sort((a,b) => String(a.id).localeCompare(String(b.id)));\nconst appElements = [...(app.elements || [])].sort((a,b) => String(a.id).localeCompare(String(b.id)));\n\nconst bizIdMap = {};\nfor (const el of bizElements) bizIdMap[el.id] = 'e-' + stableId(projectSlug + ':business:' + el.id);\n\nconst appIdMap = {};\nfor (const el of appElements) appIdMap[el.id] = 'e-' + stableId(projectSlug + ':application:' + el.id);\n\nconst rels = [];\nfor (const r of (biz.relationships || [])) rels.push({ layer: 'biz', type: r.type, source: r.source, target: r.target });\nfor (const r of (app.relationships || [])) rels.push({ layer: 'app', type: r.type, source: r.source, target: r.target });\nfor (const r of (app.crossLayerRelationships || [])) rels.push({ layer: 'cross', type: r.type, source: r.businessSourceId, target: r.applicationTargetId });\nrels.sort((a,b) => (a.layer + '|' + a.type + '|' + a.source + '|' + a.target).localeCompare(b.layer + '|' + b.type + '|' + b.source + '|' + b.target));\n\nconst modelId = 'm-' + stableId(projectSlug + ':model:biz+app');\nconst folderBiz = 'f-' + stableId(projectSlug + ':folder:biz');\nconst folderApp = 'f-' + stableId(projectSlug + ':folder:app');\nconst folderRel = 'f-' + stableId(projectSlug + ':folder:relations');\n\nlet xml = '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\\n' +\n  '<archimate:model xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:archimate=\"http://www.archimatetool.com/archimate\" name=\"' + escapeXml((biz.name || 'Business') + ' + ' + (app.name || 'Application')) + '\" id=\"' + modelId + '\" version=\"5.0.0\">\\n';\n\nxml += '  <folder name=\"Business\" id=\"' + folderBiz + '\" type=\"elements\">\\n';\nfor (const el of bizElements) {\n  xml += '    <element xsi:type=\"archimate:' + mapBizType(el.type) + '\" name=\"' + escapeXml(el.name) + '\" id=\"' + bizIdMap[el.id] + '\"/>\\n';\n}\nxml += '  </folder>\\n';\n\nxml += '  <folder name=\"Application\" id=\"' + folderApp + '\" type=\"elements\">\\n';\nfor (const el of appElements) {\n  xml += '    <element xsi:type=\"archimate:' + mapAppType(el.type, el.id) + '\" name=\"' + escapeXml(el.name) + '\" id=\"' + appIdMap[el.id] + '\"/>\\n';\n}\nxml += '  </folder>\\n';\n\nlet relCount = 0;\nxml += '  <folder name=\"Relations\" id=\"' + folderRel + '\" type=\"relations\">\\n';\nfor (const r of rels) {\n  const sid = (r.layer === 'app') ? appIdMap[r.source] : bizIdMap[r.source];\n  const tid = (r.layer === 'biz') ? bizIdMap[r.target] : appIdMap[r.target];\n  if (!sid || !tid) continue;\n  const rid = 'r-' + stableId(projectSlug + ':' + r.layer + ':' + r.type + ':' + r.source + '->' + r.target);\n  xml += '    <element xsi:type=\"archimate:' + mapRelType(r.layer, r.type) + '\" id=\"' + rid + '\" source=\"' + sid + '\" target=\"' + tid + '\"/>\\n';\n  relCount++;\n}\nxml += '  </folder>\\n</archimate:model>';\n\nreturn [{ json: { ...item, archimateXml: xml, elementCount: bizElements.length + appElements.length, relationshipCount: relCount } }];"
+      }
+    },
+    {
+      "id": "8549940c-eb85-4a1a-8b95-abc9487b4e89",
+      "name": "Hash Combined XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4944,
+        512
+      ],
+      "parameters": {
+        "jsCode": "const fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) {\n    hash ^= s.charCodeAt(i);\n    hash = (hash * 0x01000193) >>> 0;\n  }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\nreturn [{ json: { ...$json, archimateXmlHash: fnv1a($json.archimateXml) } }];"
+      }
+    },
+    {
+      "id": "b93d93ee-1b63-40d4-a3ea-f2fddc8fb88d",
+      "name": "Store Combined XML Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5184,
+        512
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'archimate_xml_business_application'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'archimate_xml_business_application', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify({ xml: $json.archimateXml }), $json.archimateXmlHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, stage: 'application_architect', model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "5cf76dae-ba19-4ef8-b1ad-de472db4124f",
+      "name": "After Business Stage",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3984,
+        304
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-after-business",
+              "leftValue": "={{ true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "62fb9ce4-18d4-41fd-bcd4-58af0fdf60ab",
+      "name": "Reload App Arch For XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4624,
+        512
+      ],
+      "parameters": {
+        "jsCode": "// Store Application Arch Artifact outputs only {id, version}. Reattach the in-flight applicationArch.\nreturn [{ json: { ...$json, applicationArch: $('Validate Application Architecture').first().json.applicationArch } }];"
+      }
+    },
+    {
+      "id": "2984ecb4-e751-4ce9-930d-fa1c2492b138",
+      "name": "App Arch Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4224,
+        672
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "id": "condition-1768748872327-6aj4s4vfd"
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "552bd617-a44f-4cdf-b82b-e0a02768ed7c",
+      "name": "Repair Application Architecture (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4464,
+        672
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You repair an Application Architecture JSON model.',\n        'Fix invalid relationship endpoints and invalid crossLayerRelationships.',\n        'Rules:',\n        '- relationships must reference application element ids only',\n        '- crossLayerRelationships must use BUSINESS_ARCH ids for businessSourceId and application element ids for applicationTargetId',\n        '- Output ONLY corrected JSON matching the schema'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'VALIDATION_ERRORS: ' + JSON.stringify($json.errors || []),\n        'BUSINESS_ARCH_ELEMENT_IDS: ' + JSON.stringify((($('Validate Business Architecture').first().json.businessArch || {}).elements || []).map(e => e.id)),\n        'APPLICATION_ARCH_JSON: ' + JSON.stringify($json.applicationArch)\n      ].join('\\\\n\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','elements','relationships','crossLayerRelationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { const: 'Application' },\n      elements: { type: 'array' },\n      relationships: { type: 'array' },\n      crossLayerRelationships: { type: 'array' }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      }
+    },
+    {
+      "id": "8273fe01-12e8-4b6a-a44e-d82f3e7c4bdd",
+      "name": "Validate Repaired App Arch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4704,
+        672
+      ],
+      "parameters": {
+        "jsCode": "// Reuse same validation rules as Validate Application Architecture\nlet model;\ntry { model = JSON.parse($json.message.content); }\ncatch (e) {\n  return [{ json: { valid: false, errors: ['Application repair parse failed: ' + e.message], applicationArch: null } }];\n}\n\nconst errors = [];\nif (model.layer !== 'Application') errors.push('layer must be Application');\nif (!Array.isArray(model.elements)) errors.push('elements must be array');\nif (!Array.isArray(model.relationships)) errors.push('relationships must be array');\nif (!Array.isArray(model.crossLayerRelationships)) errors.push('crossLayerRelationships must be array');\n\nconst appIds = new Set((model.elements || []).map(e => e.id));\nfor (const rel of (model.relationships || [])) {\n  if (!appIds.has(rel.source)) errors.push(`App relationship source not found: ${rel.source}`);\n  if (!appIds.has(rel.target)) errors.push(`App relationship target not found: ${rel.target}`);\n}\n\nconst businessArch = $('Validate Business Architecture').first().json.businessArch;\nconst bizIds = new Set((businessArch?.elements || []).map(e => e.id));\nfor (const rel of (model.crossLayerRelationships || [])) {\n  if (!bizIds.has(rel.businessSourceId)) errors.push(`Cross-layer businessSourceId not found: ${rel.businessSourceId}`);\n  if (!appIds.has(rel.applicationTargetId)) errors.push(`Cross-layer applicationTargetId not found: ${rel.applicationTargetId}`);\n}\n\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst applicationArchHash = fnv1a(JSON.stringify(model));\n\nreturn [{ json: { ...$('Validate Business Architecture').first().json, valid, errors, applicationArch: model, applicationArchHash, repaired: true } }];"
+      }
+    },
+    {
+      "id": "5a7f231e-ac48-4338-86f7-e3abc988d2d0",
+      "name": "After App Stage",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5664,
+        512
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-after-app",
+              "leftValue": "={{ true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "b9e7151f-8711-4ed8-9f9f-c89c12376ec7",
+      "name": "Generate Data Architecture (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        5904,
+        512
+      ],
+      "parameters": {
+        "url": "http://host.docker.internal:11434/api/chat",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are a Data Architect creating a data architecture model.',\n        'CRITICAL: You MUST use the provided BUSINESS_IDS and APPLICATION_IDS to create relationships.',\n        '',\n        'Rules:',\n        '1. Create DataObjects representing core data entities',\n        '2. Create Stores (databases, caches) where data is persisted',\n        '3. Create relationships using EXACT IDs from BUSINESS_IDS and APPLICATION_IDS:',\n        '   - business->data: set businessSourceId from BUSINESS_IDS, dataTargetId from your dataObjects',\n        '   - app->data: set applicationSourceId from APPLICATION_IDS, dataTargetId from your dataObjects',\n        '   - data->store: set dataObjectId from your dataObjects, storeId from your stores',\n        '',\n        'Output ONLY valid JSON. Use provided IDs exactly.'\n      ].join('\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'PROJECT: ' + $('Apply Classification + Slugify').first().json.projectName,\n        'BRD_EXEC_SUMMARY: ' + String((($('Validate BRD').first().json.brd || {}).executiveSummary) || '').slice(0, 800),\n        'BUSINESS_IDS: ' + JSON.stringify((($('Validate Business Architecture').first().json.businessArch || {}).elements || []).map(e => e.id)),\n        'APPLICATION_IDS: ' + JSON.stringify((($('Validate Application Architecture').first().json.applicationArch || {}).elements || []).map(e => e.id))\n      ].join('\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','dataObjects','stores','relationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { const: 'Data' },\n      dataObjects: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['id','name','type'],\n          properties: {\n            id: { type: 'string' },\n            name: { type: 'string' },\n            type: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      stores: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['id','name','type'],\n          properties: {\n            id: { type: 'string' },\n            name: { type: 'string' },\n            type: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      },\n      relationships: {\n        type: 'array',\n        items: {\n          type: 'object',\n          additionalProperties: false,\n          required: ['type'],\n          properties: {\n            type: { type: 'string' },\n            businessSourceId: { type: 'string' },\n            applicationSourceId: { type: 'string' },\n            dataTargetId: { type: 'string' },\n            dataObjectId: { type: 'string' },\n            storeId: { type: 'string' },\n            description: { type: 'string' }\n          }\n        }\n      }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "c21298ae-9862-4a57-9052-f21d3777ddb1",
+      "name": "Validate Data Architecture",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6144,
+        512
+      ],
+      "parameters": {
+        "jsCode": "let model;\ntry { model = JSON.parse($json.message.content); } catch (e) {\n  return [{ json: { valid: false, errors: ['Data arch parse failed: ' + e.message], dataArch: null } }];\n}\n\nconst errors = [];\nif (model.layer !== 'Data') errors.push('layer must be Data');\nif (!Array.isArray(model.dataObjects)) errors.push('dataObjects must be array');\nif (!Array.isArray(model.stores)) errors.push('stores must be array');\nif (!Array.isArray(model.relationships)) errors.push('relationships must be array');\n\nconst dataIds = new Set((model.dataObjects || []).map(d => d.id));\nconst storeIds = new Set((model.stores || []).map(s => s.id));\n\nconst appIds = new Set((($('Validate Application Architecture').first().json.applicationArch || {}).elements || []).map(e => e.id));\nconst bizEls = (($('Validate Business Architecture').first().json.businessArch || {}).elements || []);\nconst bizIds = new Set(bizEls.map(e => e.id));\n\nlet hasDataStore = false;\nlet businessDataEdges = 0;\n\nfor (const rel of (model.relationships || [])) {\n  const t = String(rel.type || '').toLowerCase();\n\n  // business -> data required\n  if (rel.businessSourceId) {\n    if (!rel.dataTargetId) {\n      errors.push('Business->Data relationship must include dataTargetId');\n    } else {\n      if (!bizIds.has(rel.businessSourceId)) errors.push(`businessSourceId not found: ${rel.businessSourceId}`);\n      if (!dataIds.has(rel.dataTargetId)) errors.push(`dataTargetId not found: ${rel.dataTargetId}`);\n      businessDataEdges++;\n      if (!t.includes('access') && !t.includes('read') && !t.includes('use')) errors.push(`Business->Data type should indicate access, got: ${rel.type}`);\n    }\n  }\n\n  // optional app -> data\n  if (rel.applicationSourceId) {\n    if (!rel.dataTargetId) {\n      errors.push('App->Data relationship must include dataTargetId');\n    } else {\n      if (!appIds.has(rel.applicationSourceId)) errors.push(`applicationSourceId not found: ${rel.applicationSourceId}`);\n      if (!dataIds.has(rel.dataTargetId)) errors.push(`dataTargetId not found: ${rel.dataTargetId}`);\n    }\n  }\n\n  // data -> store required\n  if (rel.dataObjectId || rel.storeId) {\n    if (!rel.dataObjectId || !rel.storeId) {\n      errors.push('Data->Store relationship must include dataObjectId and storeId');\n    } else {\n      hasDataStore = true;\n      if (!dataIds.has(rel.dataObjectId)) errors.push(`dataObjectId not found: ${rel.dataObjectId}`);\n      if (!storeIds.has(rel.storeId)) errors.push(`storeId not found: ${rel.storeId}`);\n      if (!t.includes('stored')) errors.push(`Data->Store type should be storedIn, got: ${rel.type}`);\n    }\n  }\n}\n\nif (!hasDataStore) errors.push('Missing at least one dataObjectId->storeId storedIn relationship');\nif (businessDataEdges === 0) errors.push('Missing required Business->Data access relationships');\n\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst dataArchHash = fnv1a(JSON.stringify(model));\n\nreturn [{ json: { ...$('Validate Application Architecture').first().json, valid, errors, dataArch: model, dataArchHash } }];"
+      }
+    },
+    {
+      "id": "fbbce172-45f2-45fa-b2ca-ce61b1507191",
+      "name": "Store Data Arch Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        6384,
+        512
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'data_arch'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'data_arch', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify($json.dataArch), $json.dataArchHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, stage: 'data_architect', model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "15f540b4-7823-4535-9ae0-fc141aaf4c9e",
+      "name": "Convert to ArchiMate XML (Biz+App+Data)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6624,
+        512
+      ],
+      "parameters": {
+        "jsCode": "// Combined Biz + App + Data ArchiMate XML (single output item)\nconst item = ($input.all()[0] && $input.all()[0].json) ? $input.all()[0].json : {};\nconst projectSlug = item.projectSlug || $('Apply Classification + Slugify').first().json.projectSlug;\nconst biz = item.businessArch || $('Validate Business Architecture').first().json.businessArch;\nconst app = item.applicationArch || $('Validate Application Architecture').first().json.applicationArch;\nconst data = item.dataArch || $('Validate Data Architecture').first().json.dataArch;\n\nif (!biz || !app || !data) return [{ json: { ...item, archimateXml: '', xmlError: 'Missing business/application/data model(s)' } }];\n\nconst escapeXml = (t) => String(t ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\\"/g,'&quot;').replace(/'/g,'&apos;');\nconst fnv1a32 = (str) => String(str ?? '').split('').reduce((h, ch) => (((h ^ ch.charCodeAt(0)) * 0x01000193) >>> 0), 0x811c9dc5);\nconst stableId = (s) => ('000000000000' + fnv1a32(String(s)).toString(16)).slice(-12);\n\nconst mapBizType = (t) => (String(t||'').toLowerCase().includes('capability') ? 'Capability' : 'BusinessProcess');\nconst mapAppType = (t,id) => ((String(id||'').includes('client') || String(t||'').toLowerCase().includes('client')) ? 'ApplicationComponent' : 'ApplicationComponent');\nconst mapDataType = () => 'DataObject';\nconst mapStoreType = (t) => (String(t||'').toLowerCase().includes('postgres') || String(t||'').toLowerCase().includes('mongo') ? 'Artifact' : 'Artifact');\nconst mapRelType = (kind, typeHint) => {\n  const hint = String(typeHint || '').toLowerCase();\n  const typeMap = {\n    bizapp: 'RealizationRelationship',\n    appdata: 'AccessRelationship',\n    bizdata: 'AccessRelationship',\n    datastore: 'AssignmentRelationship',\n    appinfra: 'ServingRelationship'\n  };\n  let result = typeMap[kind];\n  if (!result) {\n    if (kind === 'infra') {\n      result = (hint.includes('compose') || hint.includes('contain')) ? 'CompositionRelationship'\n        : (hint.includes('deploy') || hint.includes('assign')) ? 'AssignmentRelationship'\n        : (hint.includes('serve') || hint.includes('provide')) ? 'ServingRelationship'\n        : 'AssociationRelationship';\n    } else if (kind === 'biz') {\n      result = (hint.includes('trigger') || hint.includes('flow')) ? 'TriggeringRelationship'\n        : (hint.includes('serve') || hint.includes('support')) ? 'ServingRelationship'\n        : 'AssociationRelationship';\n    } else if (kind === 'app') {\n      result = (hint.includes('flow') || hint.includes('call')) ? 'FlowRelationship'\n        : (hint.includes('serve') || hint.includes('use')) ? 'ServingRelationship'\n        : hint.includes('access') ? 'AccessRelationship'\n        : 'AssociationRelationship';\n    } else {\n      result = 'AssociationRelationship';\n    }\n  }\n  return result;\n};\n\nconst bizEls = [...(biz.elements||[])].sort((a,b)=>String(a.id).localeCompare(String(b.id)));\nconst appEls = [...(app.elements||[])].sort((a,b)=>String(a.id).localeCompare(String(b.id)));\nconst dataObjs = [...(data.dataObjects||[])].sort((a,b)=>String(a.id).localeCompare(String(b.id)));\nconst stores = [...(data.stores||[])].sort((a,b)=>String(a.id).localeCompare(String(b.id)));\n\nconst bizId = {}; for (const e of bizEls) bizId[e.id] = 'e-' + stableId(projectSlug+':biz:'+e.id);\nconst appId = {}; for (const e of appEls) appId[e.id] = 'e-' + stableId(projectSlug+':app:'+e.id);\nconst dataId = {}; for (const d of dataObjs) dataId[d.id] = 'e-' + stableId(projectSlug+':data:'+d.id);\nconst storeId = {}; for (const s of stores) storeId[s.id] = 'e-' + stableId(projectSlug+':store:'+s.id);\n\nconst rels = [];\nfor (const r of (biz.relationships||[])) rels.push({ kind:'biz', type:r.type, s:r.source, t:r.target });\nfor (const r of (app.relationships||[])) rels.push({ kind:'app', type:r.type, s:r.source, t:r.target });\nfor (const r of (app.crossLayerRelationships||[])) rels.push({ kind:'bizapp', type:r.type, s:r.businessSourceId, t:r.applicationTargetId });\nfor (const r of (data.relationships||[])) {\n  if (r.businessSourceId && r.dataTargetId) rels.push({ kind:'bizdata', type:r.type, s:r.businessSourceId, t:r.dataTargetId });\n  if (r.applicationSourceId && r.dataTargetId) rels.push({ kind:'appdata', type:r.type, s:r.applicationSourceId, t:r.dataTargetId });\n  if (r.dataObjectId && r.storeId) rels.push({ kind:'datastore', type:r.type, s:r.dataObjectId, t:r.storeId });\n}\nrels.sort((a,b)=>(a.kind+'|'+a.type+'|'+a.s+'|'+a.t).localeCompare(a.kind+'|'+b.type+'|'+b.s+'|'+b.t));\n\nconst modelId = 'm-' + stableId(projectSlug+':model:biz+app+data');\nconst fBiz = 'f-' + stableId(projectSlug+':folder:biz');\nconst fApp = 'f-' + stableId(projectSlug+':folder:app');\nconst fData = 'f-' + stableId(projectSlug+':folder:data');\nconst fStore = 'f-' + stableId(projectSlug+':folder:stores');\nconst fRel = 'f-' + stableId(projectSlug+':folder:relations');\n\nlet xml = '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\\n' +\n  '<archimate:model xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:archimate=\"http://www.archimatetool.com/archimate\" name=\"' + escapeXml(projectSlug + ' Architecture') + '\" id=\"' + modelId + '\" version=\"5.0.0\">\\n';\n\nxml += '  <folder name=\"Business\" id=\"' + fBiz + '\" type=\"elements\">\\n';\nfor (const e of bizEls) xml += '    <element xsi:type=\"archimate:' + mapBizType(e.type) + '\" name=\"' + escapeXml(e.name) + '\" id=\"' + bizId[e.id] + '\"/>\\n';\nxml += '  </folder>\\n';\n\nxml += '  <folder name=\"Application\" id=\"' + fApp + '\" type=\"elements\">\\n';\nfor (const e of appEls) xml += '    <element xsi:type=\"archimate:' + mapAppType(e.type,e.id) + '\" name=\"' + escapeXml(e.name) + '\" id=\"' + appId[e.id] + '\"/>\\n';\nxml += '  </folder>\\n';\n\nxml += '  <folder name=\"Data\" id=\"' + fData + '\" type=\"elements\">\\n';\nfor (const d of dataObjs) xml += '    <element xsi:type=\"archimate:' + mapDataType() + '\" name=\"' + escapeXml(d.name) + '\" id=\"' + dataId[d.id] + '\"/>\\n';\nxml += '  </folder>\\n';\n\nxml += '  <folder name=\"Data Stores\" id=\"' + fStore + '\" type=\"elements\">\\n';\nfor (const s of stores) xml += '    <element xsi:type=\"archimate:' + mapStoreType(s.type) + '\" name=\"' + escapeXml(s.name) + '\" id=\"' + storeId[s.id] + '\"/>\\n';\nxml += '  </folder>\\n';\n\nlet relCount = 0;\nxml += '  <folder name=\"Relations\" id=\"' + fRel + '\" type=\"relations\">\\n';\nfor (const r of rels) {\n  let sid = null; let tid = null;\n  if (r.kind === 'biz') { sid = bizId[r.s]; tid = bizId[r.t]; }\n  else if (r.kind === 'app') { sid = appId[r.s]; tid = appId[r.t]; }\n  else if (r.kind === 'bizapp') { sid = bizId[r.s]; tid = appId[r.t]; }\n  else if (r.kind === 'bizdata') { sid = bizId[r.s]; tid = dataId[r.t]; }\n  else if (r.kind === 'appdata') { sid = appId[r.s]; tid = dataId[r.t]; }\n  else if (r.kind === 'datastore') { sid = dataId[r.s]; tid = storeId[r.t]; }\n  if (!sid || !tid) continue;\n  const rid = 'r-' + stableId(projectSlug+':'+r.kind+':'+r.type+':'+r.s+'->'+r.t);\n  xml += '    <element xsi:type=\"archimate:' + mapRelType(r.kind, r.type) + '\" id=\"' + rid + '\" source=\"' + sid + '\" target=\"' + tid + '\"/>\\n';\n  relCount++;\n}\nxml += '  </folder>\\n</archimate:model>';\n\nreturn [{ json: { ...item, archimateXml: xml, relationshipCount: relCount } }];"
+      }
+    },
+    {
+      "id": "2b30a54b-dad8-4d08-92c5-5a786b11e631",
+      "name": "Hash Biz+App+Data XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6864,
+        512
+      ],
+      "parameters": {
+        "jsCode": "const fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\nreturn [{ json: { ...$json, archimateXmlHash: fnv1a($json.archimateXml) } }];"
+      }
+    },
+    {
+      "id": "b6ba491c-fa72-4f21-b5fd-b876826132e5",
+      "name": "Store Biz+App+Data XML Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        7104,
+        512
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'archimate_xml_business_application_data'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'archimate_xml_business_application_data', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify({ xml: $json.archimateXml }), $json.archimateXmlHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, stage: 'data_architect', model: $('Run Config').first().json.ollamaModel }) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "82e0efcf-3018-42d8-b5ba-92cff4a5e495",
+      "name": "Reload Data Arch For XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6528,
+        512
+      ],
+      "parameters": {
+        "jsCode": "// Store Data Arch Artifact returns only {id, version}. Reattach the in-flight dataArch.\nreturn [{ json: { ...$json, dataArch: $('Validate Data Architecture').first().json.dataArch } }];"
+      }
+    },
+    {
+      "id": "f2b71a5c-1124-412a-9ff9-b0ffe5e9e456",
+      "name": "After Data Stage",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        7344,
+        512
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-after-data",
+              "leftValue": "={{ true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "707043d5-fc1d-471a-bc60-fb965cdb2ef2",
+      "name": "Generate Infrastructure Architecture (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        7584,
+        512
+      ],
+      "parameters": {
+        "url": "http://host.docker.internal:11434/api/chat",
+        "method": "POST",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are an Infrastructure Architect.',\n        'Output ONLY JSON matching the schema.',\n        'Assume Azure + AKS single cluster; Ingress via AGIC; API Gateway via APIM; External IdP (OIDC); Eventing via Event Hubs; Dapr for sidecars; self-managed Postgres + MongoDB on AKS.',\n        'relationships must be infra->infra only (sourceId/targetId in infra sets).',\n        'crossLayerRelationships must be application ids -> infra ids (applicationSourceId -> infraTargetId).',\n        'Must include auth links: web-client->apim, mobile-client->apim, apim->external_idp (JWKS/validate).'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'PROJECT: ' + $('Apply Classification + Slugify').first().json.projectName,\n        'APPLICATION_IDS: ' + JSON.stringify((($('Validate Application Architecture').first().json.applicationArch || {}).elements || []).map(e => e.id)),\n        'DATA_STORES: ' + JSON.stringify((($('Validate Data Architecture').first().json.dataArch || {}).stores || []).map(s => ({ id: s.id, type: s.type, name: s.name })))\n      ].join('\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','clusters','platformServices','runtimeComponents','dataPlatforms','relationships','crossLayerRelationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { const: 'Technology' },\n      clusters: {\n        type: 'array',\n        items: { type: 'object', additionalProperties: false, required: ['id','name','type'], properties: { id: {type:'string'}, name:{type:'string'}, type:{type:'string'}, description:{type:'string'} } }\n      },\n      platformServices: {\n        type: 'array',\n        items: { type: 'object', additionalProperties: false, required: ['id','name','type'], properties: { id:{type:'string'}, name:{type:'string'}, type:{type:'string'}, description:{type:'string'} } }\n      },\n      runtimeComponents: {\n        type: 'array',\n        items: { type: 'object', additionalProperties: false, required: ['id','name','type'], properties: { id:{type:'string'}, name:{type:'string'}, type:{type:'string'}, description:{type:'string'} } }\n      },\n      dataPlatforms: {\n        type: 'array',\n        items: { type: 'object', additionalProperties: false, required: ['id','name','type'], properties: { id:{type:'string'}, name:{type:'string'}, type:{type:'string'}, description:{type:'string'} } }\n      },\n      relationships: {\n        type: 'array',\n        items: { type: 'object', additionalProperties: false, required: ['type','sourceId','targetId'], properties: { type:{type:'string'}, sourceId:{type:'string'}, targetId:{type:'string'}, description:{type:'string'} } }\n      },\n      crossLayerRelationships: {\n        type: 'array',\n        items: { type: 'object', additionalProperties: false, required: ['type','applicationSourceId','infraTargetId'], properties: { type:{type:'string'}, applicationSourceId:{type:'string'}, infraTargetId:{type:'string'}, description:{type:'string'} } }\n      }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      }
+    },
+    {
+      "id": "3073960e-8212-4cc7-a4a6-59ea9bd6c9fe",
+      "name": "Validate Infrastructure Architecture",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7824,
+        512
+      ],
+      "parameters": {
+        "jsCode": "let model;\ntry { model = JSON.parse($json.message.content); } catch (e) {\n  return [{ json: { valid: false, errors: ['Infra arch parse failed: ' + e.message], infraArch: null } }];\n}\n\nconst errors = [];\nif (model.layer !== 'Technology') errors.push('layer must be Technology');\nfor (const key of ['clusters','platformServices','runtimeComponents','dataPlatforms','relationships','crossLayerRelationships']) {\n  if (!Array.isArray(model[key])) errors.push(`${key} must be array`);\n}\n\nconst infraIds = new Set([\n  ...(model.clusters || []).map(x => x.id),\n  ...(model.platformServices || []).map(x => x.id),\n  ...(model.runtimeComponents || []).map(x => x.id),\n  ...(model.dataPlatforms || []).map(x => x.id),\n]);\n\n// Required infra types\nconst hasType = (arr, type) => (arr || []).some(x => String(x.type).toLowerCase() === type);\nif (!hasType(model.clusters, 'aks')) errors.push('Missing AKS cluster (clusters[].type=aks)');\nif (!hasType(model.runtimeComponents, 'agic')) errors.push('Missing AGIC runtime component (runtimeComponents[].type=agic)');\nif (!hasType(model.platformServices, 'apim')) errors.push('Missing APIM platform service (platformServices[].type=apim)');\nif (!hasType(model.platformServices, 'external_idp')) errors.push('Missing external IdP platform service (platformServices[].type=external_idp)');\nif (!hasType(model.platformServices, 'event_hubs')) errors.push('Missing Event Hubs platform service (platformServices[].type=event_hubs)');\nif (!hasType(model.runtimeComponents, 'dapr')) errors.push('Missing Dapr runtime component (runtimeComponents[].type=dapr)');\nif (!hasType(model.dataPlatforms, 'postgres')) errors.push('Missing self-managed Postgres (dataPlatforms[].type=postgres)');\nif (!hasType(model.dataPlatforms, 'mongodb')) errors.push('Missing self-managed MongoDB (dataPlatforms[].type=mongodb)');\n\nconst appIds = new Set((($('Validate Application Architecture').first().json.applicationArch || {}).elements || []).map(e => e.id));\n\n// relationships must be infra->infra only\nfor (const rel of (model.relationships || [])) {\n  if (!infraIds.has(rel.sourceId)) errors.push(`Infra relationship sourceId not found (must be infra id): ${rel.sourceId}`);\n  if (!infraIds.has(rel.targetId)) errors.push(`Infra relationship targetId not found (must be infra id): ${rel.targetId}`);\n}\n\n// cross-layer app->infra\nfor (const rel of (model.crossLayerRelationships || [])) {\n  if (!appIds.has(rel.applicationSourceId)) errors.push(`crossLayer applicationSourceId not found: ${rel.applicationSourceId}`);\n  if (!infraIds.has(rel.infraTargetId)) errors.push(`crossLayer infraTargetId not found: ${rel.infraTargetId}`);\n}\n\n// Require auth links: web-client->apim, mobile-client->apim, apim->idp jwks\nconst apim = (model.platformServices || []).find(x => String(x.type).toLowerCase() === 'apim');\nconst idp = (model.platformServices || []).find(x => String(x.type).toLowerCase() === 'external_idp');\nif (apim && idp) {\n  const hasJwks = (model.relationships || []).some(r => r.sourceId === apim.id && r.targetId === idp.id && /jwks|validate/i.test(String(r.type)));\n  if (!hasJwks) errors.push('Missing apim->external_idp JWKS validation relationship (type should mention jwks/validate)');\n}\n\nconst hasClientLink = (clientId) => (model.crossLayerRelationships || []).some(r => r.applicationSourceId === clientId && apim && r.infraTargetId === apim.id);\nif (!hasClientLink('web-client')) errors.push('Missing crossLayer relationship web-client -> apim');\nif (!hasClientLink('mobile-client')) errors.push('Missing crossLayer relationship mobile-client -> apim');\n\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst infraArchHash = fnv1a(JSON.stringify(model));\n\nreturn [{ json: { ...$('Validate Data Architecture').first().json, valid, errors, infraArch: model, infraArchHash } }];"
+      }
+    },
+    {
+      "id": "04a8cb78-0e57-475a-b50f-14809f6a8f48",
+      "name": "Store Infra Arch Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        8064,
+        512
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'infrastructure_arch'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'infrastructure_arch', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify($json.infraArch), $json.infraArchHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, stage: 'infrastructure_architect', model: $('Run Config').first().json.ollamaModel }) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "80c46102-5134-40d7-9373-4c18a97f9366",
+      "name": "Reload Infra Arch For XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8304,
+        512
+      ],
+      "parameters": {
+        "jsCode": "// Store Infra Arch Artifact returns only {id, version}. Reattach in-flight infraArch.\nreturn [{ json: { ...$json, infraArch: $('Validate Infrastructure Architecture').first().json.infraArch } }];"
+      }
+    },
+    {
+      "id": "7b768c43-bf27-4f31-adf0-267b03194f61",
+      "name": "Convert to ArchiMate XML (Biz+App+Data+Infra)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8544,
+        512
+      ],
+      "parameters": {
+        "jsCode": "// Combined Biz + App + Data + Infra ArchiMate XML (single output item)\nconst item = ($input.all()[0] && $input.all()[0].json) ? $input.all()[0].json : {};\nconst projectSlug = item.projectSlug || $('Apply Classification + Slugify').first().json.projectSlug;\nconst biz = item.businessArch || $('Validate Business Architecture').first().json.businessArch;\nconst app = item.applicationArch || $('Validate Application Architecture').first().json.applicationArch;\nconst data = item.dataArch || $('Validate Data Architecture').first().json.dataArch;\nconst infra = item.infraArch || $('Validate Infrastructure Architecture').first().json.infraArch;\n\nif (!biz || !app || !data || !infra) return [{ json: { ...item, archimateXml: '', xmlError: 'Missing one or more prerequisite models' } }];\n\nconst escapeXml = (t) => String(t ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\\\"/g,'&quot;').replace(/'/g,'&apos;');\nconst fnv1a32 = (str) => String(str ?? '').split('').reduce((h, ch) => (((h ^ ch.charCodeAt(0)) * 0x01000193) >>> 0), 0x811c9dc5);\nconst stableId = (s) => ('000000000000' + fnv1a32(String(s)).toString(16)).slice(-12);\n\nconst mapRelType = (kind, typeHint) => {\n  const hint = String(typeHint || '').toLowerCase();\n  const typeMap = {\n    bizapp: 'RealizationRelationship',\n    appdata: 'AccessRelationship',\n    bizdata: 'AccessRelationship',\n    datastore: 'AssignmentRelationship',\n    appinfra: 'ServingRelationship'\n  };\n  let result = typeMap[kind];\n  if (!result) {\n    if (kind === 'infra') {\n      result = (hint.includes('compose') || hint.includes('contain')) ? 'CompositionRelationship'\n        : (hint.includes('deploy') || hint.includes('assign')) ? 'AssignmentRelationship'\n        : (hint.includes('serve') || hint.includes('provide')) ? 'ServingRelationship'\n        : 'AssociationRelationship';\n    } else if (kind === 'biz') {\n      result = (hint.includes('trigger') || hint.includes('flow')) ? 'TriggeringRelationship'\n        : (hint.includes('serve') || hint.includes('support')) ? 'ServingRelationship'\n        : 'AssociationRelationship';\n    } else if (kind === 'app') {\n      result = (hint.includes('flow') || hint.includes('call')) ? 'FlowRelationship'\n        : (hint.includes('serve') || hint.includes('use')) ? 'ServingRelationship'\n        : hint.includes('access') ? 'AccessRelationship'\n        : 'AssociationRelationship';\n    } else {\n      result = 'AssociationRelationship';\n    }\n  }\n  return result;\n};\n\nconst bizEls = [...(biz.elements||[])];\nconst appEls = [...(app.elements||[])];\nconst dataObjs = [...(data.dataObjects||[])];\nconst stores = [...(data.stores||[])];\nconst infraEls = [...(infra.clusters||[]),...(infra.platformServices||[]),...(infra.runtimeComponents||[]),...(infra.dataPlatforms||[])].sort((a,b)=>String(a.id).localeCompare(String(b.id)));\n\nconst bizId = {}; for (const e of bizEls) bizId[e.id] = 'e-' + stableId(projectSlug+':biz:'+e.id);\nconst appId = {}; for (const e of appEls) appId[e.id] = 'e-' + stableId(projectSlug+':app:'+e.id);\nconst dataId = {}; for (const d of dataObjs) dataId[d.id] = 'e-' + stableId(projectSlug+':data:'+d.id);\nconst storeId = {}; for (const s of stores) storeId[s.id] = 'e-' + stableId(projectSlug+':store:'+s.id);\nconst infraId = {}; for (const x of infraEls) infraId[x.id] = 'e-' + stableId(projectSlug+':tech:'+x.id);\n\nconst mapTechType = (t) => {\n  const s = String(t||'').toLowerCase();\n  return s.includes('aks') ? 'Node' : s.includes('dapr') ? 'SystemSoftware' : s.includes('agic') ? 'TechnologyService' : s.includes('apim') ? 'TechnologyService' : s.includes('event') ? 'TechnologyService' : (s.includes('postgres') || s.includes('mongo')) ? 'Node' : 'TechnologyService';\n};\n\nconst modelId = 'm-' + stableId(projectSlug+':model:full');\nconst fBiz = 'f-' + stableId(projectSlug+':folder:biz');\nconst fApp = 'f-' + stableId(projectSlug+':folder:app');\nconst fData = 'f-' + stableId(projectSlug+':folder:data');\nconst fStore = 'f-' + stableId(projectSlug+':folder:stores');\nconst fTech = 'f-' + stableId(projectSlug+':folder:tech');\nconst fRel = 'f-' + stableId(projectSlug+':folder:relations');\n\nlet xml = '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\\n' + '<archimate:model xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:archimate=\"http://www.archimatetool.com/archimate\" name=\"' + escapeXml(projectSlug + ' Architecture') + '\" id=\"' + modelId + '\" version=\"5.0.0\">\\n';\nxml += '  <folder name=\"Business\" id=\"' + fBiz + '\" type=\"elements\">\\n';\nfor (const e of bizEls.sort((a,b)=>String(a.id).localeCompare(String(b.id)))) xml += '    <element xsi:type=\"archimate:BusinessProcess\" name=\"' + escapeXml(e.name) + '\" id=\"' + bizId[e.id] + '\"/>\\n';\nxml += '  </folder>\\n';\nxml += '  <folder name=\"Application\" id=\"' + fApp + '\" type=\"elements\">\\n';\nfor (const e of appEls.sort((a,b)=>String(a.id).localeCompare(String(b.id)))) xml += '    <element xsi:type=\"archimate:ApplicationComponent\" name=\"' + escapeXml(e.name) + '\" id=\"' + appId[e.id] + '\"/>\\n';\nxml += '  </folder>\\n';\nxml += '  <folder name=\"Data\" id=\"' + fData + '\" type=\"elements\">\\n';\nfor (const d of dataObjs.sort((a,b)=>String(a.id).localeCompare(String(b.id)))) xml += '    <element xsi:type=\"archimate:DataObject\" name=\"' + escapeXml(d.name) + '\" id=\"' + dataId[d.id] + '\"/>\\n';\nxml += '  </folder>\\n';\nxml += '  <folder name=\"Data Stores\" id=\"' + fStore + '\" type=\"elements\">\\n';\nfor (const s of stores.sort((a,b)=>String(a.id).localeCompare(String(b.id)))) xml += '    <element xsi:type=\"archimate:Artifact\" name=\"' + escapeXml(s.name) + '\" id=\"' + storeId[s.id] + '\"/>\\n';\nxml += '  </folder>\\n';\nxml += '  <folder name=\"Technology\" id=\"' + fTech + '\" type=\"elements\">\\n';\nfor (const t of infraEls) xml += '    <element xsi:type=\"archimate:' + mapTechType(t.type) + '\" name=\"' + escapeXml(t.name) + '\" id=\"' + infraId[t.id] + '\"/>\\n';\nxml += '  </folder>\\n';\n\nconst rels = [];\nfor (const r of (biz.relationships||[])) rels.push({ kind:'biz', type:r.type, s:r.source, t:r.target });\nfor (const r of (app.relationships||[])) rels.push({ kind:'app', type:r.type, s:r.source, t:r.target });\nfor (const r of (app.crossLayerRelationships||[])) rels.push({ kind:'bizapp', type:r.type, s:r.businessSourceId, t:r.applicationTargetId });\nfor (const r of (data.relationships||[])) {\n  if (r.businessSourceId && r.dataTargetId) rels.push({ kind:'bizdata', type:r.type, s:r.businessSourceId, t:r.dataTargetId });\n  if (r.applicationSourceId && r.dataTargetId) rels.push({ kind:'appdata', type:r.type, s:r.applicationSourceId, t:r.dataTargetId });\n  if (r.dataObjectId && r.storeId) rels.push({ kind:'datastore', type:r.type, s:r.dataObjectId, t:r.storeId });\n}\nfor (const r of (infra.relationships||[])) rels.push({ kind:'infra', type:r.type, s:r.sourceId, t:r.targetId });\nfor (const r of (infra.crossLayerRelationships||[])) rels.push({ kind:'appinfra', type:r.type, s:r.applicationSourceId, t:r.infraTargetId });\nrels.sort((a,b)=>(a.kind+'|'+a.type+'|'+a.s+'|'+a.t).localeCompare(b.kind+'|'+b.type+'|'+b.s+'|'+b.t));\n\nlet relCount = 0;\nconst relStats = {};\nxml += '  <folder name=\"Relations\" id=\"' + fRel + '\" type=\"relations\">\\n';\nfor (const r of rels) {\n  let sid=null, tid=null;\n  if (r.kind==='biz') { sid=bizId[r.s]; tid=bizId[r.t]; }\n  else if (r.kind==='app') { sid=appId[r.s]; tid=appId[r.t]; }\n  else if (r.kind==='bizapp') { sid=bizId[r.s]; tid=appId[r.t]; }\n  else if (r.kind==='bizdata') { sid=bizId[r.s]; tid=dataId[r.t]; }\n  else if (r.kind==='appdata') { sid=appId[r.s]; tid=dataId[r.t]; }\n  else if (r.kind==='datastore') { sid=dataId[r.s]; tid=storeId[r.t]; }\n  else if (r.kind==='infra') { sid=infraId[r.s]; tid=infraId[r.t]; }\n  else if (r.kind==='appinfra') { sid=appId[r.s]; tid=infraId[r.t]; }\n  if (!sid || !tid) continue;\n  const relType = mapRelType(r.kind, r.type);\n  relStats[relType] = (relStats[relType] || 0) + 1;\n  const rid='r-' + stableId(projectSlug+':'+r.kind+':'+r.type+':'+r.s+'->'+r.t);\n  xml += '    <element xsi:type=\"archimate:' + relType + '\" id=\"' + rid + '\" source=\"' + sid + '\" target=\"' + tid + '\"/>\\n';\n  relCount++;\n}\nxml += '  </folder>\\n</archimate:model>';\n\nreturn [{ json: { ...item, archimateXml: xml, relationshipCount: relCount, relationshipStats: relStats } }];\n"
+      }
+    },
+    {
+      "id": "017a8aa5-7d2c-4490-97a9-c3e8351f0e3d",
+      "name": "Hash Biz+App+Data+Infra XML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8784,
+        512
+      ],
+      "parameters": {
+        "jsCode": "const fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\nreturn [{ json: { ...$json, archimateXmlHash: fnv1a($json.archimateXml) } }];"
+      }
+    },
+    {
+      "id": "1676844c-b932-4ae4-acfa-4d5faf618985",
+      "name": "Store Biz+App+Data+Infra XML Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        9024,
+        512
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'archimate_xml_business_application_data_infra'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'archimate_xml_business_application_data_infra', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify({ xml: $json.archimateXml }), $json.archimateXmlHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, stage: 'infrastructure_architect', model: $('Run Config').first().json.ollamaModel }) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "b35d929e-c5b2-4a2e-9281-3eaec9a61c88",
+      "name": "Infra Arch Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        7824,
+        672
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "id": "condition-1768758227858-kzz80z459"
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "533b354f-da60-4feb-9d0e-5dae1fba117e",
+      "name": "Repair Infrastructure Architecture (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        8064,
+        672
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You repair an Infrastructure Architecture JSON model.',\n        'Fix these issues based on validation errors:',\n        '- Ensure infra relationships use infra ids only.',\n        '- Ensure crossLayerRelationships use application ids -> infra ids.',\n        '- Ensure required components exist: aks, agic, apim, external_idp, event_hubs, dapr, postgres, mongodb.',\n        '- Ensure auth flow links exist: web-client->apim, mobile-client->apim, apim->external_idp JWKS validation.',\n        'Return ONLY corrected JSON matching the schema.'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'VALIDATION_ERRORS: ' + JSON.stringify($json.errors || []),\n        'APPLICATION_ELEMENT_IDS: ' + JSON.stringify((($('Validate Application Architecture').first().json.applicationArch || {}).elements || []).map(e => e.id)),\n        'CURRENT_INFRA_JSON: ' + JSON.stringify($json.infraArch || {})\n      ].join('\\\\n\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['name','layer','clusters','platformServices','runtimeComponents','dataPlatforms','relationships','crossLayerRelationships'],\n    properties: {\n      name: { type: 'string' },\n      layer: { const: 'Technology' },\n      clusters: { type: 'array' },\n      platformServices: { type: 'array' },\n      runtimeComponents: { type: 'array' },\n      dataPlatforms: { type: 'array' },\n      relationships: { type: 'array' },\n      crossLayerRelationships: { type: 'array' }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      }
+    },
+    {
+      "id": "b2f12aba-f334-4d3c-ac1a-9a5f33848645",
+      "name": "Validate Repaired Infra Arch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8304,
+        672
+      ],
+      "parameters": {
+        "jsCode": "let model;\ntry { model = JSON.parse($json.message.content); } catch (e) {\n  return [{ json: { valid: false, errors: ['Infra repair parse failed: ' + e.message], infraArch: null } }];\n}\n\n// Reuse same checks by calling Validate Infrastructure Architecture logic inline\nconst errors = [];\nif (model.layer !== 'Technology') errors.push('layer must be Technology');\n\nconst infraIds = new Set([\n  ...(model.clusters || []).map(x => x.id),\n  ...(model.platformServices || []).map(x => x.id),\n  ...(model.runtimeComponents || []).map(x => x.id),\n  ...(model.dataPlatforms || []).map(x => x.id),\n]);\n\nconst hasType = (arr, type) => (arr || []).some(x => String(x.type).toLowerCase() === type);\nif (!hasType(model.clusters, 'aks')) errors.push('Missing AKS cluster');\nif (!hasType(model.runtimeComponents, 'agic')) errors.push('Missing AGIC');\nif (!hasType(model.platformServices, 'apim')) errors.push('Missing APIM');\nif (!hasType(model.platformServices, 'external_idp')) errors.push('Missing external IdP');\nif (!hasType(model.platformServices, 'event_hubs')) errors.push('Missing Event Hubs');\nif (!hasType(model.runtimeComponents, 'dapr')) errors.push('Missing Dapr');\nif (!hasType(model.dataPlatforms, 'postgres')) errors.push('Missing Postgres');\nif (!hasType(model.dataPlatforms, 'mongodb')) errors.push('Missing MongoDB');\n\nconst appIds = new Set((($('Validate Application Architecture').first().json.applicationArch || {}).elements || []).map(e => e.id));\n\nfor (const rel of (model.relationships || [])) {\n  if (!infraIds.has(rel.sourceId)) errors.push(`Infra relationship sourceId invalid: ${rel.sourceId}`);\n  if (!infraIds.has(rel.targetId)) errors.push(`Infra relationship targetId invalid: ${rel.targetId}`);\n}\nfor (const rel of (model.crossLayerRelationships || [])) {\n  if (!appIds.has(rel.applicationSourceId)) errors.push(`crossLayer applicationSourceId invalid: ${rel.applicationSourceId}`);\n  if (!infraIds.has(rel.infraTargetId)) errors.push(`crossLayer infraTargetId invalid: ${rel.infraTargetId}`);\n}\n\nconst apim = (model.platformServices || []).find(x => String(x.type).toLowerCase() === 'apim');\nconst idp = (model.platformServices || []).find(x => String(x.type).toLowerCase() === 'external_idp');\nif (apim && idp) {\n  const hasJwks = (model.relationships || []).some(r => r.sourceId === apim.id && r.targetId === idp.id && /jwks|validate/i.test(String(r.type)));\n  if (!hasJwks) errors.push('Missing apim->idp JWKS relationship');\n}\nconst hasClientLink = (clientId) => (model.crossLayerRelationships || []).some(r => r.applicationSourceId === clientId && apim && r.infraTargetId === apim.id);\nif (!hasClientLink('web-client')) errors.push('Missing web-client->apim');\nif (!hasClientLink('mobile-client')) errors.push('Missing mobile-client->apim');\n\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nconst valid = errors.length === 0;\nconst infraArchHash = fnv1a(JSON.stringify(model));\n\nreturn [{ json: { ...$('Validate Data Architecture').first().json, valid, errors, infraArch: model, infraArchHash, repaired: true } }];"
+      }
+    },
+    {
+      "id": "respond-ack",
+      "name": "Respond Ack",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        896,
+        184
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  status: 'accepted',\n  executionId: $execution.id,\n  request: {\n    projectSlug: $('Initialize Parameters').first().json.projectSlug,\n    projectName: $('Initialize Parameters').first().json.projectName,\n    startAt: $('Initialize Parameters').first().json.startAt,\n    sessionId: $('Initialize Parameters').first().json.sessionId\n  },\n  artifactGet: {\n    workflow: 'xYNHQiDytwAbA0IP',\n    path: '/webhook/architecture-artifact',\n    exampleLatestInfra: '/webhook/architecture-artifact?projectSlug=' + $('Initialize Parameters').first().json.projectSlug + '&type=infrastructure_arch',\n    exampleLatestCombinedXml: '/webhook/architecture-artifact?projectSlug=' + $('Initialize Parameters').first().json.projectSlug + '&type=archimate_xml_business_application_data_infra'\n  }\n} }}",
+        "options": {
+          "responseCode": 202
+        }
+      }
+    },
+    {
+      "id": "security-note",
+      "name": "Security Architect Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        9248,
+        336
+      ],
+      "parameters": {
+        "content": "## Phase 5: Security Architect (Risk Assessment)\nGenerates markdown risk assessment and stores in DB.",
+        "height": 100,
+        "width": 360,
+        "color": 3
+      }
+    },
+    {
+      "id": "gen-risk",
+      "name": "Generate Risk Assessment (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        9248,
+        512
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are a Security Architect producing a project risk assessment.',\n        'Output ONLY markdown content (no JSON, no code fences), but you MUST wrap it into the JSON schema field when using tool-format.',\n        'First character of the markdown must be # and the first line must start with: \"# Risk Assessment:\"',\n        'No preamble text.',\n        'Use the provided architecture artifacts as sources and cite them in each risk as: Source: <artifactType>.',\n        'Focus on realistic security/availability/compliance risks for this system and architecture.',\n        'Include specific mitigations, owners, and monitoring indicators.',\n        'Prefer deterministic, concrete items; avoid generic filler.'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'PROJECT_NAME: ' + $('Apply Classification + Slugify').first().json.projectName,\n        'PROJECT_SLUG: ' + $('Apply Classification + Slugify').first().json.projectSlug,\n        'JOB_ID: ' + ($('Initialize Parameters').first().json.jobId || ''),\n        '',\n        'BRD: ' + JSON.stringify($('Validate BRD').first().json.brd).slice(0, 6000),\n        '',\n        'BUSINESS_ARCH: ' + JSON.stringify($('Validate Business Architecture').first().json.businessArch).slice(0, 6000),\n        '',\n        'APPLICATION_ARCH: ' + JSON.stringify($('Validate Application Architecture').first().json.applicationArch).slice(0, 6000),\n        '',\n        'DATA_ARCH: ' + JSON.stringify($('Validate Data Architecture').first().json.dataArch).slice(0, 6000),\n        '',\n        'INFRA_ARCH: ' + JSON.stringify($('Validate Infrastructure Architecture').first().json.infraArch).slice(0, 6000)\n      ].join('\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['markdown'],\n    properties: {\n      markdown: { type: 'string' }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "retryOnFail": true
+    },
+    {
+      "id": "val-risk",
+      "name": "Validate Risk Markdown",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9488,
+        512
+      ],
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content;\nlet parsed;\ntry {\n  parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { valid: false, errors: ['Risk assessment parse failed: ' + e.message], markdown: '' } }];\n}\n\nconst md = String(parsed?.markdown || '');\nconst errors = [];\nif (!md.startsWith('#')) errors.push('Markdown must start with #');\nif (!md.startsWith('# Risk Assessment:')) errors.push('First line must start with \"# Risk Assessment:\"');\nif (md.includes('```')) errors.push('Must not include fenced code blocks');\n\n// FNV-1a hash\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nreturn [{ json: { ...$json, valid: errors.length === 0, errors, riskMarkdown: md, riskMarkdownHash: fnv1a(md) } }];"
+      }
+    },
+    {
+      "id": "store-risk",
+      "name": "Store Risk Assessment Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        9728,
+        512
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'risk_assessment_md'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'risk_assessment_md', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify({ markdown: $json.riskMarkdown }), $json.riskMarkdownHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, stage: 'security_architect', model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "solution-note",
+      "name": "Solution Architect Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        9968,
+        336
+      ],
+      "parameters": {
+        "content": "## Phase 6: Solution Architect\nProduces public API + integration artifacts.\n- Always: solution_arch_md\n- Optional (based on decision): openapi_yaml, asyncapi_yaml, sql_schema_sql, cloudevents_md, avro_schemas_json",
+        "height": 120,
+        "width": 420,
+        "color": 5
+      }
+    },
+    {
+      "id": "gen-solution",
+      "name": "Generate Solution Package (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        9968,
+        512
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are a Solution Architect.',\n        'You produce public-facing integration artifacts for an APIM front door.',\n        '',\n        'You MUST choose integrationStyle for THIS solution: rest_only | events_only | hybrid.',\n        'You MUST ALWAYS produce solutionMarkdown and (if rest_only or hybrid) openapiYaml and sqlSchemaSql.',\n        'If you choose events_only or hybrid, you MUST produce asyncapiYaml, cloudEventsMarkdown, and avroSchemasJson.',\n        '',\n        'Do not invent services that do not exist in application_arch.',\n        'Public API only (no internal APIs).',\n        'Ensure endpoints and events map back to application_arch components and brd use-cases.',\n        '',\n        'ABSOLUTE FORMATTING RULES:',\n        '- Return ONLY JSON that matches the schema (no extra keys).',\n        '- Do NOT include ``` anywhere in any string fields.',\n        '- solutionMarkdown: raw markdown, first line starts exactly with \"# Solution Architecture:\"',\n        '- openapiYaml: OpenAPI 3.0 YAML string, no code fences.',\n        '- asyncapiYaml: AsyncAPI 2.x YAML string, no code fences.',\n        '- sqlSchemaSql: SQL DDL string, no code fences.',\n        '- cloudEventsMarkdown: markdown, no code fences.',\n        '- avroSchemasJson: JSON object of AVSC schemas (objects), keyed by event name.'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'PROJECT_NAME: ' + $('Apply Classification + Slugify').first().json.projectName,\n        'PROJECT_SLUG: ' + $('Apply Classification + Slugify').first().json.projectSlug,\n        'JOB_ID: ' + ($('Initialize Parameters').first().json.jobId || ''),\n        '',\n        'BRD: ' + JSON.stringify($('Validate BRD').first().json.brd).slice(0, 7000),\n        '',\n        'APPLICATION_ARCH: ' + JSON.stringify($('Validate Application Architecture').first().json.applicationArch).slice(0, 7000),\n        '',\n        'DATA_ARCH: ' + JSON.stringify($('Validate Data Architecture').first().json.dataArch).slice(0, 7000),\n        '',\n        'INFRA_ARCH: ' + JSON.stringify($('Validate Infrastructure Architecture').first().json.infraArch).slice(0, 7000),\n        '',\n        'RISK_ASSESSMENT_MD: ' + String($('Validate Risk Markdown').first().json.riskMarkdown || '').slice(0, 7000)\n      ].join('\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['integrationStyle','solutionMarkdown','openapiYaml','sqlSchemaSql','asyncapiYaml','cloudEventsMarkdown','avroSchemasJson'],\n    properties: {\n      integrationStyle: { type: 'string', enum: ['rest_only','events_only','hybrid'] },\n      solutionMarkdown: { type: 'string' },\n      openapiYaml: { type: ['string','null'] },\n      sqlSchemaSql: { type: ['string','null'] },\n      asyncapiYaml: { type: ['string','null'] },\n      cloudEventsMarkdown: { type: ['string','null'] },\n      avroSchemasJson: { type: ['object','null'] }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "retryOnFail": true
+    },
+    {
+      "id": "val-solution",
+      "name": "Validate Solution Package",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        10208,
+        512
+      ],
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content;\nlet parsed;\ntry {\n  parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { valid: false, errors: ['Solution package parse failed: ' + e.message] } }];\n}\n\nconst errors = [];\nconst style = String(parsed?.integrationStyle || '');\nconst md = String(parsed?.solutionMarkdown || '');\nconst openapi = parsed?.openapiYaml ?? null;\nconst asyncapi = parsed?.asyncapiYaml ?? null;\nconst sql = parsed?.sqlSchemaSql ?? null;\nconst ce = parsed?.cloudEventsMarkdown ?? null;\nconst avro = parsed?.avroSchemasJson ?? null;\n\nif (!['rest_only','events_only','hybrid'].includes(style)) errors.push('integrationStyle invalid');\nif (!md.startsWith('# Solution Architecture:')) errors.push('solutionMarkdown first line must start with \"# Solution Architecture:\"');\nif (md.includes('```')) errors.push('solutionMarkdown must not include code fences');\n\nconst hasOpenApi = typeof openapi === 'string' && openapi.trim().length > 0;\nconst hasAsyncApi = typeof asyncapi === 'string' && asyncapi.trim().length > 0;\nconst hasSql = typeof sql === 'string' && sql.trim().length > 0;\nconst hasCe = typeof ce === 'string' && ce.trim().length > 0;\nconst hasAvro = avro && typeof avro === 'object' && !Array.isArray(avro) && Object.keys(avro).length > 0;\n\nif (style === 'rest_only' && !hasOpenApi) errors.push('rest_only requires openapiYaml');\nif (style === 'events_only' && !hasAsyncApi) errors.push('events_only requires asyncapiYaml');\nif (style === 'events_only' && !hasCe) errors.push('events_only requires cloudEventsMarkdown');\nif (style === 'events_only' && !hasAvro) errors.push('events_only requires avroSchemasJson');\nif (style === 'hybrid' && !(hasOpenApi || hasAsyncApi)) errors.push('hybrid requires at least one of openapiYaml or asyncapiYaml');\n\nconst forbidFence = (s, label) => {\n  if (typeof s === 'string' && s.includes('```')) errors.push(label + ' must not include code fences');\n};\nforbidFence(openapi, 'openapiYaml');\nforbidFence(asyncapi, 'asyncapiYaml');\nforbidFence(sql, 'sqlSchemaSql');\nforbidFence(ce, 'cloudEventsMarkdown');\n\n// FNV-1a hash (32-bit) => 8 hex\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nreturn [{\n  json: {\n    valid: errors.length === 0,\n    errors,\n    integrationStyle: style,\n    solutionMarkdown: md,\n    openapiYaml: hasOpenApi ? openapi : null,\n    asyncapiYaml: hasAsyncApi ? asyncapi : null,\n    sqlSchemaSql: hasSql ? sql : null,\n    cloudEventsMarkdown: hasCe ? ce : null,\n    avroSchemasJson: hasAvro ? avro : null,\n    hashes: {\n      solution_arch_md: fnv1a(md),\n      openapi_yaml: hasOpenApi ? fnv1a(openapi) : null,\n      asyncapi_yaml: hasAsyncApi ? fnv1a(asyncapi) : null,\n      sql_schema_sql: hasSql ? fnv1a(sql) : null,\n      cloudevents_md: hasCe ? fnv1a(ce) : null,\n      avro_schemas_json: hasAvro ? fnv1a(JSON.stringify(avro)) : null,\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "explode-solution",
+      "name": "Explode Solution Artifacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        10448,
+        512
+      ],
+      "parameters": {
+        "jsCode": "// Turn validated package into multiple items for DB insert\nconst j = $json;\n\nif (!j.valid) {\n  // Return zero items so downstream store node is skipped\n  return [];\n}\n\nconst jobId = $('Initialize Parameters').first().json.jobId;\nconst model = $('Run Config').first().json.ollamaModel;\nconst seed = $('Run Config').first().json.ollamaSeed;\nconst temperature = $('Run Config').first().json.ollamaTemperature;\n\nconst metaBase = {\n  jobId,\n  stage: 'solution_architect',\n  model,\n  seed,\n  temperature,\n  integrationStyle: j.integrationStyle,\n};\n\nconst out = [];\n\nout.push({\n  json: {\n    artifactType: 'solution_arch_md',\n    content: { markdown: j.solutionMarkdown },\n    contentHash: j.hashes.solution_arch_md,\n    meta: metaBase,\n  }\n});\n\nif (j.openapiYaml) out.push({ json: { artifactType: 'openapi_yaml', content: { yaml: j.openapiYaml }, contentHash: j.hashes.openapi_yaml, meta: metaBase } });\nif (j.asyncapiYaml) out.push({ json: { artifactType: 'asyncapi_yaml', content: { yaml: j.asyncapiYaml }, contentHash: j.hashes.asyncapi_yaml, meta: metaBase } });\nif (j.sqlSchemaSql) out.push({ json: { artifactType: 'sql_schema_sql', content: { sql: j.sqlSchemaSql }, contentHash: j.hashes.sql_schema_sql, meta: metaBase } });\nif (j.cloudEventsMarkdown) out.push({ json: { artifactType: 'cloudevents_md', content: { markdown: j.cloudEventsMarkdown }, contentHash: j.hashes.cloudevents_md, meta: metaBase } });\nif (j.avroSchemasJson) out.push({ json: { artifactType: 'avro_schemas_json', content: { schemas: j.avroSchemasJson }, contentHash: j.hashes.avro_schemas_json, meta: metaBase } });\n\nreturn out;"
+      }
+    },
+    {
+      "id": "store-solution",
+      "name": "Store Solution Artifact(s)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        10688,
+        512
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = $2\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, $2, next_version.v, $3::jsonb, $4, $5::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, $json.artifactType, JSON.stringify($json.content), $json.contentHash, JSON.stringify($json.meta) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "id": "sol-valid-router",
+      "name": "Solution Valid?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        10360,
+        512
+      ],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.valid === true ? 0 : 1 }}"
+      }
+    },
+    {
+      "id": "repair-solution",
+      "name": "Repair Solution Package (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        10592,
+        608
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are repairing a Solution Package JSON to satisfy validation rules.',\n        'Return ONLY JSON matching the schema. Do not add extra keys.',\n        '',\n        'Primary goal: remove all occurrences of ``` from any string fields (especially cloudEventsMarkdown).',\n        'Keep semantics and KEEP NON-NULL FIELDS the same unless a field is truly inconsistent with integrationStyle.',\n        '',\n        'CRITICAL RULE: Do NOT null out openapiYaml/sqlSchemaSql/asyncapiYaml/avroSchemasJson just to make validation pass.',\n        'If integrationStyle is hybrid, you must preserve at least one of openapiYaml or asyncapiYaml AND preserve whichever other artifacts were provided (sqlSchemaSql for Postgres; cloudEventsMarkdown+avroSchemasJson for events).',\n        'If integrationStyle is rest_only, preserve openapiYaml and sqlSchemaSql; set event artifacts to null only if they were null originally.',\n        'If integrationStyle is events_only, preserve asyncapiYaml, cloudEventsMarkdown, avroSchemasJson; set REST artifacts to null only if they were null originally.',\n        '',\n        'Ensure solutionMarkdown starts with \"# Solution Architecture:\" and contains no ``` fences.',\n        'Ensure cloudEventsMarkdown contains no ``` fences.'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'VALIDATION_ERRORS: ' + JSON.stringify($json.errors || []),\n        'ORIGINAL_PACKAGE: ' + JSON.stringify({\n          integrationStyle: $json.integrationStyle,\n          solutionMarkdown: $json.solutionMarkdown,\n          openapiYaml: $json.openapiYaml,\n          sqlSchemaSql: $json.sqlSchemaSql,\n          asyncapiYaml: $json.asyncapiYaml,\n          cloudEventsMarkdown: $json.cloudEventsMarkdown,\n          avroSchemasJson: $json.avroSchemasJson\n        }).slice(0, 14000)\n      ].join('\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['integrationStyle','solutionMarkdown','openapiYaml','sqlSchemaSql','asyncapiYaml','cloudEventsMarkdown','avroSchemasJson'],\n    properties: {\n      integrationStyle: { type: 'string', enum: ['rest_only','events_only','hybrid'] },\n      solutionMarkdown: { type: 'string' },\n      openapiYaml: { type: ['string','null'] },\n      sqlSchemaSql: { type: ['string','null'] },\n      asyncapiYaml: { type: ['string','null'] },\n      cloudEventsMarkdown: { type: ['string','null'] },\n      avroSchemasJson: { type: ['object','null'] }\n    }\n  },\n  options: {\n    temperature: 0,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "retryOnFail": true
+    },
+    {
+      "id": "val-solution-repair",
+      "name": "Validate Repaired Solution",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        10832,
+        608
+      ],
+      "parameters": {
+        "jsCode": "// Same validation logic as Validate Solution Package, but for repaired output\nconst raw = $json.message?.content;\nlet parsed;\ntry {\n  parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { valid: false, errors: ['Solution package parse failed: ' + e.message] } }];\n}\n\nconst errors = [];\nconst style = String(parsed?.integrationStyle || '');\nconst md = String(parsed?.solutionMarkdown || '');\nconst openapi = parsed?.openapiYaml ?? null;\nconst asyncapi = parsed?.asyncapiYaml ?? null;\nconst sql = parsed?.sqlSchemaSql ?? null;\nconst ce = parsed?.cloudEventsMarkdown ?? null;\nconst avro = parsed?.avroSchemasJson ?? null;\n\nif (!['rest_only','events_only','hybrid'].includes(style)) errors.push('integrationStyle invalid');\nif (!md.startsWith('# Solution Architecture:')) errors.push('solutionMarkdown first line must start with \"# Solution Architecture:\"');\nif (md.includes('```')) errors.push('solutionMarkdown must not include code fences');\n\nconst hasOpenApi = (typeof openapi === 'string' && openapi.trim().length > 0);\nconst hasAsyncApi = (typeof asyncapi === 'string' && asyncapi.trim().length > 0);\nconst hasSql = (typeof sql === 'string' && sql.trim().length > 0);\nconst hasCe = (typeof ce === 'string' && ce.trim().length > 0);\nconst hasAvro = (avro && typeof avro === 'object' && !Array.isArray(avro) && Object.keys(avro).length > 0);\n\nif (style === 'rest_only' && !hasOpenApi) errors.push('rest_only requires openapiYaml');\nif (style === 'rest_only' && !hasSql) errors.push('rest_only requires sqlSchemaSql');\nif (style === 'events_only' && !hasAsyncApi) errors.push('events_only requires asyncapiYaml');\nif (style === 'events_only' && !hasCe) errors.push('events_only requires cloudEventsMarkdown');\nif (style === 'events_only' && !hasAvro) errors.push('events_only requires avroSchemasJson');\nif (style === 'hybrid' && !(hasOpenApi || hasAsyncApi)) errors.push('hybrid requires at least one of openapiYaml or asyncapiYaml');\n\nconst forbidFence = (s, label) => {\n  if (typeof s === 'string' && s.includes('```')) errors.push(label + ' must not include code fences');\n};\nforbidFence(openapi, 'openapiYaml');\nforbidFence(asyncapi, 'asyncapiYaml');\nforbidFence(sql, 'sqlSchemaSql');\nforbidFence(ce, 'cloudEventsMarkdown');\n\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nreturn [{\n  json: {\n    valid: errors.length === 0,\n    errors,\n    integrationStyle: style,\n    solutionMarkdown: md,\n    openapiYaml: hasOpenApi ? openapi : null,\n    asyncapiYaml: hasAsyncApi ? asyncapi : null,\n    sqlSchemaSql: hasSql ? sql : null,\n    cloudEventsMarkdown: hasCe ? ce : null,\n    avroSchemasJson: hasAvro ? avro : null,\n    hashes: {\n      solution_arch_md: fnv1a(md),\n      openapi_yaml: hasOpenApi ? fnv1a(openapi) : null,\n      asyncapi_yaml: hasAsyncApi ? fnv1a(asyncapi) : null,\n      sql_schema_sql: hasSql ? fnv1a(sql) : null,\n      cloudevents_md: hasCe ? fnv1a(ce) : null,\n      avro_schemas_json: hasAvro ? fnv1a(JSON.stringify(avro)) : null,\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "sol-repair-valid-router",
+      "name": "Repaired Solution Valid?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        11072,
+        608
+      ],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.valid === true ? 0 : 1 }}"
+      }
+    },
+    {
+      "id": "ba-note",
+      "name": "BA PRD Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        11296,
+        336
+      ],
+      "parameters": {
+        "content": "## Phase 7: Business Analyst (PRD)\nGenerates RPG-method PRD using .taskmaster template and stores as prd_md.",
+        "height": 110,
+        "width": 420,
+        "color": 6
+      }
+    },
+    {
+      "id": "after-solution",
+      "name": "After Solution Stage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        10944,
+        512
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Collapse multiple solution artifact insert rows into a single continuation item\nconst jobId = $('Initialize Parameters').first().json.jobId;\nconst projectName = $('Apply Classification + Slugify').first().json.projectName;\nconst projectSlug = $('Apply Classification + Slugify').first().json.projectSlug;\nreturn [{ json: { jobId, projectName, projectSlug } }];"
+      }
+    },
+    {
+      "id": "gen-prd",
+      "name": "Generate PRD (RPG Template)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        11296,
+        512
+      ],
+      "parameters": {
+        "url": "http://host.docker.internal:11434/api/chat",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are a Business Analyst writing a PRD using the RPG (Repository Planning Graph) Method.',\n        '',\n        'CRITICAL REQUIREMENTS:',\n        '',\n        '1. CAPABILITY TREE - For EACH capability, include Features with:',\n        '   - **Description**: One sentence',\n        '   - **Inputs**: What data/context it needs',\n        '   - **Outputs**: What it produces',\n        '   - **Behavior**: Key logic/transformations',\n        '',\n        '2. MODULE DEFINITIONS - For EACH module:',\n        '   - **Maps to capability**: Reference the capability name',\n        '   - **Responsibility**: Single clear purpose',\n        '   - **File structure**: Show the module files',\n        '   - **Exports**: List functions/classes with descriptions',\n        '',\n        '3. DEPENDENCY CHAIN - Structure as LAYERS (not library dependencies):',\n        '   ### Foundation Layer (Phase 0) - modules with NO dependencies',\n        '   ### Core Layer (Phase 1) - modules depending on Foundation',\n        '   ### Integration Layer (Phase 2) - modules depending on Phase 1',\n        '',\n        '4. DEVELOPMENT PHASES - For EACH phase include:',\n        '   - **Goal**: What this phase establishes',\n        '   - **Entry Criteria**: What must be true before starting',\n        '   - **Tasks**: With [ ] checkboxes and dependencies',\n        '   - **Exit Criteria**: Observable outcome',\n        '   - **Delivers**: What users/devs can do after',\n        '',\n        '5. First line MUST be: # PRD: <Project Name>',\n        '',\n        'Use architecture artifacts to inform all sections. Be detailed and specific.'\n      ].join('\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'PROJECT_NAME: ' + $json.projectName,\n        'PROJECT_SLUG: ' + $json.projectSlug,\n        'JOB_ID: ' + ($json.jobId || ''),\n        '',\n        'RPG TEMPLATE SKELETON (use these headings verbatim):',\n        '# Repository Planning Graph (RPG) Method - PRD Template',\n        '## Problem Statement',\n        '## Target Users',\n        '## Success Metrics',\n        '## Capability Tree',\n        '## Repository Structure',\n        '## Module Definitions',\n        '## Dependency Chain',\n        '## Development Phases',\n        '## Test Pyramid',\n        '## Coverage Requirements',\n        '## Critical Test Scenarios',\n        '## System Components',\n        '## Data Models',\n        '## Technology Stack',\n        '## Technical Risks',\n        '## Dependency Risks',\n        '## Scope Risks',\n        '## References',\n        '## Glossary',\n        '## Open Questions',\n        '',\n        'ARCHITECTURE ARTIFACTS:',\n        'BRD: ' + JSON.stringify($('Validate BRD').first().json.brd).slice(0, 9000),\n        'BUSINESS_ARCH: ' + JSON.stringify($('Validate Business Architecture').first().json.businessArch).slice(0, 9000),\n        'APPLICATION_ARCH: ' + JSON.stringify($('Validate Application Architecture').first().json.applicationArch).slice(0, 9000),\n        'DATA_ARCH: ' + JSON.stringify($('Validate Data Architecture').first().json.dataArch).slice(0, 9000),\n        'INFRA_ARCH: ' + JSON.stringify($('Validate Infrastructure Architecture').first().json.infraArch).slice(0, 9000),\n        'RISK_ASSESSMENT_MD: ' + String($('Validate Risk Markdown').first().json.riskMarkdown || '').slice(0, 9000),\n        'SOLUTION_ARCH_MD: ' + String($('Validate Solution Package').first().json.solutionMarkdown || '').slice(0, 9000),\n        '',\n        'QA INPUTS (use to populate QA-related PRD sections):',\n        'TEST_STRATEGY_MD: ' + String(($('Validate QA Package').first().json.testStrategyMarkdown || '')).slice(0, 9000),\n        'TEST_SCENARIOS_MD: ' + String(($('Validate QA Package').first().json.testScenariosMarkdown || '')).slice(0, 9000)\n      ].join('\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['markdown'],\n    properties: { markdown: { type: 'string' } }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "retryOnFail": true
+    },
+    {
+      "id": "val-prd",
+      "name": "Validate PRD",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        11536,
+        512
+      ],
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content;\nlet parsed;\ntry {\n  parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { valid: false, errors: ['PRD parse failed: ' + e.message], prdMarkdown: '' } }];\n}\n\nconst md = String(parsed?.markdown || '');\nconst errors = [];\nif (!md.startsWith('# PRD:')) errors.push('First line must start with \"# PRD:\"');\n\nconst requiredHeadings = [\n  '## Problem Statement',\n  '## Target Users',\n  '## Success Metrics',\n  '## Capability Tree',\n  '## Repository Structure',\n  '## Module Definitions',\n  '## Dependency Chain',\n  '## Development Phases',\n  '## Test Pyramid',\n  '## Coverage Requirements',\n  '## Critical Test Scenarios',\n  '## System Components',\n  '## Data Models',\n  '## Technology Stack',\n  '## Technical Risks',\n  '## Open Questions',\n];\nfor (const h of requiredHeadings) {\n  if (!md.includes(h)) errors.push('Missing heading: ' + h);\n}\n\nif (md.includes('<instruction>') || md.includes('</instruction>')) errors.push('PRD must not include <instruction> tags');\n\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nreturn [{ json: { valid: errors.length === 0, errors, prdMarkdown: md, prdMarkdownHash: fnv1a(md) } }];"
+      }
+    },
+    {
+      "id": "store-prd",
+      "name": "Store PRD Artifact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        11776,
+        512
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = 'prd_md'\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, 'prd_md', next_version.v, $2::jsonb, $3, $4::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, JSON.stringify({ markdown: $json.prdMarkdown }), $json.prdMarkdownHash, JSON.stringify({ jobId: $('Initialize Parameters').first().json.jobId, stage: 'business_analyst', model: $('Run Config').first().json.ollamaModel, seed: $('Run Config').first().json.ollamaSeed, temperature: $('Run Config').first().json.ollamaTemperature }) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "prd-valid-router",
+      "name": "PRD Valid?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        11696,
+        512
+      ],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.valid === true ? 0 : 1 }}"
+      }
+    },
+    {
+      "id": "repair-prd",
+      "name": "Repair PRD (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        11936,
+        608
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are repairing a PRD markdown document to comply with the RPG Method template.',\n        'Return ONLY JSON {\"markdown\": \"...\"} matching the schema, no extra keys.',\n        'Keep existing content, but you MUST add/repair missing RPG structure.',\n        'CRITICAL: Ensure the PRD contains and populates QA-related sections:',\n        '- ## Coverage Requirements (derive from TEST_STRATEGY_MD coverage targets)',\n        '- ## Critical Test Scenarios (derive from TEST_SCENARIOS_MD)',\n        'Do NOT remove existing content; insert or expand sections in-place.',\n        'Do NOT include <instruction> tags.',\n        'You MAY use markdown fences only where appropriate for repo tree/test pyramid.',\n        'First line must remain \"# PRD: <Project Name>\".'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'VALIDATION_ERRORS: ' + JSON.stringify($json.errors || []),\n        'ORIGINAL_PRD_MD:',\n        ($json.prdMarkdown || '').slice(0, 14000),\n        '',\n        'TEST_STRATEGY_MD:',\n        String(($('Validate QA Package').first().json.testStrategyMarkdown || '')).slice(0, 9000),\n        '',\n        'TEST_SCENARIOS_MD:',\n        String(($('Validate QA Package').first().json.testScenariosMarkdown || '')).slice(0, 9000)\n      ].join('\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['markdown'],\n    properties: { markdown: { type: 'string' } }\n  },\n  options: {\n    temperature: 0,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "retryOnFail": true
+    },
+    {
+      "id": "val-prd-repair",
+      "name": "Validate Repaired PRD",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        12176,
+        608
+      ],
+      "parameters": {
+        "jsCode": "// Reuse the same validation rules as Validate PRD\nconst raw = $json.message?.content;\nlet parsed;\ntry {\n  parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { valid: false, errors: ['PRD parse failed: ' + e.message], prdMarkdown: '' } }];\n}\n\nconst md = String(parsed?.markdown || '');\nconst errors = [];\nif (!md.startsWith('# PRD:')) errors.push('First line must start with \"# PRD:\"');\n\nconst requiredHeadings = [\n  '## Problem Statement',\n  '## Target Users',\n  '## Success Metrics',\n  '## Capability Tree',\n  '## Repository Structure',\n  '## Module Definitions',\n  '## Dependency Chain',\n  '## Development Phases',\n  '## Test Pyramid',\n  '## Coverage Requirements',\n  '## Critical Test Scenarios',\n  '## System Components',\n  '## Data Models',\n  '## Technology Stack',\n  '## Technical Risks',\n  '## Open Questions',\n];\nfor (const h of requiredHeadings) {\n  if (!md.includes(h)) errors.push('Missing heading: ' + h);\n}\n\nif (md.includes('<instruction>') || md.includes('</instruction>')) errors.push('PRD must not include <instruction> tags');\n\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nreturn [{ json: { valid: errors.length === 0, errors, prdMarkdown: md, prdMarkdownHash: fnv1a(md) } }];"
+      }
+    },
+    {
+      "id": "prd-repair-valid-router",
+      "name": "Repaired PRD Valid?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        12416,
+        608
+      ],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.valid === true ? 0 : 1 }}"
+      }
+    },
+    {
+      "id": "qa-note",
+      "name": "QA Architect Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        11232,
+        128
+      ],
+      "parameters": {
+        "content": "## Phase 7: QA Architect\nGenerates test strategy + critical test scenarios (markdown) based on BRD + Solution + PRD context.\nArtifacts:\n- test_strategy_md\n- test_scenarios_md",
+        "height": 130,
+        "width": 440,
+        "color": 4
+      }
+    },
+    {
+      "id": "gen-qa",
+      "name": "Generate QA Package (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        11296,
+        656
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are a QA Architect responsible for test strategy and test scenario specification.',\n        'Output ONLY JSON matching the schema.',\n        'You must create two markdown documents:',\n        '1) testStrategyMarkdown starting with \"# Test Strategy:\"',\n        '2) testScenariosMarkdown starting with \"# Test Scenarios:\"',\n        '',\n        'Include a test pyramid with the ratios (Unit 60-70%, Integration 20-30%, E2E 10-20%).',\n        'Include coverage targets table (line 80%, branch 75%, critical paths 100%).',\n        'Include critical test scenarios covering: auth (OIDC/JWKS), tenant isolation, core inventory/order flows, event-driven updates if present, and data consistency.',\n        '',\n        'We may not have modules.md or features.md. Derive modules/services/endpoints from application_arch and openapi_yaml when present.',\n        'If openapi_yaml is present, ensure each major endpoint group has scenarios.',\n        'If asyncapi_yaml is present, ensure each event has producer/consumer and contract validation scenarios.',\n        'Use deterministic IDs for scenarios: UT-<module>-###, IT-<module>-###, E2E-<journey>-###.',\n        'Do not use markdown code fences at all.'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'PROJECT_NAME: ' + $('Apply Classification + Slugify').first().json.projectName,\n        'PROJECT_SLUG: ' + $('Apply Classification + Slugify').first().json.projectSlug,\n        'JOB_ID: ' + ($('Initialize Parameters').first().json.jobId || ''),\n        '',\n        'BRD: ' + JSON.stringify($('Validate BRD').first().json.brd).slice(0, 9000),\n        '',\n        'APPLICATION_ARCH: ' + JSON.stringify($('Validate Application Architecture').first().json.applicationArch).slice(0, 9000),\n        '',\n        'DATA_ARCH: ' + JSON.stringify($('Validate Data Architecture').first().json.dataArch).slice(0, 9000),\n        '',\n        'INFRA_ARCH: ' + JSON.stringify($('Validate Infrastructure Architecture').first().json.infraArch).slice(0, 9000),\n        '',\n        'SOLUTION_STYLE: ' + String($('Validate Solution Package').first().json.integrationStyle || ''),\n        'OPENAPI_YAML (if any): ' + String($('Validate Solution Package').first().json.openapiYaml || '').slice(0, 9000),\n        'ASYNCAPI_YAML (if any): ' + String($('Validate Solution Package').first().json.asyncapiYaml || '').slice(0, 9000)\n      ].join('\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['testStrategyMarkdown','testScenariosMarkdown'],\n    properties: {\n      testStrategyMarkdown: { type: 'string' },\n      testScenariosMarkdown: { type: 'string' }\n    }\n  },\n  options: {\n    num_ctx: 16384, temperature: $('Run Config').first().json.ollamaTemperature,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "retryOnFail": true
+    },
+    {
+      "id": "val-qa",
+      "name": "Validate QA Package",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        11536,
+        656
+      ],
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content;\nlet parsed;\ntry {\n  parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { valid: false, errors: ['QA package parse failed: ' + e.message] } }];\n}\n\nconst errors = [];\nconst ts = String(parsed?.testStrategyMarkdown || '');\nconst sc = String(parsed?.testScenariosMarkdown || '');\n\nif (!ts.startsWith('# Test Strategy:')) errors.push('testStrategyMarkdown must start with \"# Test Strategy:\"');\nif (!sc.startsWith('# Test Scenarios:')) errors.push('testScenariosMarkdown must start with \"# Test Scenarios:\"');\nif (ts.includes('```') || sc.includes('```')) errors.push('No markdown code fences allowed');\n\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nreturn [{\n  json: {\n    valid: errors.length === 0,\n    errors,\n    testStrategyMarkdown: ts,\n    testScenariosMarkdown: sc,\n    hashes: {\n      test_strategy_md: fnv1a(ts),\n      test_scenarios_md: fnv1a(sc),\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "explode-qa",
+      "name": "Explode QA Artifacts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        11776,
+        656
+      ],
+      "parameters": {
+        "jsCode": "const j = $json;\nif (!j.valid) return [];\n\nconst jobId = $('Initialize Parameters').first().json.jobId;\nconst meta = {\n  jobId,\n  stage: 'qa_architect',\n  model: $('Run Config').first().json.ollamaModel,\n  seed: $('Run Config').first().json.ollamaSeed,\n  temperature: $('Run Config').first().json.ollamaTemperature,\n};\n\nreturn [\n  { json: { artifactType: 'test_strategy_md', content: { markdown: j.testStrategyMarkdown }, contentHash: j.hashes.test_strategy_md, meta } },\n  { json: { artifactType: 'test_scenarios_md', content: { markdown: j.testScenariosMarkdown }, contentHash: j.hashes.test_scenarios_md, meta } },\n];"
+      }
+    },
+    {
+      "id": "store-qa",
+      "name": "Store QA Artifact(s)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        12016,
+        656
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH next_version AS (\n  SELECT COALESCE(MAX(version), 0) + 1 AS v\n  FROM architecture.artifacts\n  WHERE project_id = $1 AND type = $2\n)\nINSERT INTO architecture.artifacts (project_id, type, version, content, content_hash, meta)\nSELECT $1, $2, next_version.v, $3::jsonb, $4, $5::jsonb\nFROM next_version\nRETURNING id, version;",
+        "options": {
+          "queryReplacement": "={{ [ $('Upsert Project').first().json.id, $json.artifactType, JSON.stringify($json.content), $json.contentHash, JSON.stringify($json.meta) ] }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "M5eIfNwtZu8y3dOp",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "id": "qa-valid-router",
+      "name": "QA Valid?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        11680,
+        656
+      ],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.valid === true ? 0 : 1 }}"
+      }
+    },
+    {
+      "id": "repair-qa",
+      "name": "Repair QA Package (Llama)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        11920,
+        752
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/chat",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  think: false, model: $('Run Config').first().json.ollamaModel,\n  messages: [\n    {\n      role: 'system',\n      content: [\n        'You are repairing a QA Package JSON.',\n        'Return ONLY JSON matching the schema, no extra keys.',\n        'Fix validation issues while keeping semantics.',\n        'Rules:',\n        '- testStrategyMarkdown must start with \"# Test Strategy:\"',\n        '- testScenariosMarkdown must start with \"# Test Scenarios:\"',\n        '- No ``` fences anywhere.',\n        '- Ensure test pyramid ratios sum to 100% and stay within: Unit 60-70, Integration 20-30, E2E 10-20.',\n        '- Ensure coverage targets include line 80%, branch 75%, critical paths 100%.',\n        '- Ensure critical scenarios include auth (OIDC/JWKS), tenant isolation, order/inventory flows, and events if present.'\n      ].join('\\\\n')\n    },\n    {\n      role: 'user',\n      content: [\n        'VALIDATION_ERRORS: ' + JSON.stringify($json.errors || []),\n        'ORIGINAL_QA_PACKAGE: ' + JSON.stringify({\n          testStrategyMarkdown: $json.testStrategyMarkdown,\n          testScenariosMarkdown: $json.testScenariosMarkdown\n        }).slice(0, 14000)\n      ].join('\\\\n')\n    }\n  ],\n  stream: false,\n  format: {\n    type: 'object',\n    additionalProperties: false,\n    required: ['testStrategyMarkdown','testScenariosMarkdown'],\n    properties: {\n      testStrategyMarkdown: { type: 'string' },\n      testScenariosMarkdown: { type: 'string' }\n    }\n  },\n  options: {\n    temperature: 0,\n    seed: $('Run Config').first().json.ollamaSeed\n  }\n} }}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "retryOnFail": true
+    },
+    {
+      "id": "val-qa-repair",
+      "name": "Validate Repaired QA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        12160,
+        752
+      ],
+      "parameters": {
+        "jsCode": "const raw = $json.message?.content;\nlet parsed;\ntry {\n  parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch (e) {\n  return [{ json: { valid: false, errors: ['QA package parse failed: ' + e.message] } }];\n}\n\nconst errors = [];\nconst ts = String(parsed?.testStrategyMarkdown || '');\nconst sc = String(parsed?.testScenariosMarkdown || '');\n\nif (!ts.startsWith('# Test Strategy:')) errors.push('testStrategyMarkdown must start with \"# Test Strategy:\"');\nif (!sc.startsWith('# Test Scenarios:')) errors.push('testScenariosMarkdown must start with \"# Test Scenarios:\"');\nif (ts.includes('```') || sc.includes('```')) errors.push('No markdown code fences allowed');\n\n// lightweight checks to reduce bad outputs\nif (!(ts.includes('Unit') && ts.includes('Integration') && ts.includes('E2E'))) {\n  errors.push('testStrategyMarkdown must include Unit/Integration/E2E test pyramid');\n}\nconst tsLower = ts.toLowerCase();\nif (!(ts.includes('80%') && ts.includes('75%') && tsLower.includes('critical'))) {\n  errors.push('testStrategyMarkdown must include coverage targets (80%, 75%, critical paths)');\n}\n\nconst fnv1a = (input) => {\n  const s = String(input ?? '');\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < s.length; i++) { hash ^= s.charCodeAt(i); hash = (hash * 0x01000193) >>> 0; }\n  return ('0000000' + hash.toString(16)).slice(-8);\n};\n\nreturn [{\n  json: {\n    valid: errors.length === 0,\n    errors,\n    testStrategyMarkdown: ts,\n    testScenariosMarkdown: sc,\n    hashes: {\n      test_strategy_md: fnv1a(ts),\n      test_scenarios_md: fnv1a(sc),\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "qa-repair-valid-router",
+      "name": "Repaired QA Valid?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        12400,
+        752
+      ],
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.valid === true ? 0 : 1 }}"
+      }
+    },
+    {
+      "id": "trigger-software-delivery",
+      "name": "Trigger Software Delivery",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        12016,
+        512
+      ],
+      "parameters": {
+        "url": "https://n8n.socrates-hlapolosa.org/webhook/software-delivery",
+        "method": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ jobId: $('Apply Classification + Slugify').first().json.jobId }) }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Classify Intent (Ollama)": {
+      "main": [
+        [
+          {
+            "node": "Apply Classification + Slugify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Project": {
+      "main": [
+        [
+          {
+            "node": "Load Latest BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Search (Capabilities) v2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Search (Capabilities) v2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Capability Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Capability Candidates": {
+      "main": [
+        [
+          {
+            "node": "Select Relevant Capabilities (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Relevant Capabilities (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Build Capability Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Capability Context": {
+      "main": [
+        [
+          {
+            "node": "Generate Business Architecture (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Business Architecture (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Business Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Business Architecture": {
+      "main": [
+        [
+          {
+            "node": "Business Arch Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure DB Schema": {
+      "main": [
+        [
+          {
+            "node": "Pass Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pass Context": {
+      "main": [
+        [
+          {
+            "node": "Upsert Project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Initialize Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Latest BRD": {
+      "main": [
+        [
+          {
+            "node": "Normalize BRD Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize BRD Rows": {
+      "main": [
+        [
+          {
+            "node": "StartAt Router",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Determine BRD Flow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Existing BRD": {
+      "main": [
+        [
+          {
+            "node": "Validate BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BRD Source Router": {
+      "main": [
+        [
+          {
+            "node": "Use Existing BRD",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate BRD (Llama HTTP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine BRD Flow": {
+      "main": [
+        [
+          {
+            "node": "BRD Source Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate BRD (Llama HTTP)": {
+      "main": [
+        [
+          {
+            "node": "Mark BRD Generated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark BRD Generated": {
+      "main": [
+        [
+          {
+            "node": "Validate BRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate BRD": {
+      "main": [
+        [
+          {
+            "node": "BRD Post-Validate Router",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Store BRD Artifact",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Qdrant Search (Capabilities) v2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store BRD Artifact": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Search (Capabilities) v2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reload Business Arch For XML": {
+      "main": [
+        [
+          {
+            "node": "Convert to ArchiMate XML (Deterministic)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repair Business Architecture (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Repaired Business Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Repaired Business Arch": {
+      "main": [
+        [
+          {
+            "node": "Store Business Arch Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Business Arch Valid?": {
+      "main": [
+        [
+          {
+            "node": "Store Business Arch Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Repair Business Architecture (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "StartAt Router": {
+      "main": [
+        [
+          {
+            "node": "Generate BRD (Llama HTTP)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Determine BRD Flow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to ArchiMate XML (Deterministic)": {
+      "main": [
+        [
+          {
+            "node": "Hash Business XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash Business XML": {
+      "main": [
+        [
+          {
+            "node": "Store Business XML Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Business XML Artifact": {
+      "main": [
+        [
+          {
+            "node": "Compile Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Application Architecture (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Application Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to ArchiMate XML (Business+App)": {
+      "main": [
+        [
+          {
+            "node": "Hash Combined XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash Combined XML": {
+      "main": [
+        [
+          {
+            "node": "Store Combined XML Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Business Arch Artifact": {
+      "main": [
+        [
+          {
+            "node": "After Business Stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "After Business Stage": {
+      "main": [
+        [
+          {
+            "node": "Generate Application Architecture (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reload Business Arch For XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Application Arch Artifact": {
+      "main": [
+        [
+          {
+            "node": "Reload App Arch For XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reload App Arch For XML": {
+      "main": [
+        [
+          {
+            "node": "Convert to ArchiMate XML (Business+App)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Application Architecture": {
+      "main": [
+        [
+          {
+            "node": "App Arch Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "App Arch Valid?": {
+      "main": [
+        [
+          {
+            "node": "Store Application Arch Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Repair Application Architecture (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repair Application Architecture (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Repaired App Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Repaired App Arch": {
+      "main": [
+        [
+          {
+            "node": "Store Application Arch Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Combined XML Artifact": {
+      "main": [
+        [
+          {
+            "node": "After App Stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "After App Stage": {
+      "main": [
+        [
+          {
+            "node": "Generate Data Architecture (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Data Architecture (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Data Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Data Architecture": {
+      "main": [
+        [
+          {
+            "node": "Store Data Arch Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to ArchiMate XML (Biz+App+Data)": {
+      "main": [
+        [
+          {
+            "node": "Hash Biz+App+Data XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash Biz+App+Data XML": {
+      "main": [
+        [
+          {
+            "node": "Store Biz+App+Data XML Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Data Arch Artifact": {
+      "main": [
+        [
+          {
+            "node": "Reload Data Arch For XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reload Data Arch For XML": {
+      "main": [
+        [
+          {
+            "node": "Convert to ArchiMate XML (Biz+App+Data)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Biz+App+Data XML Artifact": {
+      "main": [
+        [
+          {
+            "node": "After Data Stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "After Data Stage": {
+      "main": [
+        [
+          {
+            "node": "Generate Infrastructure Architecture (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Infrastructure Architecture (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Infrastructure Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Infra Arch Artifact": {
+      "main": [
+        [
+          {
+            "node": "Reload Infra Arch For XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reload Infra Arch For XML": {
+      "main": [
+        [
+          {
+            "node": "Convert to ArchiMate XML (Biz+App+Data+Infra)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to ArchiMate XML (Biz+App+Data+Infra)": {
+      "main": [
+        [
+          {
+            "node": "Hash Biz+App+Data+Infra XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash Biz+App+Data+Infra XML": {
+      "main": [
+        [
+          {
+            "node": "Store Biz+App+Data+Infra XML Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Infrastructure Architecture": {
+      "main": [
+        [
+          {
+            "node": "Infra Arch Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Infra Arch Valid?": {
+      "main": [
+        [
+          {
+            "node": "Store Infra Arch Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Repair Infrastructure Architecture (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repair Infrastructure Architecture (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Repaired Infra Arch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Repaired Infra Arch": {
+      "main": [
+        [
+          {
+            "node": "Store Infra Arch Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Classification + Slugify": {
+      "main": [
+        [
+          {
+            "node": "Ensure DB Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Parameters": {
+      "main": [
+        [
+          {
+            "node": "Respond Ack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond Ack": {
+      "main": [
+        [
+          {
+            "node": "Run Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Config": {
+      "main": [
+        [
+          {
+            "node": "Classify Intent (Ollama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Biz+App+Data+Infra XML Artifact": {
+      "main": [
+        [
+          {
+            "node": "Generate Risk Assessment (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Risk Assessment (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Risk Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Risk Markdown": {
+      "main": [
+        [
+          {
+            "node": "Store Risk Assessment Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Risk Assessment Artifact": {
+      "main": [
+        [
+          {
+            "node": "Generate Solution Package (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Solution Package (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Solution Package",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Explode Solution Artifacts": {
+      "main": [
+        [
+          {
+            "node": "Store Solution Artifact(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Solution Package": {
+      "main": [
+        [
+          {
+            "node": "Solution Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solution Valid?": {
+      "main": [
+        [
+          {
+            "node": "Explode Solution Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Repair Solution Package (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repair Solution Package (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Repaired Solution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Repaired Solution": {
+      "main": [
+        [
+          {
+            "node": "Repaired Solution Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repaired Solution Valid?": {
+      "main": [
+        [
+          {
+            "node": "Explode Solution Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Solution Artifact(s)": {
+      "main": [
+        [
+          {
+            "node": "After Solution Stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate PRD (RPG Template)": {
+      "main": [
+        [
+          {
+            "node": "Validate PRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate PRD": {
+      "main": [
+        [
+          {
+            "node": "PRD Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PRD Valid?": {
+      "main": [
+        [
+          {
+            "node": "Store PRD Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Repair PRD (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repair PRD (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Repaired PRD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Repaired PRD": {
+      "main": [
+        [
+          {
+            "node": "Repaired PRD Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repaired PRD Valid?": {
+      "main": [
+        [
+          {
+            "node": "Store PRD Artifact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "After Solution Stage": {
+      "main": [
+        [
+          {
+            "node": "Generate QA Package (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate QA Package (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate QA Package",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Explode QA Artifacts": {
+      "main": [
+        [
+          {
+            "node": "Store QA Artifact(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store QA Artifact(s)": {
+      "main": [
+        [
+          {
+            "node": "Generate PRD (RPG Template)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate QA Package": {
+      "main": [
+        [
+          {
+            "node": "QA Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QA Valid?": {
+      "main": [
+        [
+          {
+            "node": "Explode QA Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Repair QA Package (Llama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repair QA Package (Llama)": {
+      "main": [
+        [
+          {
+            "node": "Validate Repaired QA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Repaired QA": {
+      "main": [
+        [
+          {
+            "node": "Repaired QA Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Repaired QA Valid?": {
+      "main": [
+        [
+          {
+            "node": "Explode QA Artifacts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store PRD Artifact": {
+      "main": [
+        [
+          {
+            "node": "Trigger Software Delivery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "tags": []
+}
